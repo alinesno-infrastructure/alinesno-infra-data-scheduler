@@ -1,0 +1,120 @@
+server:
+  port: 30208
+
+# spring 配置
+spring:
+  application:
+    name: alinesno-infra-data-scheduler-boot
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/dev_alinesno_infra_data_scheduler_v100?serverTimezone=GMT%2B8&zeroDateTimeBehavior=CONVERT_TO_NULL
+    username: root
+    password: adminer
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      password: aip@local
+  quartz:
+    #是否自动启动
+    autoStartup: false
+    #相关属性配置
+    properties:
+      org:
+        quartz:
+          scheduler:
+            #调度器实例名称
+            instanceName: clusteredScheduler
+            #调度器实例编号自动生成
+            instanceId: AUTO
+          jobStore:
+            txIsolationLevelSerializable: false
+            #持久化方式配置
+            class: org.quartz.impl.jdbcjobstore.JobStoreTX
+            #持久化方式配置数据驱动，MySQL数据库
+            driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
+            #quartz相关数据表前缀名
+            tablePrefix: QRTZ_
+            #开启分布式部署
+            isClustered: true
+            #分布式节点有效性检查时间间隔，单位：毫秒
+            clusterCheckinInterval: 10000
+            #配置是否使用
+            useProperties: false
+          threadPool:
+            #线程池实现类
+            class: org.quartz.simpl.SimpleThreadPool
+            #执行最大并发线程数量
+            threadCount: 20
+            #线程优先级
+            threadPriority: 5
+            #配置是否启动自动加载数据库内的定时任务，默认true
+            threadsInheritContextClassLoaderOfInitializingThread: true
+    #数据库方式
+    job-store-type: jdbc
+    #初始化表结构
+    jdbc:
+      initialize-schema: always # always/never
+  devtools:
+    restart:
+      enabled: true
+
+alinesno:
+  data:
+    scheduler:
+      workspacePath: ${user.home}/.infra-data-scheduler
+
+# actable配置
+actable:
+  table:
+    auto: update
+  model:
+    pack: com.alinesno.infra.data.scheduler.entity;
+  database:
+    type: mysql
+  index:
+    prefix: alinesno_data_scheduler_idx_
+  unique:
+    prefix: alinesno_data_scheduler_uni_
+
+# sa-token配置
+sa-token:
+  token-name: satoken
+  host-path: http://alinesno-infra-base-identity-auth-application.beta.base.infra.linesno.com
+  sso:
+    auth-url: ${sa-token.host-path}/login
+    is-http: true
+    check-ticket-url: ${sa-token.host-path}/sso/checkTicket
+    slo-url: ${sa-token.host-path}/sso/signout
+    get-data-url: ${sa-token.host-path}/sso/getData
+  sign:
+    secret-key:
+
+#org:
+#  quartz:
+#    jobStore:
+#      class: org.quartz.impl.jdbcjobstore.JobStoreTX
+#      clusterCheckinInterval: 5000
+#      driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
+#      isClustered: true
+#      misfireThreshold: 60000
+#      tablePrefix: QRTZ_
+#      txIsolationLevelReadCommitted: true
+#      useProperties: false
+#    scheduler:
+#      instanceId: AUTO
+#      instanceName: ClusterQuartz
+#      rmi:
+#        export: false
+#        proxy: false
+#      wrapJobExecutionInUserTransaction: false
+
+## 定时任务
+#db-scheduler:
+#  immediate-execution-enabled: true
+#  threads: 5
+#  polling-interval: 5
+#  polling-strategy: fetch
+#  polling-strategy-lower-limit-fraction-of-threads: 0.5
+#  polling-strategy-upper-limit-fraction-of-threads: 3.0
+#  shutdown-max-wait: 30m
