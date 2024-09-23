@@ -32,4 +32,5 @@
 
 - 集成学习参考资料[Quartz应用与集群原理分析](https://tech.meituan.com/2014/08/31/mt-crm-quartz.html)
 - 集成定时任务框架[quartz](https://github.com/kagkarlsson/db-scheduler)
-- 任务参数参考[任务总体存储结构](https://docs.devlive.org/read/apache-dolphin-scheduler-zh-3.2.1/Architecture-Task-Structure)
+- 执行任务参数参考[任务总体存储结构](https://docs.devlive.org/read/apache-dolphin-scheduler-zh-3.2.1/Architecture-Task-Structure)
+- 流程设计器参考[smart-flow-design](https://gitee.com/crowncloud/smart-flow-design)
