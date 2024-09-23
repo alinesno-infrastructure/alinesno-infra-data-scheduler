@@ -5,6 +5,9 @@ import Cookies from 'js-cookie'
 import ElementPlus from 'element-plus'
 import locale from 'element-plus/lib/locale/lang/zh-cn' // 中文语言
 
+import Antd from 'ant-design-vue'
+import 'ant-design-vue/dist/reset.css'
+
 import '@/assets/styles/index.scss' // global css
 
 import App from './App'
@@ -76,6 +79,8 @@ app.use(store)
 app.use(plugins)
 app.use(elementIcons)
 app.component('svg-icon', SvgIcon)
+
+app.use(Antd)
 
 directive(app)
 
