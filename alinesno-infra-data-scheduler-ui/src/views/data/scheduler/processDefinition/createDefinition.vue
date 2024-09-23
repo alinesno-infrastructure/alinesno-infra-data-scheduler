@@ -23,6 +23,7 @@
               </div>
             </div>
 
+
           </div>
       </div>
 
@@ -60,72 +61,7 @@ const props = defineProps({
   },
 });
 
-const nodeDataArr = ref([{
-    "node": {
-        "id": "fe632aae-75ee-4067-a15c-3ec934b3f4c0",
-        "name": "发起人",
-        "type": 0,
-        "status": -1,
-        "error": false,
-        "childNode": null,
-        "addable": true
-      },
-      "mapImg": "",
-      "suggestBranchEnable": true,
-      "parallelBranchEnable": true
-    },{
-        "node": {
-            "id": "fe632aae-75ee-4067-a15c-3ec934b3f4c0",
-            "name": "发起人",
-            "type": 0,
-            "status": -1,
-            "error": false,
-            "childNode": null,
-            "addable": true
-        },
-        "mapImg": "",
-        "suggestBranchEnable": true,
-        "parallelBranchEnable": true
-    },{
-        "node": {
-            "id": "fe632aae-75ee-4067-a15c-3ec934b3f4c0",
-            "name": "发起人",
-            "type": 0,
-            "status": -1,
-            "error": false,
-            "childNode": null,
-            "addable": true
-        },
-        "mapImg": "",
-        "suggestBranchEnable": true,
-        "parallelBranchEnable": true
-    },{
-        "node": {
-            "id": "fe632aae-75ee-4067-a15c-3ec934b3f4c0",
-            "name": "发起人",
-            "type": 0,
-            "status": -1,
-            "error": false,
-            "childNode": null,
-            "addable": true
-        },
-        "mapImg": "",
-        "suggestBranchEnable": true,
-        "parallelBranchEnable": true
-    },{
-        "node": {
-            "id": "fe632aae-75ee-4067-a15c-3ec934b3f4c0",
-            "name": "发起人",
-            "type": 0,
-            "status": -1,
-            "error": false,
-            "childNode": null,
-            "addable": true
-        },
-        "mapImg": "",
-        "suggestBranchEnable": true,
-        "parallelBranchEnable": true
-    }]);
+const nodeDataArr = ref(flowNodeStore().nodes);
 
 /** 返回 */
 function goBack() {
