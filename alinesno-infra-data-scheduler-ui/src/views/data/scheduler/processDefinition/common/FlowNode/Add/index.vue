@@ -83,7 +83,7 @@ function addType(type) {
   const currNode = props.node;
   const id = props.id;
 
-  flowNodeStore().addNode('flow/addNode' , {addNode, currNode, nodeType, id});
+  flowNodeStore().addNode({addNode, currNode, nodeType, id});
 }
 
 /**
@@ -107,34 +107,6 @@ function addApproverNode(type) {
       // 审批人为空时
       noHander: 4,
     },
-    // 审批设置
-    approverGroups: [
-      {
-        id: uuidv4(),
-        // 审批人模式
-        approverType: 1,
-        // 层级模式
-        levelMode: 1,
-        // 审批人ID
-        approverIds: [],
-        // 审批人名称
-        approverNames: [],
-      },
-    ],
-    // 表单权限
-    privileges: [],
-    // 高级配置
-    configure: {},
-    // 子节点
-    childNode: null,
-    // 显示添加按钮
-    addable: true,
-    // 可删除提示
-    deletable: false,
-    // 是否有错误
-    error: false,
-    // 显示内容
-    content: null,
   };
 }
 </script>
