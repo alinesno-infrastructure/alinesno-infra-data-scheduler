@@ -90,7 +90,7 @@ export const constantRoutes = [
         meta: { title: '学习手册', icon: 'dashboard', affix: true }
       },
 
-      // ->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+      // ->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
       {
         path: '/data/scheduler/project/index',
         name: 'data.scheduler.project.index',
@@ -146,7 +146,24 @@ export const constantRoutes = [
         hidden: false,
         component: () => import('@/views/data/scheduler/apiRecord/index'),
         meta: { title: '操作记录', icon: 'fa-solid fa-code-pull-request', affix: false }
+      },
+
+      // ->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+      {
+        path: '/data/scheduler/processDefinition/addDefinition',
+        name: 'data.scheduler.processDefinition.addDefinition',
+        hidden: false,
+        component: () => import('@/views/data/scheduler/processDefinition/addDefinition'),
+        meta: { title: '添加任务', icon: 'fa-solid fa-code-pull-request', affix: false }
+      },
+      {
+        path: '/data/scheduler/processDefinition/createDefinition',
+        name: 'data.scheduler.processDefinition.createDefinition',
+        hidden: false,
+        component: () => import('@/views/data/scheduler/processDefinition/createDefinition'),
+        meta: { title: '添加任务', icon: 'fa-solid fa-code-pull-request', affix: false }
       }
+
     ]
   },
   {
