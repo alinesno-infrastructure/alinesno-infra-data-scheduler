@@ -19,7 +19,7 @@ import org.springframework.context.annotation.Configuration;
 @EnableActable
 @EnableInfraSsoApi
 @MapperScan({
-        "com.alinesno.infra.data.scheduler.scheduler.mapper" ,
+        "com.alinesno.infra.data.scheduler.quartz.mapper" ,
         "com.alinesno.infra.data.scheduler.mapper"
 })
 @Configuration
