@@ -21,11 +21,6 @@ import java.util.Map;
 public class ProcessDefinitionEntity extends InfraBaseEntity {
 
     @TableField
-    @ColumnType(value = MySqlTypeConstant.BIGINT, length = 32)
-    @ColumnComment("流程编码")
-    private long code ;
-
-    @TableField
     @ColumnType(value = MySqlTypeConstant.VARCHAR, length = 128)
     @ColumnComment("流程名称")
     private String name ;
