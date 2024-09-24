@@ -1,6 +1,7 @@
 package com.alinesno.infra.data.scheduler.service;
 
 import com.alinesno.infra.common.facade.services.IBaseService;
+import com.alinesno.infra.data.scheduler.api.ProcessDefinitionDto;
 import com.alinesno.infra.data.scheduler.entity.ProcessDefinitionEntity;
 import com.alinesno.infra.data.scheduler.entity.TaskDefinitionEntity;
 import com.alinesno.infra.data.scheduler.executor.bean.TaskInfoBean;
@@ -15,5 +16,11 @@ public interface IProcessDefinitionService extends IBaseService<ProcessDefinitio
      * @param taskDefinitionList
      */
     void runProcess(TaskInfoBean task, List<TaskDefinitionEntity> taskDefinitionList);
+
+    /**
+     * 保存流程定义
+     * @param dto
+     */
+    void saveProcessDefinition(ProcessDefinitionDto dto);
 
 }
