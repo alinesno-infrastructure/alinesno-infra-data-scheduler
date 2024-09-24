@@ -44,15 +44,6 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>yarn set registry</id>
-                        <goals>
-                            <goal>yarn</goal>
-                        </goals>
-                        <configuration>
-                            <arguments>config set registry ${npm.registry.url}</arguments>
-                        </configuration>
-                    </execution>
-                    <execution>
                         <id>yarn install</id>
                         <goals>
                             <goal>yarn</goal>
