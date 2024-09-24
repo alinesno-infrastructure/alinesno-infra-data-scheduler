@@ -5,31 +5,34 @@
         <a-menu mode="vertical" class="flow-ant-menu-vertical">
           <a-menu-item key="1" @click="addType(1)">
             <img :src="approverIcon2" class="anticon" />
-            <span>Shell脚本</span>
-          </a-menu-item>
-          <a-menu-item key="4" @click="addType(4)">
-            <img :src="branchIcon2" class="anticon" />
-            <span>HTTP请求</span>
-          </a-menu-item>
-          <a-menu-item v-if="nodeType == 1" key="7" @click="addType(7)">
-            <img :src="branchIcon2" class="anticon" />
-            <span>Python脚本</span>
+            <span>SHELL脚本</span>
           </a-menu-item>
           <a-menu-item key="2" @click="addType(2)">
+            <img :src="webhookIcon2" class="anticon" />
+            <span>HTTP请求</span>
+          </a-menu-item>
+          <a-menu-item key="3" @click="addType(3)">
+            <img :src="branchIcon2" class="anticon" />
+            <span>PYTHON脚本</span>
+          </a-menu-item>
+          <a-menu-item key="4" @click="addType(4)">
             <img :src="ccIcon2" class="anticon" />
             <span>SQL脚本</span>
           </a-menu-item>
-          <a-menu-item key="6" @click="addType(6)">
+          <a-menu-item key="5" @click="addType(5)">
             <img :src="writeIcon2" class="anticon" />
-            <span>Maven命令</span>
+            <span>MAVEN命令</span>
           </a-menu-item>
-          <a-menu-item key="20" @click="addType(20)">
+          <a-menu-item key="6" @click="addType(6)">
             <img :src="noticeIcon2" class="anticon" />
-            <span>Jar包执行</span>
+            <span>JAR包执行</span>
+          </a-menu-item>
+          <a-menu-item key="7" @click="addType(7)">
+            <img :src="parallelIcon" class="anticon" />
+            <span>K8S操作</span>
           </a-menu-item>
         </a-menu>
       </template>
-      <!-- 当审批节点下添加意见分支,就不允许添加其他类型的节点了 -->
       <img :src="plusIcon" />
     </a-popover>
   </div>
@@ -78,6 +81,8 @@ const visible = ref(true)
 /** 添加节点 */
 function addType(type) {
 
+  console.log('type = ' + type);
+
   let addNode = addApproverNode(type);
   const nodeType = props.nodeType;
   const currNode = props.node;
@@ -87,12 +92,57 @@ function addType(type) {
 }
 
 /**
+ * 获取节点类型信息 
+ * @param {*} type 
+ */
+function getTypeInfo(type) {
+    let name = '';
+    let icon = '';
+
+    switch (type) {
+      case 1:
+        name = 'SHELL脚本';
+        icon = approverIcon2;
+        break;
+      case 2:
+        name = 'HTTP请求';
+        icon = webhookIcon2;
+        break;
+      case 3:
+        name = 'PYTHON脚本';
+        icon = branchIcon2;
+        break;
+      case 4:
+        name = 'SQL脚本';
+        icon = ccIcon2;
+        break;
+      case 5:
+        name = 'MAVEN命令';
+        icon = writeIcon2;
+        break;
+      case 6:
+        name = 'JAR包执行';
+        icon = noticeIcon2;
+        break;
+      case 7:
+        name = 'K8S操作';
+        icon = parallelIcon;
+        break;
+      default:
+        console.error(`未知类型: ${type}`);
+        return null;
+    }
+
+    return { name:name, icon:icon };
+}
+
+/**
  * 添加审批节点 ||
  */
 function addApproverNode(type) {
   return {
     id: uuidv4(),
-    name: type == 1 ? '审批人' : '办理人',
+    name: getTypeInfo(type).name , // type == 1 ? '审批人' : '办理人',
     type: type,
     // 流程节点状态(用于只读模式, 0:未进行 1:进行中  2:已完成)
     status: -1,
