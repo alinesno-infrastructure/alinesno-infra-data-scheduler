@@ -19,14 +19,14 @@ import java.util.Map;
 public class TaskDefinitionEntity extends InfraBaseEntity {
 
     @TableField
-    @ColumnType(value = MySqlTypeConstant.BIGINT, length = 32)
+    @ColumnType(value = MySqlTypeConstant.VARCHAR, length = 64)
     @ColumnComment("任务编码")
-    private long code;
+    private String code ;
 
     @TableField
     @ColumnType(value = MySqlTypeConstant.BIGINT, length = 32)
     @ColumnComment("流程编码")
-    private long processCode ;
+    private long processId ;
 
     @TableField
     @ColumnType(value = MySqlTypeConstant.VARCHAR, length = 128)
@@ -41,7 +41,7 @@ public class TaskDefinitionEntity extends InfraBaseEntity {
     @TableField
     @ColumnType(value = MySqlTypeConstant.VARCHAR, length = 128)
     @ColumnComment("项目编码")
-    private long projectCode;
+    private long projectId ;
 
     @TableField
     @ColumnType(value = MySqlTypeConstant.VARCHAR, length = 128)
@@ -51,12 +51,17 @@ public class TaskDefinitionEntity extends InfraBaseEntity {
     @TableField
     @ColumnType(value = MySqlTypeConstant.VARCHAR, length = 128)
     @ColumnComment("环境编码")
-    private long environmentCode;
+    private long environmentId ;
 
     @TableField
-    @ColumnType(value = MySqlTypeConstant.VARCHAR, length = 128)
+    @ColumnType(value = MySqlTypeConstant.LONGTEXT, length = 128)
     @ColumnComment("任务参数")
     private String taskParams;
+
+    @TableField
+    @ColumnType(value = MySqlTypeConstant.LONGTEXT, length = 128)
+    @ColumnComment("任务属性")
+    private String attr ;
 
     @TableField(exist = false)
     private Map<String, String> taskParamMap;
