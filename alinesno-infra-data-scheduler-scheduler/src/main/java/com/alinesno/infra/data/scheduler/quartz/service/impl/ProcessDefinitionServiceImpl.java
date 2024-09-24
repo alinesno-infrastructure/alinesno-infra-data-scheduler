@@ -2,6 +2,7 @@ package com.alinesno.infra.data.scheduler.quartz.service.impl;
 
 import com.alinesno.infra.common.core.service.impl.IBaseServiceImpl;
 import com.alinesno.infra.common.web.log.utils.SpringUtils;
+import com.alinesno.infra.data.scheduler.api.ProcessDefinitionDto;
 import com.alinesno.infra.data.scheduler.entity.ProcessDefinitionEntity;
 import com.alinesno.infra.data.scheduler.entity.ProcessInstanceEntity;
 import com.alinesno.infra.data.scheduler.entity.TaskDefinitionEntity;
@@ -13,6 +14,7 @@ import com.alinesno.infra.data.scheduler.quartz.mapper.ProcessDefinitionMapper;
 import com.alinesno.infra.data.scheduler.quartz.utils.ProcessUtils;
 import com.alinesno.infra.data.scheduler.service.IProcessDefinitionService;
 import com.alinesno.infra.data.scheduler.service.IProcessInstanceService;
+import com.alinesno.infra.data.scheduler.service.ITaskDefinitionService;
 import com.alinesno.infra.data.scheduler.service.ITaskInstanceService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +26,9 @@ import java.util.List;
 @Slf4j
 @Component
 public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefinitionEntity , ProcessDefinitionMapper> implements IProcessDefinitionService {
+
+    @Autowired
+    private ITaskDefinitionService taskDefinitionService ;
 
     @Autowired
     private IProcessInstanceService processInstanceService ;
@@ -67,6 +72,18 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
         processInstance.setState(ProcessStatusEnums.END.getCode());
         processInstance.setEndTime(new Date());
         processInstanceService.update(processInstance);
+    }
+
+    @Override
+    public void saveProcessDefinition(ProcessDefinitionDto dto) {
+        long projectId = dto.getProjectId() ;
+
+        ProcessDefinitionEntity processDefinition = ProcessUtils.fromDtoToEntity(dto) ;
+        this.save(processDefinition) ;
+
+        long processId = processDefinition.getId() ;
+        List<TaskDefinitionEntity> taskDefinitionList = ProcessUtils.fromDtoToTaskInstance(dto , processId , projectId) ;
+        taskDefinitionService.saveBatch(taskDefinitionList) ;
     }
 
 }
