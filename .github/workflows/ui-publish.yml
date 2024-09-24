@@ -139,8 +139,7 @@ jobs:
 
       - name: Build and Deploy to Nexus
         run: |
-          cd ${{ env.PROJECT_NAME }}
-          mvn clean package --settings nexus-config.xml
+          mvn clean package -f ${{ env.PROJECT_NAME }}/pom.xml --settings nexus-config.xml
 
       - name: Login to Aliyun Container Registry (ACR)
         uses: aliyun/acr-login@v1
