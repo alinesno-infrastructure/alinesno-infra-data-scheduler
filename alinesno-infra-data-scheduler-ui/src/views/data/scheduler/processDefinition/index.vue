@@ -64,7 +64,7 @@
                 <el-table-column label="图标" align="center" width="60" key="icon">
                     <template #default="scope">
                        <div>
-                          <img style="width:40px; height:40px" :src="'http://data.linesno.com/icons/database/' + (scope.row.targetDbType).toLowerCase() + '.png'" />
+                          <img style="width:40px; height:40px" :src="'http://data.linesno.com/icons/database/' + (scope.row.targetDbType) + '.png'" />
                        </div>
                     </template>
                 </el-table-column>
@@ -74,14 +74,14 @@
                 <el-table-column label="任务名称" align="left" key="jobName" prop="jobName" v-if="columns[0].visible">
                    <template #default="scope">
                        <div>
-                          {{ scope.row.jobName }}
+                          {{ scope.row.name}}
                        </div>
                        <div style="font-size: 13px;color: #a5a5a5;cursor: pointer;" class="text-overflow" v-copyText="scope.row.promptId">
                           {{ scope.row.jobDesc }}
                        </div>
                     </template>
                 </el-table-column>
-                <el-table-column label="迁移数据量" align="center" key="jobDesc" prop="jobDesc" v-if="columns[1].visible">
+                <el-table-column label="迁移数据量" align="left" key="jobDesc" prop="jobDesc" v-if="columns[1].visible">
                    <template #default="scope">
                        <div style="margin-top: 5px;">
                           <el-button type="primary" text> <i class="fa-solid fa-truck-fast" style="margin-right:5px;"></i> 读: 74299422 条 </el-button>
@@ -93,10 +93,10 @@
                    <template #default="scope">
                        <div style="margin-top: 5px;">
                           <el-button type="primary" text>
-                             <img style="margin-right:5px;width:20px; height:20px" :src="'http://data.linesno.com/icons/database/' + (scope.row.sourceDbType).toLowerCase() + '.png'" />  源库: {{ scope.row.sourceDbType }}
+                             <img style="margin-right:5px;width:20px; height:20px" :src="'http://data.linesno.com/icons/database/' + (scope.row.sourceDbType) + '.png'" />  源库: {{ scope.row.sourceDbType }}
                           </el-button>
                           <el-button type="primary" text>
-                             <img style="margin-right:5px;width:20px; height:20px" :src="'http://data.linesno.com/icons/database/' + (scope.row.targetDbType).toLowerCase() + '.png'" />  目标: {{ scope.row.targetDbType }}
+                             <img style="margin-right:5px;width:20px; height:20px" :src="'http://data.linesno.com/icons/database/' + (scope.row.targetDbType) + '.png'" />  目标: {{ scope.row.targetDbType }}
                           </el-button>
                        </div>
                     </template>
@@ -124,8 +124,8 @@
                 <el-table-column label="执行周期" align="left" prop="addTime" v-if="columns[6].visible" width="200">
                    <template #default="scope">
                        <div>
-                          <el-tooltip placement="top" v-if="scope.row.ProcessDefinitionId !== 1">
-                           CRON:  {{ scope.row.jobCron }}
+                          <el-tooltip placement="top" v-if="scope.row.processId !== 1">
+                           CRON:  {{ scope.row.scheduleCron }}
                           </el-tooltip>
                        </div>
                        <div style="font-size: 13px;color: #a5a5a5;cursor: pointer;" v-copyText="scope.row.promptId">
