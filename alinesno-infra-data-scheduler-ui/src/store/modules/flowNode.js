@@ -17,47 +17,76 @@ const flowNodeStore = defineStore(
     },
     actions: {
       /**
-       * 设置当前节点
-       * @param {Object} state - 当前状态对象
-       * @param {Object} node - 新的节点对象
+       * 设置或替换节点
+       * @param {Object} node - 新的或要替换的节点对象
        */
-      setNode(state, node) {
-        // 这里假设你想要替换整个节点数组中的某个特定节点
-        // 如果你需要替换第一个节点（例如初始节点），你可以这样做：
-        if (state.nodes.length > 0) {
-          state.nodes[0] = node;
+      setNode(node) {
+        // 查找具有相同 ID 的现有节点
+        const index = this.nodes.findIndex(existingNode => existingNode.id === node.id);
+
+        if (index !== -1) {
+          // 如果找到具有相同 ID 的节点，则替换它
+          this.nodes.splice(index, 1, node);
+        } else {
+          // 如果没有找到具有相同 ID 的节点，则添加新的节点
+          this.nodes.push(node);
         }
+
+        console.info('Updated nodes: ', JSON.stringify(this.nodes));
       },
       /**
        * 添加节点
        * @param {Object} data - 包含新节点信息的对象
        */
       addNode(data) {
-        console.log('data.nodeType = ', JSON.stringify(data));
-
         const { addNode, currNode } = data;
 
-        // 检查 currNode 是否存在且有 id 属性
         if (currNode && currNode.id) {
-          // 找到当前的 currNode
           const currentIndex = this.nodes.findIndex(node => node.id === currNode.id);
-
           if (currentIndex !== -1) {
-            // 在当前 currNode 之后插入新节点
             this.nodes.splice(currentIndex + 1, 0, addNode);
           } else {
-            // 如果找不到 currNode，则直接添加到数组末尾
             this.nodes.push(addNode);
           }
         } else {
-          // 如果 currNode 不存在或为空对象，直接添加到数组末尾
           this.nodes.push(addNode);
         }
 
         console.info('Updated nodes: ', JSON.stringify(this.nodes));
-      }
+      },
+      /**
+       * 删除节点
+       * @param {string|number} id - 要删除的节点ID
+       */
+      removeNode(id) {
+        const index = this.nodes.findIndex(node => node.id === id);
+
+        if (index !== -1) {
+          this.nodes.splice(index, 1);
+          console.info(`Node with ID ${id} removed. Updated nodes: `, JSON.stringify(this.nodes));
+        } else {
+          console.warn(`Node with ID ${id} not found.`);
+        }
+      },
+      /**
+       * 修改节点名称
+       * @param {string|number} id - 要更新的节点ID
+       * @param {string} newName - 新的节点名称
+       */
+      updateNodeName(id, newName) {
+        const index = this.nodes.findIndex(node => node.id === id);
+
+        if (index !== -1) {
+          // 创建一个新的节点对象，或者直接在原对象上修改属性
+          const updatedNode = { ...this.nodes[index], name: newName };
+          this.nodes.splice(index, 1, updatedNode);
+          console.info(`Node with ID ${id} updated. New name: ${newName}. Updated nodes: `, JSON.stringify(this.nodes));
+        } else {
+          console.warn(`Node with ID ${id} not found.`);
+        }
+      } 
     }
   }
-)
+);
 
-export default flowNodeStore
+export default flowNodeStore;
