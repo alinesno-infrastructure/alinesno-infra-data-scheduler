@@ -1,12 +1,20 @@
 package com.alinesno.infra.data.scheduler.quartz.utils;
 
+import com.alibaba.fastjson.JSONObject;
+import com.alinesno.infra.data.scheduler.api.ParamsDto;
+import com.alinesno.infra.data.scheduler.api.ProcessContextDto;
+import com.alinesno.infra.data.scheduler.api.ProcessDefinitionDto;
+import com.alinesno.infra.data.scheduler.api.ProcessTaskDto;
 import com.alinesno.infra.data.scheduler.entity.ProcessDefinitionEntity;
 import com.alinesno.infra.data.scheduler.entity.ProcessInstanceEntity;
 import com.alinesno.infra.data.scheduler.entity.TaskDefinitionEntity;
 import com.alinesno.infra.data.scheduler.entity.TaskInstanceEntity;
+import com.alinesno.infra.data.scheduler.enums.ExecutorTypeEnums;
 import com.alinesno.infra.data.scheduler.enums.ProcessStatusEnums;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class ProcessUtils {
 
@@ -20,7 +28,6 @@ public class ProcessUtils {
     public static ProcessInstanceEntity fromTaskToProcessInstance(ProcessDefinitionEntity process, long count) {
 
         ProcessInstanceEntity processInstance = new ProcessInstanceEntity();
-        processInstance.setProcessCode(process.getCode());
         processInstance.setName(process.getName() + "#" + count);
         processInstance.setDescription(process.getDescription());
         processInstance.setProjectCode(process.getProjectCode());
@@ -50,8 +57,7 @@ public class ProcessUtils {
         taskInstance.setName(t.getName());
         taskInstance.setTaskType(t.getTaskType());
         taskInstance.setState(ProcessStatusEnums.RUNNING.getCode());
-        taskInstance.setProcessCode(process.getCode());
-        taskInstance.setTaskCode(t.getCode());
+        taskInstance.setProcessCode(process.getId());
         taskInstance.setDescription(t.getDescription());
         taskInstance.setRetryTimes(0);
         taskInstance.setMaxRetryTimes(t.getFailRetryTimes());
@@ -60,5 +66,75 @@ public class ProcessUtils {
         taskInstance.setStartTime(new Date());
 
         return taskInstance ;
+    }
+
+    /**
+     * 将流程定义转换为流程实体
+     * @param dto
+     * @return
+     */
+    public static ProcessDefinitionEntity fromDtoToEntity(ProcessDefinitionDto dto) {
+
+        ProcessDefinitionEntity entity = new ProcessDefinitionEntity();
+        ProcessContextDto context = dto.getContext();
+
+        entity.setName(context.getTaskName());
+        entity.setProjectCode(context.getProjectCode());
+        entity.setGlobalParams(context.getContext()!= null? JSONObject.toJSONString(context.getContext()):null);
+        entity.setTimeout(context.getTimeout());
+        entity.setScheduleCron(context.getCronExpression());
+
+        return entity ;
+
+    }
+
+    /**
+     * 将流程定义转换为任务实体
+     * @param dto
+     * @param processId
+     * @return
+     */
+    public static List<TaskDefinitionEntity> fromDtoToTaskInstance(ProcessDefinitionDto dto, long processId , long projectId) {
+
+        List<TaskDefinitionEntity> taskDefinitionList = new ArrayList<>() ;
+
+        List<ProcessTaskDto> taskFlow = dto.getTaskFlow();
+
+        int orderNum = 1 ;
+        for (ProcessTaskDto task : taskFlow) {
+
+            TaskDefinitionEntity entity = new TaskDefinitionEntity();
+            ParamsDto params = task.getParams();
+
+            String name = task.getName() ;
+            String desc = task.getName() ;
+            int retryCount = 0 ;
+            String taskParams = null;
+            String resourceId = null ;
+            if(params != null){
+                name = params.getName() ;
+                desc = params.getDesc() ;
+                retryCount = params.getRetryCount() ;
+                taskParams = JSONObject.toJSONString(params) ;
+                resourceId = params.getResourceName() ;
+            }
+
+            entity.setCode(task.getId());
+            entity.setProcessId(processId);
+            entity.setName(name) ;
+            entity.setProjectId(projectId);
+            entity.setDescription(desc) ;
+            entity.setTaskType(ExecutorTypeEnums.fromType(task.getType()).getCode());
+            entity.setTaskParams(taskParams) ;
+            entity.setFailRetryTimes(retryCount) ;
+            entity.setResourceId(resourceId) ;
+            entity.setOrderNum(orderNum);
+            entity.setAttr(JSONObject.toJSONString(task.getAttr()));
+
+            taskDefinitionList.add(entity);
+            orderNum ++ ;
+        }
+
+        return taskDefinitionList ;
     }
 }
