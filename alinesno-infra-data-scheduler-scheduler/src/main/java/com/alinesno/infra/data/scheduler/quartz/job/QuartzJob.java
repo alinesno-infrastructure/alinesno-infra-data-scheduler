@@ -46,7 +46,7 @@ public class QuartzJob extends QuartzJobBean {
         List<String> resourceIds = new ArrayList<>();
 
         ProcessDefinitionEntity processDefinition = processDefinitionService.getById(processId);
-        List<TaskDefinitionEntity> taskDefinitionList = taskDefinitionService.lambdaQuery().eq(TaskDefinitionEntity::getProcessCode, processId).list();
+        List<TaskDefinitionEntity> taskDefinitionList = taskDefinitionService.lambdaQuery().eq(TaskDefinitionEntity::getProcessId, processId).list();
         EnvironmentEntity environment = environmentService.lambdaQuery().eq(EnvironmentEntity::getProcessCode, processId).getEntity();
 
         taskDefinitionList.forEach(taskDefinition -> resourceIds.add(taskDefinition.getResourceId()));
