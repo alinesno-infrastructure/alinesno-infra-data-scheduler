@@ -5,6 +5,8 @@ import com.alinesno.infra.common.facade.pageable.DatatablesPageBean;
 import com.alinesno.infra.common.facade.pageable.TableDataInfo;
 import com.alinesno.infra.common.facade.response.AjaxResult;
 import com.alinesno.infra.common.web.adapter.rest.BaseController;
+import com.alinesno.infra.data.scheduler.api.ProcessDefinitionDto;
+import com.alinesno.infra.data.scheduler.api.ProcessTaskDto;
 import com.alinesno.infra.data.scheduler.entity.ProcessDefinitionEntity;
 import com.alinesno.infra.data.scheduler.service.ICategoryService;
 import com.alinesno.infra.data.scheduler.service.IProcessDefinitionService;
@@ -15,7 +17,10 @@ import org.apache.commons.lang.builder.ToStringBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.ui.Model;
+import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * 处理与TransEntity相关的请求的Controller。
@@ -55,6 +60,21 @@ public class ProcessDefinitionController extends BaseController<ProcessDefinitio
     @GetMapping("/catalogTreeSelect")
     public AjaxResult catalogTreeSelect(){
         return AjaxResult.success("success" , catalogService.selectCatalogTreeList()) ;
+    }
+
+    /**
+     * 保存流程定义信息
+     * @return
+     */
+    @PostMapping("/commitProcessDefinition")
+    public AjaxResult commitProcessDefinition(@RequestBody ProcessDefinitionDto dto){
+        log.debug("dto = {}", dto);
+
+        List<ProcessTaskDto> taskFlow = dto.getTaskFlow() ;
+        Assert.isTrue(taskFlow.size() > 1 , "流程定义为空,请定义流程.");
+
+        service.saveProcessDefinition(dto) ;
+        return AjaxResult.success("success") ;
     }
 
     @Override
