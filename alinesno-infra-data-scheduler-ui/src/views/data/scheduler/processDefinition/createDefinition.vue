@@ -4,7 +4,12 @@
 
       <div class="form-container">
           <div class="designer-wrap">
-            <!-- <FlowNav v-if="navable && !readable" :currentNav="3" @click="publish" @change="change" /> -->
+
+            <div style="position: absolute;top: 20px;z-index: 1000;right: 20px;">
+              <el-button type="primary" size="large" bg text @click="submitProcessDefinition()">
+                <i class="fa-solid fa-paper-plane"></i>&nbsp;提交流程
+              </el-button>
+            </div>
 
             <div class="designer-content-box" :style="{ height: readable ? '100vh' : 'calc(100vh - 50px)' }">
               <div class="flow-design-wrap">
@@ -19,7 +24,7 @@
                 </div>
                 <FlowHelper />
                 <FlowTips />
-                <FlowZoom />
+                <!-- <FlowZoom /> -->
               </div>
             </div>
 
@@ -33,9 +38,11 @@
 <script setup name="createProcessDefinition">
 
 const router = useRouter();
+const { proxy } = getCurrentInstance();
 
 import flowNodeStore from '@/store/modules/flowNode'
 
+import { commitProcessDefinition } from '@/api/data/scheduler/processDefinition'
 import { getStartNode } from '@/utils/nodeUtil';
 
 import FlowZoom from './common/FlowZoom';
@@ -67,5 +74,29 @@ const nodeDataArr = ref(flowNodeStore().nodes);
 function goBack() {
    router.push({path:'/data/scheduler/processDefinition/addDefinition',query:{}});
 }
+
+/**
+ * 提交流程流程定义
+ */
+function submitProcessDefinition(){
+  let nodes = flowNodeStore().currentNode;
+  console.log('submitProcessDefinition:' + nodes)
+
+  const formDataStr = localStorage.getItem('processDefinitionFormData');
+   const formData = JSON.parse(formDataStr);
+
+  let data = {
+    taskFlow: nodes,
+    context: formData 
+  }
+
+  // 提交流程信息
+  commitProcessDefinition(data).then(response => {
+      console.log(response);
+      proxy.$modal.msgSuccess("流程提交成功");
+      // router.push({path:'/data/scheduler/processDefinition/index',query:{}});
+  })
+}
+
 
 </script>
