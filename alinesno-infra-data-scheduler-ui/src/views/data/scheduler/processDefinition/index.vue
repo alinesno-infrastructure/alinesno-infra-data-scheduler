@@ -3,6 +3,7 @@
   
        <el-row :gutter="20">
           <!--类型数据-->
+           <!-- 
            <el-col :span="4" :xs="24">
               <div class="head-container">
                  <el-input
@@ -24,18 +25,18 @@
                     highlight-current
                     @node-click="handleNodeClick"
                  />
-                    <!-- default-expand-all -->
               </div>
-           </el-col>
+           </el-col> 
+           -->
   
           <!--任务数据-->
-          <el-col :span="20" :xs="24">
+          <el-col :span="24" :xs="24">
              <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="100px">
-                <el-form-item label="任务名称" prop="jobName">
-                   <el-input v-model="queryParams.jobName" placeholder="请输入任务名称" clearable style="width: 240px" @keyup.enter="handleQuery" />
+                <el-form-item label="任务名称" prop="name">
+                   <el-input v-model="queryParams.name" placeholder="请输入任务名称" clearable style="width: 240px" @keyup.enter="handleQuery" />
                 </el-form-item>
-                <el-form-item label="任务名称" prop="jobName">
-                   <el-input v-model="queryParams['condition[jobName|like]']" placeholder="请输入任务名称" clearable style="width: 240px" @keyup.enter="handleQuery" />
+                <el-form-item label="任务名称" prop="name">
+                   <el-input v-model="queryParams['condition[name|like]']" placeholder="请输入任务名称" clearable style="width: 240px" @keyup.enter="handleQuery" />
                 </el-form-item>
                 <el-form-item>
                    <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
@@ -61,43 +62,46 @@
              <el-table v-loading="loading" :data="ProcessDefinitionList" @selection-change="handleSelectionChange">
                 <el-table-column type="selection" width="50" align="center" />
                 
-                <el-table-column label="图标" align="center" width="60" key="icon">
+                <el-table-column align="center" width="40" key="icon">
                     <template #default="scope">
-                       <div>
-                          <img style="width:40px; height:40px" :src="'http://data.linesno.com/icons/database/' + (scope.row.targetDbType) + '.png'" />
-                       </div>
+                        <div style="font-size:25px;color:#409EFF" v-if="scope.$index %3 == 2">
+                           <i class="fa-solid fa-sun"></i>
+                        </div>
+                        <div style="font-size:25px;color:#409EFF" v-if="scope.$index %3 == 1">
+                           <i class="fa-solid fa-cloud-bolt"></i>
+                        </div>
+                        <div style="font-size:25px;color:#409EFF" v-if="scope.$index %3 == 0">
+                           <i class="fa-solid fa-cloud-moon-rain"></i>
+                        </div>
                     </template>
-                </el-table-column>
-  
+                </el-table-column> 
   
                 <!-- 业务字段-->
-                <el-table-column label="任务名称" align="left" key="jobName" prop="jobName" v-if="columns[0].visible">
+                <el-table-column label="任务名称" align="left" key="name" prop="name" v-if="columns[0].visible">
                    <template #default="scope">
                        <div>
-                          {{ scope.row.name}}
+                        {{ scope.row.name}}
                        </div>
                        <div style="font-size: 13px;color: #a5a5a5;cursor: pointer;" class="text-overflow" v-copyText="scope.row.promptId">
-                          {{ scope.row.jobDesc }}
+                          {{ scope.row.name }}，运行多任务状态和成功
                        </div>
                     </template>
                 </el-table-column>
-                <el-table-column label="迁移数据量" align="left" key="jobDesc" prop="jobDesc" v-if="columns[1].visible">
+                <el-table-column label="迁移数据量" align="center" key="jobDesc" prop="jobDesc" v-if="columns[1].visible">
                    <template #default="scope">
                        <div style="margin-top: 5px;">
-                          <el-button type="primary" text> <i class="fa-solid fa-truck-fast" style="margin-right:5px;"></i> 读: 74299422 条 </el-button>
-                          <el-button type="danger" text> <i class="fa-solid fa-feather" style="margin-right:5px"></i> 写: 8742355 条</el-button>
+                          <el-button type="primary" text> <i class="fa-solid fa-truck-fast" style="margin-right:5px;"></i> 次数: 742994 条 </el-button><br/>
+                          <el-button type="danger" text> <i class="fa-solid fa-feather" style="margin-right:5px"></i> 成功: 8742355 条</el-button>
                        </div>
                     </template>
                 </el-table-column>
-                <el-table-column label="迁移目标" align="center" key="projectCode" prop="projectCode" v-if="columns[2].visible">
+                <el-table-column label="上次成功" align="left" key="projectCode" prop="projectCode" v-if="columns[2].visible">
                    <template #default="scope">
                        <div style="margin-top: 5px;">
-                          <el-button type="primary" text>
-                             <img style="margin-right:5px;width:20px; height:20px" :src="'http://data.linesno.com/icons/database/' + (scope.row.sourceDbType) + '.png'" />  源库: {{ scope.row.sourceDbType }}
-                          </el-button>
-                          <el-button type="primary" text>
-                             <img style="margin-right:5px;width:20px; height:20px" :src="'http://data.linesno.com/icons/database/' + (scope.row.targetDbType) + '.png'" />  目标: {{ scope.row.targetDbType }}
-                          </el-button>
+                        {{ parseTime(scope.row.addTime) }}
+                       </div>
+                       <div style="font-size: 13px;color: #a5a5a5;cursor: pointer;" v-copyText="scope.row.promptId">
+                          上次: 5分钟前
                        </div>
                     </template>
                 </el-table-column>
@@ -105,7 +109,7 @@
                 <el-table-column label="迁移配置" align="center" width="150" key="documentType" prop="documentType" v-if="columns[1].visible" :show-overflow-tooltip="true" >
                    <template #default="scope">
                       <el-button type="primary" bg text @click="handleConfigType(scope.row.id , scope.row.documentType)"> 
-                          <i class="fa-solid fa-screwdriver-wrench"></i>&nbsp;迁移参数
+                          <i class="fa-solid fa-screwdriver-wrench"></i>&nbsp;任务参数
                        </el-button>
                    </template>
                 </el-table-column>
@@ -208,8 +212,8 @@
                    </el-form-item>
                 </el-col>
                 <el-col :span="24">
-                   <el-form-item label="任务名称" prop="jobName">
-                      <el-input v-model="form.jobName" placeholder="请输入任务名称" maxlength="50" />
+                   <el-form-item label="任务名称" prop="name">
+                      <el-input v-model="form.name" placeholder="请输入任务名称" maxlength="50" />
                    </el-form-item>
                 </el-col>
              </el-row>
@@ -339,11 +343,11 @@
     queryParams: {
        pageNum: 1,
        pageSize: 10,
-       jobName: undefined,
+       name: undefined,
        dbDesc: undefined
     },
     rules: {
-       jobName: [{ required: true, message: "名称不能为空", trigger: "blur" }] , 
+       name: [{ required: true, message: "名称不能为空", trigger: "blur" }] , 
        jdbcUrl: [{ required: true, message: "连接不能为空", trigger: "blur" }],
        dbType: [{ required: true, message: "类型不能为空", trigger: "blur" }] , 
        dbUsername: [{ required: true , message: "用户名不能为空", trigger: "blur"}],
