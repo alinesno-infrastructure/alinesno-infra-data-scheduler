@@ -8,7 +8,7 @@ import lombok.Getter;
 @Getter
 public enum ProcessStatusEnums {
 
-    UNRUN(0,"未运行"),
+    UNRULY(0,"未运行"),
     RUNNING(1,"运行中"),
     STOP(2,"已停止"),
     FAIL(3,"已失败"),
