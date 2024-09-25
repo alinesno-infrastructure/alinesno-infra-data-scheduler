@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import lombok.ToString;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * @ToString： 自动生成toString方法，以便于对象的字符串表示。
  * @Data： 自动生成getter和setter方法，equals和hashCode方法，以及toString方法。
@@ -33,9 +36,9 @@ public class ParamsDto {
     private String rawScript;
 
     // 资源名称
-    private String resourceName;
+    private List<String> resourceId;
 
     // 自定义参数
-    private String customParams;
+    private Map<String,String> customParams;
 
 }
