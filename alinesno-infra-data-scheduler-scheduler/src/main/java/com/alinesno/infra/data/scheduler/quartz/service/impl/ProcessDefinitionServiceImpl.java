@@ -12,12 +12,14 @@ import com.alinesno.infra.data.scheduler.executor.IExecutorService;
 import com.alinesno.infra.data.scheduler.executor.bean.TaskInfoBean;
 import com.alinesno.infra.data.scheduler.quartz.mapper.ProcessDefinitionMapper;
 import com.alinesno.infra.data.scheduler.quartz.utils.ProcessUtils;
+import com.alinesno.infra.data.scheduler.scheduler.IQuartzSchedulerService;
 import com.alinesno.infra.data.scheduler.service.IProcessDefinitionService;
 import com.alinesno.infra.data.scheduler.service.IProcessInstanceService;
 import com.alinesno.infra.data.scheduler.service.ITaskDefinitionService;
 import com.alinesno.infra.data.scheduler.service.ITaskInstanceService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
@@ -28,6 +30,9 @@ import java.util.List;
 public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefinitionEntity , ProcessDefinitionMapper> implements IProcessDefinitionService {
 
     @Autowired
+    private IQuartzSchedulerService distSchedulerService ;
+
+    @Autowired
     private ITaskDefinitionService taskDefinitionService ;
 
     @Autowired
@@ -36,6 +41,7 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
     @Autowired
     private ITaskInstanceService taskInstanceService ;
 
+    @Async
     @Override
     public void runProcess(TaskInfoBean task, List<TaskDefinitionEntity> taskDefinition) {
 
@@ -75,7 +81,7 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
     }
 
     @Override
-    public void saveProcessDefinition(ProcessDefinitionDto dto) {
+    public long saveProcessDefinition(ProcessDefinitionDto dto) {
         long projectId = dto.getProjectId() ;
 
         ProcessDefinitionEntity processDefinition = ProcessUtils.fromDtoToEntity(dto) ;
@@ -84,6 +90,13 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
         long processId = processDefinition.getId() ;
         List<TaskDefinitionEntity> taskDefinitionList = ProcessUtils.fromDtoToTaskInstance(dto , processId , projectId) ;
         taskDefinitionService.saveBatch(taskDefinitionList) ;
+
+        log.debug("saveProcessDefinition:{}" , processId);
+
+        // 生成job任务
+        distSchedulerService.addJob(processId + "" , dto.getContext().getCronExpression());
+
+        return processId ;
     }
 
 }
