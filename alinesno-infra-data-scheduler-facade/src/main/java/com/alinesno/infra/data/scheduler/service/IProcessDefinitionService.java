@@ -19,8 +19,10 @@ public interface IProcessDefinitionService extends IBaseService<ProcessDefinitio
 
     /**
      * 保存流程定义
+     *
      * @param dto
+     * @return
      */
-    void saveProcessDefinition(ProcessDefinitionDto dto);
+    long saveProcessDefinition(ProcessDefinitionDto dto);
 
 }
