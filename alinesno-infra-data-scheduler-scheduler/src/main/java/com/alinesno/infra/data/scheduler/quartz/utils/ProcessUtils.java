@@ -116,7 +116,7 @@ public class ProcessUtils {
                 desc = params.getDesc() ;
                 retryCount = params.getRetryCount() ;
                 taskParams = JSONObject.toJSONString(params) ;
-                resourceId = params.getResourceName() ;
+                resourceId = JSONObject.toJSONString(params.getResourceId()) ;
             }
 
             entity.setCode(task.getId());
