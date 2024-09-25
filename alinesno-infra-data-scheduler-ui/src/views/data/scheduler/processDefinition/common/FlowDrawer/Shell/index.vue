@@ -13,7 +13,7 @@
 
                 <el-form :model="form" :rules="rules" label-width="auto" style="max-width: 980px" ref="ruleForm">
                     <el-form-item label="节点名称" prop="name">
-                        <el-input v-model="form.name" placeholder="请输入节点名称" />
+                        <el-input v-model="form.name" :value="node.name" disabled="disabled" placeholder="请输入节点名称" />
                     </el-form-item>
                     <el-form-item label="描述" prop="desc">
                         <el-input v-model="form.desc" resize="none" :rows="3" type="textarea" placeholder="请输入节点描述" />
@@ -30,8 +30,8 @@
                     </el-form-item>
                     <el-form-item label="环境名称" prop="env">
                         <el-radio-group v-model="form.env">
-                            <el-radio :label="'Sponsor'">沙箱环境</el-radio>
-                            <el-radio :label="'Venue'">生产环境</el-radio>
+                            <el-radio :label="'shabox'">沙箱环境</el-radio>
+                            <el-radio :label="'prod'">生产环境</el-radio>
                         </el-radio-group>
                     </el-form-item>
                     <el-form-item label="脚本">
@@ -48,9 +48,6 @@
                             style="width: 500px"
                         />
                     </el-form-item>
-                    <!-- <el-form-item label="自定义参数" prop="customParams">
-                        <el-input v-model="form.customParams" placeholder="请输入自定义参数" />
-                    </el-form-item> -->
                     <el-form-item label="自定义参数">
                         <el-button type="primary" bg text @click="paramsDialog = true">
                             <i class="fa-solid fa-screwdriver-wrench"></i>&nbsp;配置任务参数
@@ -104,70 +101,16 @@ const headerStyle = ref({
 
 const resourceData = ref([
   {
-    value: '1',
-    label: '技术文件', // Level one 1 换成 技术文件
-    children: [
-      {
-        value: '1-1',
-        label: '基础知识', // 假设 Level two 1-1 表示一个子文件夹
-        children: [
-          {
-            value: '1-1-1',
-            label: 'python_hello_world.py' // Level three 1-1-1 换成 python_hello_world.py 文件
-          },
-        ],
-      },
-    ],
-  },
-  {
     value: '2',
     label: '项目文档', // Level one 2 换成 项目文档
     children: [
       {
-        value: '2-1',
-        label: '需求分析', // 假设 Level two 2-1 表示一个子文件夹
-        children: [
-          {
-            value: '2-1-1',
-            label: 'requirements.docx' // 假设 Level three 2-1-1 换成 requirements.docx 文件
-          },
-        ],
+        value: '2-1-1',
+        label: 'requirements.docx' // 假设 Level three 2-1-1 换成 requirements.docx 文件
       },
       {
-        value: '2-2',
-        label: '设计方案', // 假设 Level two 2-2 表示一个子文件夹
-        children: [
-          {
-            value: '2-2-1',
-            label: 'design.pdf' // 假设 Level three 2-2-1 换成 design.pdf 文件
-          },
-        ],
-      },
-    ],
-  },
-  {
-    value: '3',
-    label: '代码库', // Level one 3 换成 代码库
-    children: [
-      {
-        value: '3-1',
-        label: '源代码', // 假设 Level two 3-1 表示一个子文件夹
-        children: [
-          {
-            value: '3-1-1',
-            label: 'main.cpp' // 假设 Level three 3-1-1 换成 main.cpp 文件
-          },
-        ],
-      },
-      {
-        value: '3-2',
-        label: '测试脚本', // 假设 Level two 3-2 表示一个子文件夹
-        children: [
-          {
-            value: '3-2-1',
-            label: 'test_script.sh' // 假设 Level three 3-2-1 换成 test_script.sh 文件
-          },
-        ],
+        value: '2-2-1',
+        label: 'design.pdf' // 假设 Level three 2-2-1 换成 design.pdf 文件
       },
     ],
   },
@@ -179,16 +122,12 @@ const data = reactive({
         desc: '',
         delivery: false,
         retryCount: 0,
-        env: '',
+        env: 'shabox',
         rawScript: '' ,
         resourceId: '',
         customParams: ''
     },
     rules: {
-        name: [
-            { required: true, message: '请输入节点名称', trigger: 'blur' },
-            { min: 3, max: 50, message: '长度在 3 到 50 个字符', trigger: 'blur' }
-        ],
         desc: [
             { required: true, message: '请输入节点描述', trigger: 'blur' },
             { min: 10, max: 200, message: '长度在 10 到 200 个字符', trigger: 'blur' }
