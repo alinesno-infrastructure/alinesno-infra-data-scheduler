@@ -1,5 +1,7 @@
 package com.alinesno.infra.data.scheduler.quartz.job;
 
+import com.alinesno.infra.common.web.log.utils.SpringUtils;
+import com.alinesno.infra.data.scheduler.constants.PipeConstants;
 import com.alinesno.infra.data.scheduler.entity.EnvironmentEntity;
 import com.alinesno.infra.data.scheduler.entity.ProcessDefinitionEntity;
 import com.alinesno.infra.data.scheduler.entity.ResourceEntity;
@@ -14,7 +16,6 @@ import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.quartz.QuartzJobBean;
 
 import java.util.ArrayList;
@@ -25,39 +26,52 @@ import java.util.List;
 @DisallowConcurrentExecution
 public class QuartzJob extends QuartzJobBean {
 
-    @Autowired
-    private IProcessDefinitionService processDefinitionService;
-
-    @Autowired
-    private ITaskDefinitionService taskDefinitionService;
-
-    @Autowired
-    private IEnvironmentService environmentService;
-
-    @Autowired
-    private IResourceService resourceService;
 
     @Override
     protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
 
+        Result result = getResult(context);
+
+        // 运行任务实例
+        TaskInfoBean task = new TaskInfoBean();
+        task.setProcess(result.processDefinition());
+        task.setEnvironment(result.environment());
+        task.setResources(result.resourceList());
+
+        result.processDefinitionService().runProcess(task, result.taskDefinitionList());
+    }
+
+    private static Result getResult(JobExecutionContext context) {
+        IProcessDefinitionService processDefinitionService = SpringUtils.getBean(IProcessDefinitionService.class);
+        ITaskDefinitionService taskDefinitionService = SpringUtils.getBean(ITaskDefinitionService.class) ;
+        IEnvironmentService environmentService = SpringUtils.getBean(IEnvironmentService.class) ;
+        IResourceService resourceService = SpringUtils.getBean(IResourceService.class) ;
+
         JobDataMap jobDataMap = context.getJobDetail().getJobDataMap();
-        Long processId = jobDataMap.getLong("processId");
+        Long processId = jobDataMap.getLong(PipeConstants.PROCESS_ID);
 
         List<String> resourceIds = new ArrayList<>();
 
         ProcessDefinitionEntity processDefinition = processDefinitionService.getById(processId);
         List<TaskDefinitionEntity> taskDefinitionList = taskDefinitionService.lambdaQuery().eq(TaskDefinitionEntity::getProcessId, processId).list();
-        EnvironmentEntity environment = environmentService.lambdaQuery().eq(EnvironmentEntity::getProcessCode, processId).getEntity();
+        EnvironmentEntity environment = null ;
+
+        try{
+            environment = environmentService.lambdaQuery().eq(EnvironmentEntity::getProcessId, processId).getEntity();
+        }catch (Exception e){
+            log.error("获取环境信息失败:{}", e.getMessage());
+        }
 
         taskDefinitionList.forEach(taskDefinition -> resourceIds.add(taskDefinition.getResourceId()));
         List<ResourceEntity> resourceList = resourceService.lambdaQuery().in(ResourceEntity::getId, resourceIds).list();
 
-        // 运行任务实例
-        TaskInfoBean task = new TaskInfoBean();
-        task.setProcess(processDefinition);
-        task.setEnvironment(environment);
-        task.setResources(resourceList);
+        return new Result(processDefinitionService, processDefinition, taskDefinitionList, environment, resourceList);
+    }
 
-        processDefinitionService.runProcess(task, taskDefinitionList);
+    private record Result(IProcessDefinitionService processDefinitionService,
+                          ProcessDefinitionEntity processDefinition,
+                          List<TaskDefinitionEntity> taskDefinitionList,
+                          EnvironmentEntity environment,
+                          List<ResourceEntity> resourceList) {
     }
 }
