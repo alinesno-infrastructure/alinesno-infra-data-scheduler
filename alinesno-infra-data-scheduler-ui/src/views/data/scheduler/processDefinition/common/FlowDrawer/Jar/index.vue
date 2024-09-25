@@ -36,8 +36,8 @@
                     <el-form-item label="脚本">
                         <CodeEditor ref="codeEditorRef" :lang="python" />
                     </el-form-item>
-                    <el-form-item label="资源" prop="resourceName">
-                        <el-input v-model="form.resourceName" placeholder="请选择资源" />
+                    <el-form-item label="资源" prop="resourceId">
+                        <el-input v-model="form.resourceId" placeholder="请选择资源" />
                     </el-form-item>
                     <el-form-item label="自定义参数" prop="customParams">
                         <el-input v-model="form.customParams" placeholder="请输入自定义参数" />
@@ -79,7 +79,7 @@ const data = reactive({
         retryCount: 0,
         env: '',
         rawScript: '' ,
-        resourceName: '',
+        resourceId: '',
         customParams: ''
     },
     rules: {
@@ -100,7 +100,7 @@ const data = reactive({
         env: [
             { required: true, message: '请选择环境名称', trigger: 'change' }
         ],
-        resourceName: [
+        resourceId: [
             { required: true, message: '请选择资源', trigger: 'blur' }
         ],
         customParams: [
