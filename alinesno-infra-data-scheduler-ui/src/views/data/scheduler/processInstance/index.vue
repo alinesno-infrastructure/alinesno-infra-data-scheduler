@@ -39,12 +39,12 @@
                  <template #default="scope">
                      <div style="margin-top: 5px;">
                         <el-button type="primary" style="float:left;padding:5px;" text>
-                           <img style="margin-right:5px;width:20px; height:20px" :src="'http://data.linesno.com/icons/database/' + (scope.row.sourceDbType).toLowerCase() + '.png'" /> 
+                           <img style="margin-right:5px;width:20px; height:20px" :src="'http://data.linesno.com/icons/database/' + (scope.row.sourceDbType) + '.png'" /> 
                             <!-- 源库: {{ scope.row.sourceDbType }} -->
                         </el-button>
                         <i class="fa-solid fa-angles-right" style="float:left;margin-top:7px"></i>
                         <el-button type="primary" style="float:left;padding:5px;" text>
-                           <img style="margin-right:5px;width:20px; height:20px" :src="'http://data.linesno.com/icons/database/' + (scope.row.targetDbType).toLowerCase() + '.png'" /> 
+                           <img style="margin-right:5px;width:20px; height:20px" :src="'http://data.linesno.com/icons/database/' + (scope.row.targetDbType) + '.png'" /> 
                             <!-- 目标: {{ scope.row.targetDbType }} -->
                         </el-button>
                      </div>
@@ -55,7 +55,7 @@
               <el-table-column label="任务名称" align="left" width="200" key="projectName" prop="projectName" v-if="columns[0].visible" :show-overflow-tooltip="true">
                  <template #default="scope">
                      <div>
-                        {{ scope.row.jobName }}#{{ scope.row.countOrder }}
+                        {{ scope.row.name}}
                      </div>
                      <div style="font-size: 13px;color: #a5a5a5;cursor: pointer;" v-copyText="scope.row.promptId">
                        任务:{{ scope.row.jobDesc}}
@@ -63,7 +63,7 @@
                   </template>
               </el-table-column>
               <!-- <el-table-column label="任务描述" align="left" key="jobDesc" prop="jobDesc" v-if="columns[1].visible" :show-overflow-tooltip="true" /> -->
-              <el-table-column label="迁移数据量" align="center" key="jobDesc" prop="jobDesc" v-if="columns[1].visible">
+              <el-table-column label="当前流程节点" align="center" key="jobDesc" prop="jobDesc" v-if="columns[1].visible">
                  <template #default="scope">
                      <div style="margin-top: 5px;">
                         <el-button type="primary" text> <i class="fa-solid fa-truck-fast" style="margin-right:5px;"></i> 读: {{ scope.row.readerCount }} 条</el-button>
@@ -77,14 +77,14 @@
                      <!-- <div style="font-size: 13px;color: #a5a5a5;cursor: pointer;" v-copyText="scope.row.projectCode">
                         {{ scope.row.status}} 
                      </div> -->
-                     <el-button type="primary" v-if="scope.row.status == 'processing'" text loading>
-                        <i class="fa-solid fa-file-signature"></i>{{ scope.row.statusLabel }} 
+                     <el-button type="primary" v-if="scope.row.state == 1" text loading>
+                        <i class="fa-solid fa-file-signature"></i>运行中
                      </el-button>
-                     <el-button type="danger" v-if="scope.row.status == 'failed'" text>
-                        <i class="fa-solid fa-file-circle-xmark"></i>{{ scope.row.statusLabel }}
+                     <el-button type="danger" v-if="scope.row.state == 3" text>
+                        <i class="fa-solid fa-file-circle-xmark"></i>失败
                      </el-button>
-                     <el-button type="success" v-if="scope.row.status == 'completed'" text>
-                        <i class="fa-solid fa-file-shield"></i> {{ scope.row.statusLabel }}
+                     <el-button type="success" v-if="scope.row.state == 4" text>
+                        <i class="fa-solid fa-file-shield"></i> 结束
                      </el-button>
                   </template>
               </el-table-column>
@@ -92,9 +92,6 @@
               <el-table-column label="开始时间" align="left" width="180" key="documentType" prop="documentType" v-if="columns[1].visible" :show-overflow-tooltip="true" >
                  <template #default="scope">
                     <div>{{ parseTime(scope.row.startTime) }}</div>
-                     <div style="font-size: 13px;color: #a5a5a5;cursor: pointer;" v-copyText="scope.row.promptId">
-                        下次执行:{{ timeDifference(scope.row.startTime , scope.row.endTime) }}
-                     </div>
                  </template>
               </el-table-column>
 
@@ -102,7 +99,7 @@
                  <template #default="scope">
                     <div>{{ parseTime(scope.row.endTime) }}</div>
                      <div style="font-size: 13px;color: #a5a5a5;cursor: pointer;" v-copyText="scope.row.promptId">
-                        任务耗时:{{ timeDifference(scope.row.startTime , scope.row.endTime) }}
+                        耗时: <span>{{ getTimeDifference(scope.row.startTime , scope.row.endTime).seconds }} 秒</span>
                      </div>
                  </template>
               </el-table-column>
@@ -450,35 +447,23 @@ function submitDocumentTypeForm(){
 }
 
 /** 计算两个时间间隔 */
-function timeDifference(startTime, endTime) {
-    // 计算两个时间戳之间的毫秒数差值
-    const difference = endTime - startTime;
+function getTimeDifference(startTime, endTime) {
+    // 解析ISO 8601格式的时间字符串为Date对象
+    const start = new Date(startTime);
+    const end = new Date(endTime);
 
-    // 转换毫秒数到秒
-    const seconds = Math.floor(difference / 1000);
-    const milliseconds = difference % 1000;
+    // 计算时间差（以毫秒为单位）
+    const diffInMilliseconds = end - start;
 
-    // 转换秒数到分钟
-    const minutes = Math.floor(seconds / 60);
-    const secondsLeft = seconds % 60;
+    // 可选：转换成更易读的格式，比如秒或分钟
+    const diffInSeconds = diffInMilliseconds / 1000;
+    const diffInMinutes = diffInSeconds / 60;
 
-    // 转换分钟到小时
-    const hours = Math.floor(minutes / 60);
-    const minutesLeft = minutes % 60;
-
-    // 构建输出字符串
-    let result = '';
-    if (hours > 0) {
-        result += `${hours}时`;
-    }
-    if (minutesLeft > 0) {
-        result += `${minutesLeft}分`;
-    }
-    if (secondsLeft > 0 || milliseconds > 0) {
-        result += `${secondsLeft}秒${milliseconds}`;
-    }
-
-    return result;
+    // 返回所需的时间差单位，这里我们返回毫秒和秒两种形式
+    return {
+        milliseconds: diffInMilliseconds,
+        seconds: diffInSeconds
+    };
 }
 
 getList();
