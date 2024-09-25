@@ -37,11 +37,24 @@
                     <el-form-item label="脚本">
                         <CodeEditor ref="codeEditorRef" :lang="shell" />
                     </el-form-item>
-                    <el-form-item label="资源" prop="resourceName">
-                        <el-input v-model="form.resourceName" placeholder="请选择资源" />
+                    <el-form-item label="资源" prop="resourceId">
+                        <!-- <el-input v-model="form.resourceId" placeholder="请选择资源" /> -->
+                        <el-tree-select
+                            v-model="form.resourceId"
+                            :data="resourceData"
+                            multiple
+                            placeholder="请选择资源"
+                            :render-after-expand="false"
+                            style="width: 500px"
+                        />
                     </el-form-item>
-                    <el-form-item label="自定义参数" prop="customParams">
+                    <!-- <el-form-item label="自定义参数" prop="customParams">
                         <el-input v-model="form.customParams" placeholder="请输入自定义参数" />
+                    </el-form-item> -->
+                    <el-form-item label="自定义参数">
+                        <el-button type="primary" bg text @click="paramsDialog = true">
+                            <i class="fa-solid fa-screwdriver-wrench"></i>&nbsp;配置任务参数
+                        </el-button>
                     </el-form-item>
                 </el-form>
 
@@ -51,6 +64,19 @@
                 </div>
             </div>
         </div>
+
+        <el-dialog title="全局环境变量" v-model="paramsDialog" append-to-body destroy-on-close class="scrollbar">
+            <ContextParam ref="taskParamRef" :context="form.context" />
+            <template #footer>
+            <div class="dialog-footer">
+                <el-button @click="paramsDialog = false">取消</el-button>
+                <el-button type="primary" @click="callTaskParamRef()">
+                确认 
+                </el-button>
+            </div>
+            </template>
+        </el-dialog>
+
         <FlowDrawerFooter @close="onClose" @save="onSave" />
     </a-drawer>
 </template>
@@ -60,9 +86,13 @@
 import flowNodeStore from '@/store/modules/flowNode'
 
 import { branchIcon2 } from '@/utils/flowMixin';
+import ContextParam from "../../../params/contextParam.vue";
 import CodeEditor from '../../CodeEditor.vue';
 
 const { proxy } = getCurrentInstance();
+
+const paramsDialog = ref(false) 
+const taskParamRef = ref(null)
 
 const codeEditorRef = ref(null)
 const node = ref({})
@@ -72,6 +102,77 @@ const headerStyle = ref({
     'border-radius': '0px 0px 0 0',
 })
 
+const resourceData = ref([
+  {
+    value: '1',
+    label: '技术文件', // Level one 1 换成 技术文件
+    children: [
+      {
+        value: '1-1',
+        label: '基础知识', // 假设 Level two 1-1 表示一个子文件夹
+        children: [
+          {
+            value: '1-1-1',
+            label: 'python_hello_world.py' // Level three 1-1-1 换成 python_hello_world.py 文件
+          },
+        ],
+      },
+    ],
+  },
+  {
+    value: '2',
+    label: '项目文档', // Level one 2 换成 项目文档
+    children: [
+      {
+        value: '2-1',
+        label: '需求分析', // 假设 Level two 2-1 表示一个子文件夹
+        children: [
+          {
+            value: '2-1-1',
+            label: 'requirements.docx' // 假设 Level three 2-1-1 换成 requirements.docx 文件
+          },
+        ],
+      },
+      {
+        value: '2-2',
+        label: '设计方案', // 假设 Level two 2-2 表示一个子文件夹
+        children: [
+          {
+            value: '2-2-1',
+            label: 'design.pdf' // 假设 Level three 2-2-1 换成 design.pdf 文件
+          },
+        ],
+      },
+    ],
+  },
+  {
+    value: '3',
+    label: '代码库', // Level one 3 换成 代码库
+    children: [
+      {
+        value: '3-1',
+        label: '源代码', // 假设 Level two 3-1 表示一个子文件夹
+        children: [
+          {
+            value: '3-1-1',
+            label: 'main.cpp' // 假设 Level three 3-1-1 换成 main.cpp 文件
+          },
+        ],
+      },
+      {
+        value: '3-2',
+        label: '测试脚本', // 假设 Level two 3-2 表示一个子文件夹
+        children: [
+          {
+            value: '3-2-1',
+            label: 'test_script.sh' // 假设 Level three 3-2-1 换成 test_script.sh 文件
+          },
+        ],
+      },
+    ],
+  },
+])
+
 const data = reactive({
     form: {
         name: '',
@@ -80,7 +181,7 @@ const data = reactive({
         retryCount: 0,
         env: '',
         rawScript: '' ,
-        resourceName: '',
+        resourceId: '',
         customParams: ''
     },
     rules: {
@@ -101,7 +202,7 @@ const data = reactive({
         env: [
             { required: true, message: '请选择环境名称', trigger: 'change' }
         ],
-        resourceName: [
+        resourceId: [
             { required: true, message: '请选择资源', trigger: 'blur' }
         ],
         customParams: [
@@ -134,6 +235,16 @@ const submitForm = (formName) => {
     });
 };
 
+/** 
+ * 获取到环境变量值  
+ */
+function callTaskParamRef(){
+ let contextParam = taskParamRef.value.getEnvVarsAsJson() ; 
+ form.value.customParams = contextParam ;
+ paramsDialog.value = false ;
+
+ console.log(JSON.stringify(contextParam, null, 2));
+}
 
 /**
  * 打开侧边栏 
