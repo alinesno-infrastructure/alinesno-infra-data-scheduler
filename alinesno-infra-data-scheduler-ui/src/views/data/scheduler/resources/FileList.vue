@@ -2,7 +2,7 @@
   <div>
      <el-row :gutter="20">
         <!--类型数据-->
-        <el-col :span="4" :xs="24">
+        <!-- <el-col :span="4" :xs="24">
            <div class="head-container">
               <el-input
                  v-model="deptName"
@@ -25,10 +25,10 @@
                  @node-click="handleNodeClick"
               />
            </div>
-        </el-col>
+        </el-col> -->
 
         <!--指令数据-->
-        <el-col :span="20" :xs="24">
+        <el-col :span="24" :xs="24">
            <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="100px">
               <el-form-item label="指令名称" prop="originalFilename">
                  <el-input v-model="queryParams.originalFilename" placeholder="请输入指令名称" clearable style="width: 240px" @keyup.enter="handleQuery" />
