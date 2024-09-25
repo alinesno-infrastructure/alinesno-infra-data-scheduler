@@ -24,7 +24,7 @@ public class EnvironmentEntity extends InfraBaseEntity {
     @TableField
     @ColumnType(value = MySqlTypeConstant.BIGINT, length = 32)
     @ColumnComment("流程编码")
-    private long processCode ;
+    private long processId ;
 
     @TableField
     @ColumnType(value = MySqlTypeConstant.VARCHAR, length = 128)
