@@ -1,13 +1,13 @@
 <template>
     <div class="cm-container">
-            <code-mirror 
-              basic 
-              :lang="lang" 
-              v-model="codeVal" 
-              style="height: 400px;" 
-              :theme="theme"
-              :extensions="extensions" />
-          </div>
+      <code-mirror 
+        basic 
+        :lang="lang" 
+        v-model="codeVal" 
+        style="height: 400px;" 
+        :theme="theme"
+        :extensions="extensions" />
+    </div>
 </template>
 
 <script setup>
@@ -30,7 +30,6 @@ const props = defineProps({
   },
 });
 
-
 // 初始化
 let codeVal = ref('');
 const lang = props.lang == 'python'? python(): 
@@ -38,6 +37,8 @@ const lang = props.lang == 'python'? python():
   props.lang == 'yaml'?yaml():
   props.lang == 'sql'?sql():
   python() ;
+
+console.log('props.lang  = ' + props.lang  + ' , lang = ' + lang);
 
 // 扩展
 const extensions = [oneDark];
