@@ -3,6 +3,10 @@
     <a-popover placement="right" v-model="visible">
       <template #content>
         <a-menu mode="vertical" class="flow-ant-menu-vertical">
+          <a-menu-item key="8" @click="addType(7)">
+            <img :src="parallelIcon" class="anticon" />
+            <span>Checkout操作</span>
+          </a-menu-item>
           <a-menu-item key="1" @click="addType(1)">
             <img :src="approverIcon2" class="anticon" />
             <span>SHELL脚本</span>
@@ -126,6 +130,10 @@ function getTypeInfo(type) {
         break;
       case 7:
         name = 'K8S操作';
+        icon = parallelIcon;
+        break;
+      case 8:
+        name = 'Checkout操作';
         icon = parallelIcon;
         break;
       default:
