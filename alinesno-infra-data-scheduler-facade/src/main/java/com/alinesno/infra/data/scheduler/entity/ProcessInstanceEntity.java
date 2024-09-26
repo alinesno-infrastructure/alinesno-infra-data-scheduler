@@ -21,7 +21,13 @@ public class ProcessInstanceEntity extends InfraBaseEntity {
     @TableField
     @ColumnType(value = MySqlTypeConstant.BIGINT, length = 32)
     @ColumnComment("流程编码")
-    private long processCode;
+    private long processId ;
+
+    // 工作空间
+    @TableField
+    @ColumnType(value = MySqlTypeConstant.VARCHAR, length = 128)
+    @ColumnComment("工作空间")
+    private String workspace;
 
     @TableField
     @ColumnType(value = MySqlTypeConstant.VARCHAR, length = 64)
@@ -36,7 +42,7 @@ public class ProcessInstanceEntity extends InfraBaseEntity {
     @TableField
     @ColumnType(value = MySqlTypeConstant.VARCHAR, length = 32)
     @ColumnComment("项目编码")
-    private String projectCode;
+    private long projectId;
 
     @TableField
     @ColumnType(value = MySqlTypeConstant.VARCHAR, length = 8)
