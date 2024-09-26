@@ -9,6 +9,7 @@
     <FlowMavenNode v-if="node && node.type == 5" :node="node" :readable="readable" />
     <FlowJarNode v-if="node && node.type == 6" :node="node" :readable="readable" />
     <FlowK8SNode v-if="node && node.type == 7" :node="node" :readable="readable" />
+    <FlowCheckout v-if="node && node.type == 8" :node="node" :readable="readable" />
     
     <!-- 子节点-->
     <FlowNode v-if="node && node.childNode && node.childNode.hasOwnProperty('name')" :node="node.childNode" :readable="readable" />
@@ -25,6 +26,7 @@ import FlowSqlNode from './Sql/index'  // 引入SQL组件(4)
 import FlowMavenNode from './Maven/index' // 引入MAVEN组件(5)
 import FlowJarNode from './Jar/index' // 引入JAR组件(6)
 import FlowK8SNode from './K8S/index' // 引入K8S组件(7)
+import FlowCheckout from './Checkout/index' // 引入代码下载组件(8)
 
 const props = defineProps({
   node: {
