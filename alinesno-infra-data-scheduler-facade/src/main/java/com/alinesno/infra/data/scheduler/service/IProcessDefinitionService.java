@@ -23,6 +23,6 @@ public interface IProcessDefinitionService extends IBaseService<ProcessDefinitio
      * @param dto
      * @return
      */
-    long saveProcessDefinition(ProcessDefinitionDto dto);
+    long commitProcessDefinition(ProcessDefinitionDto dto);
 
 }
