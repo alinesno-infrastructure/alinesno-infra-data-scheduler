@@ -30,7 +30,7 @@ public class ProcessUtils {
         ProcessInstanceEntity processInstance = new ProcessInstanceEntity();
         processInstance.setName(process.getName() + "#" + count);
         processInstance.setDescription(process.getDescription());
-        processInstance.setProjectCode(process.getProjectCode());
+        processInstance.setProjectId(process.getProjectId());
         processInstance.setState(ProcessStatusEnums.RUNNING.getCode());
         processInstance.setRunTimes((int) count);
         processInstance.setHost("location");
@@ -79,7 +79,7 @@ public class ProcessUtils {
         ProcessContextDto context = dto.getContext();
 
         entity.setName(context.getTaskName());
-        entity.setProjectCode(context.getProjectCode());
+        entity.setProjectId(context.getProjectCode());
         entity.setGlobalParams(context.getContext()!= null? JSONObject.toJSONString(context.getContext()):null);
         entity.setTimeout(context.getTimeout());
         entity.setScheduleCron(context.getCronExpression());
