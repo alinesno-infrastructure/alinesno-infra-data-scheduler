@@ -47,5 +47,8 @@ public class QuartzSchedulerServiceImpl implements IQuartzSchedulerService {
         scheduler.scheduleJob(jobDetail, trigger);
 
         log.debug("Quartz 创建了job:{}" , jobDetail.getKey());
+
+        // 默认任务是停止的状态
+        scheduler.pauseTrigger(TriggerKey.triggerKey(jobId , PipeConstants.TRIGGER_GROUP_NAME));
     }
 }
