@@ -46,7 +46,7 @@ public class SchedulerConfig {
       factory.setApplicationContextSchedulerContextKey("applicationContext");
       factory.setAutoStartup(true);
 
-      factory.setStartupDelay(5); // 延迟启动调度器
+      factory.setStartupDelay(1); // 延迟启动调度器
       return factory;
    }
 
