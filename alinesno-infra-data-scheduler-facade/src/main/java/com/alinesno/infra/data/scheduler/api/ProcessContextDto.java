@@ -23,7 +23,7 @@ public class ProcessContextDto {
     private String context;
 
     // 项目代码
-    private String projectCode ;
+    private long projectCode ;
 
     // 超时时间
     private int timeout ;
