@@ -4,6 +4,7 @@ import com.alinesno.infra.common.facade.enable.EnableActable;
 import com.alinesno.infra.common.web.adapter.sso.enable.EnableInfraSsoApi;
 import com.alinesno.infra.common.web.log.aspect.LogAspect;
 import com.alinesno.infra.data.scheduler.executor.handle.StartFlowExecutor;
+import com.alinesno.infra.data.scheduler.service.ICategoryService;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,9 @@ public class AppConfiguration implements CommandLineRunner {
     @Autowired
     private StartFlowExecutor startFlowExecutor ;
 
+    @Autowired
+    private ICategoryService categoryService ;
+
     @Bean
     public LogAspect getLogAspect(){
         return new LogAspect() ;
@@ -37,6 +41,7 @@ public class AppConfiguration implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        log.debug("AlinesnoDataScheduler AppConfiguration run ...:{}" , startFlowExecutor);
+        log.debug("alinesnoDataScheduler appConfiguration run ...:{},categoryService:{}" , startFlowExecutor,categoryService);
     }
+
 }
