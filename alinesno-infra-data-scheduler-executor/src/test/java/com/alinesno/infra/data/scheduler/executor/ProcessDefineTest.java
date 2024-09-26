@@ -22,7 +22,7 @@ public class ProcessDefineTest {
         ProcessDefinitionEntity processDefinition = new ProcessDefinitionEntity()
                 .setName("Sample Process")
                 .setDescription("This is a sample process for demonstration purposes.")
-                .setProjectCode("PROJECT-001")
+                .setProjectId(1L)
                 .setGlobalParams("{\"param1\":\"value1\",\"param2\":\"value2\"}")
                 .setTimeout(300) // 5 minutes
                 .setScheduleCron("0 0/5 * * * ?"); // 每5分钟执行一次
