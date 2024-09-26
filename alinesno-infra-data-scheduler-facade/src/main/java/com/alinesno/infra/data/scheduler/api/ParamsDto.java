@@ -29,6 +29,9 @@ public class ParamsDto {
     // 重试次数，整型数值
     private int retryCount;
 
+    // 数据源ID
+    private long dataSourceId ;
+
     // 环境变量
     private String env;
 
