@@ -33,7 +33,7 @@ public class ProcessDefinitionEntity extends InfraBaseEntity {
     @TableField
     @ColumnType(value = MySqlTypeConstant.VARCHAR, length = 128)
     @ColumnComment("项目编码")
-    private String projectCode ;
+    private long projectId;
 
     @TableField(exist = false)
     private String projectName;  // 项目名称
@@ -55,5 +55,24 @@ public class ProcessDefinitionEntity extends InfraBaseEntity {
     @ColumnType(value = MySqlTypeConstant.VARCHAR, length = 128)
     @ColumnComment("调度策略")
     private String scheduleCron ;
+
+    // 是否上线
+    @TableField
+    @ColumnType(value = MySqlTypeConstant.INT)
+    @ColumnComment("是否上线")
+    private boolean online ;
+
+    // 运行次数
+    @TableField
+    @ColumnType(value = MySqlTypeConstant.INT)
+    @ColumnComment("运行次数")
+    private long runCount ;
+
+    // 成功次数
+    @TableField
+    @ColumnType(value = MySqlTypeConstant.INT)
+    @ColumnComment("成功次数")
+    private long successCount ;
+
 
 }
