@@ -73,7 +73,7 @@ public class ProcessDefinitionController extends BaseController<ProcessDefinitio
         List<ProcessTaskDto> taskFlow = dto.getTaskFlow() ;
         Assert.isTrue(taskFlow.size() > 1 , "流程定义为空,请定义流程.");
 
-        long processId = service.saveProcessDefinition(dto) ;
+        long processId = service.commitProcessDefinition(dto) ;
         return AjaxResult.success("success" , processId) ;
     }
 
