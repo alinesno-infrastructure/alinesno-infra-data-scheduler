@@ -17,6 +17,9 @@ import java.util.List;
 @Data
 public class TaskInfoBean implements Serializable {
 
+    // 运行的工作空间
+    private String workspace ;
+
     // 环境定义
     private EnvironmentEntity environment ;
 
