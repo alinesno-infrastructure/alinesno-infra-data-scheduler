@@ -77,17 +77,6 @@ public class DataSourceEntity extends InfraBaseEntity {
   @ColumnComment("读取源类型")
   @Excel(name = "读取源类型")
   @TableField("reader_type")
-  private String readerType;
-
-  @ColumnComment("数据来源组织")
-  @Excel(name = "数据来源组织")
-  @TableField("owner")
-  private String owner;
-
-  // 类型（读取/写入)
-  @ColumnComment("类型（读取/写入)")
-  @Excel(name = "类型（读取/写入)")
-  @TableField("operation_type")
-  private String operationType;
+  private int readerType;
 
 }
