@@ -357,6 +357,14 @@
                                     background-image: linear-gradient(90deg, #aaaab3, #aaaab3), linear-gradient(#c4c4cc, #c4c4cc);
                                 }
 
+                                .node-checkout { 
+                                    background-image: -webkit-gradient(linear, left top, right top, from(#0366d6), to(#005cc5)),
+                                                    -webkit-gradient(linear, left top, left bottom, from(#24292e), to(#24292e));
+                                    background-image: -webkit-linear-gradient(left, #0366d6, #005cc5), -webkit-linear-gradient(#24292e, #24292e);
+                                    background-image: -o-linear-gradient(left, #0366d6 0, #005cc5 100%), -o-linear-gradient(#24292e, #24292e);
+                                    background-image: linear-gradient(90deg, #0366d6, #005cc5), linear-gradient(#24292e, #24292e);
+                                }
+
                                 .node-zl {
                                     background-image: -webkit-gradient(linear, left top, right top, from(#ff9313), to(#faab4b)),
                                         -webkit-gradient(linear, left top, left bottom, from(#3b5998), to(#3b5998));
