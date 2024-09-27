@@ -35,9 +35,14 @@ public class TaskInstanceEntity extends InfraBaseEntity {
     private int state;
 
     @TableField
-    @ColumnType(value = MySqlTypeConstant.INT)
+    @ColumnType(value = MySqlTypeConstant.BIGINT, length = 32)
+    @ColumnComment("流程ID")
+    private long processId ;
+
+    @TableField
+    @ColumnType(value = MySqlTypeConstant.BIGINT, length = 32)
     @ColumnComment("流程实例ID")
-    private long processCode ;
+    private long processInstanceId;
 
     @TableField
     @ColumnType(value = MySqlTypeConstant.BIGINT, length = 32)
@@ -80,7 +85,7 @@ public class TaskInstanceEntity extends InfraBaseEntity {
     private int retryInterval;
 
     @TableField
-    @ColumnType(value = MySqlTypeConstant.VARCHAR, length = 128)
+    @ColumnType(value = MySqlTypeConstant.LONGTEXT)
     @ColumnComment("任务参数")
     private String taskParams;
 
