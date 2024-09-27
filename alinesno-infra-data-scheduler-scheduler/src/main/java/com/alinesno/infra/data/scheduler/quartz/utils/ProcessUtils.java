@@ -48,16 +48,18 @@ public class ProcessUtils {
      *
      * @param process
      * @param t
+     * @param id
      * @return
      */
-    public static TaskInstanceEntity fromTaskToTaskInstance(ProcessDefinitionEntity process, TaskDefinitionEntity t) {
+    public static TaskInstanceEntity fromTaskToTaskInstance(ProcessDefinitionEntity process, TaskDefinitionEntity t, Long processInstanceId) {
 
         TaskInstanceEntity taskInstance = new TaskInstanceEntity();
 
         taskInstance.setName(t.getName());
         taskInstance.setTaskType(t.getTaskType());
-        taskInstance.setState(ProcessStatusEnums.RUNNING.getCode());
-        taskInstance.setProcessCode(process.getId());
+        taskInstance.setState(ProcessStatusEnums.UNRULY.getCode());
+        taskInstance.setProcessInstanceId(processInstanceId);
+        taskInstance.setProcessId(process.getId());
         taskInstance.setDescription(t.getDescription());
         taskInstance.setRetryTimes(0);
         taskInstance.setMaxRetryTimes(t.getFailRetryTimes());
