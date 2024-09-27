@@ -34,22 +34,6 @@
 
            <el-table v-loading="loading" :data="ProcessInstanceList" @selection-change="handleSelectionChange">
               <el-table-column type="selection" width="50" align="center" />
-              
-              <el-table-column label="图标" align="center" width="120" key="icon" v-if="columns[5].visible">
-                 <template #default="scope">
-                     <div style="margin-top: 5px;">
-                        <el-button type="primary" style="float:left;padding:5px;" text>
-                           <img style="margin-right:5px;width:20px; height:20px" :src="'http://data.linesno.com/icons/database/' + (scope.row.sourceDbType) + '.png'" /> 
-                            <!-- 源库: {{ scope.row.sourceDbType }} -->
-                        </el-button>
-                        <i class="fa-solid fa-angles-right" style="float:left;margin-top:7px"></i>
-                        <el-button type="primary" style="float:left;padding:5px;" text>
-                           <img style="margin-right:5px;width:20px; height:20px" :src="'http://data.linesno.com/icons/database/' + (scope.row.targetDbType) + '.png'" /> 
-                            <!-- 目标: {{ scope.row.targetDbType }} -->
-                        </el-button>
-                     </div>
-                  </template>
-              </el-table-column>
 
               <!-- 业务字段-->
               <el-table-column label="任务名称" align="left" width="200" key="projectName" prop="projectName" v-if="columns[0].visible" :show-overflow-tooltip="true">
@@ -62,7 +46,7 @@
                      </div>
                   </template>
               </el-table-column>
-              <!-- <el-table-column label="任务描述" align="left" key="jobDesc" prop="jobDesc" v-if="columns[1].visible" :show-overflow-tooltip="true" /> -->
+              
               <el-table-column label="当前流程节点" align="center" key="jobDesc" prop="jobDesc" v-if="columns[1].visible">
                  <template #default="scope">
                      <div style="margin-top: 5px;">
@@ -72,11 +56,19 @@
                      </div>
                   </template>
               </el-table-column>
+
+              <el-table-column label="流程任务" align="center" key="jobDesc" prop="jobDesc" v-if="columns[1].visible">
+                 <template #default="scope">
+                     <div style="margin-top: 5px;">
+                        <el-button type="primary" text @click="handleProcessTaskInstance(scope.row)">  
+                           <i class="fa-solid fa-ferry" style="margin-right:5px"></i> 流程任务
+                        </el-button>
+                     </div>
+                  </template>
+              </el-table-column>
+
               <el-table-column label="运行状态" align="center" width="140" key="projectCode" prop="projectCode" v-if="columns[2].visible" :show-overflow-tooltip="true">
                  <template #default="scope">
-                     <!-- <div style="font-size: 13px;color: #a5a5a5;cursor: pointer;" v-copyText="scope.row.projectCode">
-                        {{ scope.row.status}} 
-                     </div> -->
                      <el-button type="primary" v-if="scope.row.state == 1" text loading>
                         <i class="fa-solid fa-file-signature"></i>运行中
                      </el-button>
@@ -238,7 +230,7 @@
 
 
      <!-- 文档列表 -->
-     <el-dialog :title="title" v-model="openDocumentTypeDialog" width="1024px" append-to-body>
+     <!-- <el-dialog :title="title" v-model="openDocumentTypeDialog" width="1024px" append-to-body>
 
         <TypeList />
 
@@ -248,7 +240,12 @@
               <el-button @click="openDocumentTypeDialog = false">取 消</el-button>
            </div>
         </template>
-     </el-dialog>
+     </el-dialog> -->
+
+      <!-- 实例列表 -->
+      <el-drawer v-model="openTaskInstanceDialog" :size="'50%'" :title="processDefinitionTitle" :direction="'rtl'">
+         <ListInstance ref="processTaskDefinitionRef" />
+      </el-drawer>
 
   </div>
 </template>
@@ -264,7 +261,7 @@ import {
   changStatusField
 } from "@/api/data/scheduler/processInstance";
 
-// import TypeList from './channelList.vue'
+import ListInstance from '@/views/data/scheduler/taskInstance/listInstance.vue'
 
 const router = useRouter();
 const { proxy } = getCurrentInstance();
@@ -282,7 +279,9 @@ const title = ref("");
 const dateRange = ref([]);
 
 // 是否打开配置文档
-const openDocumentTypeDialog = ref(false);
+const processTaskDefinitionRef = ref(null);
+const openTaskInstanceDialog = ref(false);
+const processDefinitionTitle = ref('')
 
 // 列显隐信息
 const columns = ref([
@@ -425,6 +424,15 @@ function submitForm() {
 /** 配置文档类型 */
 function handleConfigType(id , documentType){
   openDocumentTypeDialog.value = true ; 
+}
+
+/** 打开任务实例界面 */
+function handleProcessTaskInstance(row) {
+   openTaskInstanceDialog.value = true
+   processDefinitionTitle.value = row.name
+   nextTick(() => {
+      processTaskDefinitionRef.value.getList(row.id);
+   })
 }
 
 /** 修改状态 */
