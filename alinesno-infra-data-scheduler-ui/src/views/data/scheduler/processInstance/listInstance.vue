@@ -78,8 +78,17 @@ import {
   addProcessInstance,
   changStatusField
 } from "@/api/data/scheduler/processInstance";
+import { nextTick } from "vue";
 
 // import TypeList from './channelList.vue'
+
+// const props = defineProps({
+//    processDefinitionId: {
+//     type: String,
+//     required: true,
+//     default: ''
+//   }
+// });
 
 const router = useRouter();
 const { proxy } = getCurrentInstance();
@@ -116,6 +125,7 @@ const data = reactive({
      pageNum: 1,
      pageSize: 10,
      dbName: undefined,
+     processId: undefined , 
      dbDesc: undefined
   },
   rules: {
@@ -131,8 +141,11 @@ const data = reactive({
 const { queryParams, form, rules } = toRefs(data);
 
 /** 查询应用列表 */
-function getList() {
+function getList(processId) {
   loading.value = true;
+
+  queryParams.value.processId = processId;
+
   listProcessInstance(proxy.addDateRange(queryParams.value, dateRange.value)).then(res => {
      loading.value = false;
      ProcessInstanceList.value = res.rows;
@@ -289,6 +302,10 @@ function getTimeDifference(startTime, endTime) {
     };
 }
 
-getList();
+// getList();
+
+defineExpose({
+   getList
+})
 
 </script>
