@@ -97,7 +97,10 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
             task.setTask(t);
 
             // 记录任务实例开始
-            TaskInstanceEntity taskInstance = ProcessUtils.fromTaskToTaskInstance(process, t) ;
+            TaskInstanceEntity taskInstance = ProcessUtils.fromTaskToTaskInstance(process, t , processInstance.getId()) ;
+            taskInstance.setState(ProcessStatusEnums.RUNNING.getCode());
+            taskInstance.setStartTime(new Date());
+            taskInstanceService.save(taskInstance);
 
             String beanName = t.getTaskType() + "Executor" ;
             log.debug("TaskExecutor BeanName:{}" , beanName);
