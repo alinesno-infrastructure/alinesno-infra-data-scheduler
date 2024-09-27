@@ -285,8 +285,9 @@
          </template>
       </el-dialog>
 
+      <!-- 实例列表 -->
       <el-drawer v-model="openInstanceDialog" :size="'50%'" :title="processDefinitionTitle" :direction="'rtl'">
-         <ListInstance :processDefinitionId="processDefinitionId" />
+         <ListInstance ref="processDefinitionRef" />
       </el-drawer>
 
    </div>
@@ -308,6 +309,7 @@ import {
 } from "@/api/data/scheduler/processDefinition";
 
 import ListInstance from '@/views/data/scheduler/processInstance/listInstance.vue'
+import { nextTick } from "vue";
 
 const router = useRouter();
 const { proxy } = getCurrentInstance();
@@ -328,9 +330,9 @@ const expression = ref("");
 const deptOptions = ref(undefined);
 
 // 是否打开配置文档
+const processDefinitionRef = ref(null);
 const openInstanceDialog = ref(false);
 const processDefinitionTitle = ref('')
-const processDefinitionId = ref(null)
 
 // 列显隐信息
 const columns = ref([
@@ -535,7 +537,10 @@ function handlePauseTrigger(row) {
 function openProcessInstance(row) {
    openInstanceDialog.value = true
    processDefinitionTitle.value = row.name
-   processDefinitionId.value = row.id
+   // processDefinitionId.value = row.id
+   nextTick(() => {
+      processDefinitionRef.value.getList(row.id);
+   })
 }
 
 /** cron表达式按钮操作 */
