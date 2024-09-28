@@ -1,5 +1,6 @@
 package com.alinesno.infra.data.scheduler.executor.handle;
 
+import cn.hutool.db.sql.SqlFormatter;
 import com.alinesno.infra.data.scheduler.api.ParamsDto;
 import com.alinesno.infra.data.scheduler.executor.BaseExecutorService;
 import com.alinesno.infra.data.scheduler.executor.bean.TaskInfoBean;
@@ -21,8 +22,11 @@ public class SQLExecutor extends BaseExecutorService {
 
         ParamsDto paramsDto = getParamsDto(task) ;
         String rawScript = paramsDto.getRawScript();
+        String rawScriptFormat = SqlFormatter.format(rawScript) ;
 
-        log.debug("SQL Executor rawScript: {}", rawScript) ;
+        log.debug("SQL Executor rawScript: {}", rawScriptFormat) ;
+
+        writeLog(task , rawScriptFormat);
 
         // 创建一个数据源
         DataSource dataSource = getDataSource(paramsDto.getDataSourceId()) ;
@@ -31,8 +35,10 @@ public class SQLExecutor extends BaseExecutorService {
             // 执行SQL脚本
             ScriptUtils.executeSqlScript(connection, new ByteArrayResource(rawScript.getBytes()));
             log.debug("SQL script executed successfully.");
+            writeLog(task , "SQL 脚本执行成功.");
         } catch (SQLException e) {
             log.error("Failed to execute SQL script: " + e.getMessage());
+            writeLog(task , "SQL 脚本执行失败: " + e.getMessage());
         }
     }
 
