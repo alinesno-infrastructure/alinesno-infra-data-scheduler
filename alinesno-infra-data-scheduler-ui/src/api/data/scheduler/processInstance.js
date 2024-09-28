@@ -20,9 +20,18 @@ var managerUrl = {
     detailUrl: prefix +"detail",
     removeUrl: prefix + "delete" ,
     exportUrl: prefix + "exportExcel",
+    readLog: prefix + "readLog",
     changeField: prefix + "changeField",
     defaultProcessInstance: prefix + "defaultProcessInstance",
     downloadfile: prefix + "downloadfile"
+}
+
+// 读取日志
+export function readLog(data){
+  return request({
+    url: managerUrl.readLog + '?processInstanceId=' + data.processInstanceId + '&start=' + data.start , 
+    method: 'get',
+  })
 }
 
 // 获取默认应用
