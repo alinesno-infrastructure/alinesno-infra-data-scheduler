@@ -13,14 +13,10 @@
                <el-input v-model="form.readerDesc" placeholder="读取源描述"/>
             </el-form-item>
 
-            <el-form-item label="源组织" prop="owner">
-               <el-input v-model="form.owner" style="width:50%" placeholder="读取源组织"/>
-            </el-form-item>
-
             <el-form-item label="源类型" prop="operationType">
                <el-radio-group v-model="form.operationType" @change="changeReaderType()">
                   <el-radio key="source" label="source" value="source"  size="large">读取(reader)</el-radio>
-                  <el-radio key="sink" label="sink" value="sink"  size="large">写入(sink)</el-radio>
+                  <!-- <el-radio key="sink" label="sink" value="sink"  size="large">写入(sink)</el-radio> -->
                </el-radio-group> 
             </el-form-item>
 
@@ -159,7 +155,7 @@ import {
    checkConnectionByObj,
    updateDatasource,
    addDatasource ,
-   allDatasource
+   allDataSource
 } from "@/api/data/scheduler/datasources";
 
 import { ElLoading } from 'element-plus'
@@ -194,7 +190,6 @@ const data = reactive({
    },
    rules: {
       readerName: [{ required: true, message: "名称不能为空", trigger: "blur" }] , 
-      owner: [{ required: true, message: "源组织不能为空", trigger: "blur" }] , 
       readerType: [{ required: true, message: "数据源类型不能为空", trigger: "blur" }] , 
       readerUrl: [{ required: true, message: "连接不能为空", trigger: "blur" }],
       operationType: [{ required: true, message: "类型不能为空", trigger: "blur" }] , 
@@ -215,7 +210,7 @@ function changeReaderType(val){
 
 /** 获取到所有数据源 */
 function handleGetAllSourceReader() {
-   allDatasource().then(response => {
+   allDataSource().then(response => {
     const data = response.data;
 
     readerType.value = data.filter(item => item.sourceType === 'sink');
@@ -246,7 +241,7 @@ function handleSourceInfo(){
 
 /** 返回 */
 function goBack() {
-   router.push({path:'/migration/data/pipeline/readerSource/index',query:{}});
+   router.push({path:'/data/scheduler/datasource/index',query:{}});
 }
 
 /** 提交按钮 */
