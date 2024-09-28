@@ -19,5 +19,10 @@ public class StartFlowExecutor extends BaseExecutorService {
         log.info("--->>> M2Home: {}", getM2Home(taskInfo.getEnvironment()));
         log.info("--->>> JavaHome: {}", getJavaHome(taskInfo.getEnvironment()));
 
+        writeLog(taskInfo, "--->>> StartFlowExecutor execute");
+        writeLog(taskInfo, "--->>> 运行空间: " + getWorkspace(taskInfo));
+        writeLog(taskInfo, "--->>> PythonHome : " + getPythonHome(taskInfo.getEnvironment()));
+        writeLog(taskInfo, "--->>> M2Home: " + getM2Home(taskInfo.getEnvironment()));
+        writeLog(taskInfo, "--->>> JavaHome: " + getJavaHome(taskInfo.getEnvironment()));
     }
 }
