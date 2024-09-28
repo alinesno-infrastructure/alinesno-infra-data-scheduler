@@ -15,7 +15,8 @@ public enum ExecutorTypeEnums {
     SQL_SCRIPT(4, "SQL脚本", "sql"),
     MAVEN_COMMAND(5, "MAVEN命令", "maven"),
     JAR_EXECUTION(6, "JAR包执行", "jar"),
-    K8S_OPERATION(7, "K8S操作", "k8s");
+    K8S_OPERATION(7, "K8S操作", "k8s"),
+    GIT_CHECKOUT(8, "Checkout操作", "checkout");
 
     private final int type;
     private final String name;
