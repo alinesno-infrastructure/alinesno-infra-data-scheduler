@@ -22,14 +22,22 @@ var managerUrl = {
     exportUrl: prefix + "exportExcel",
     changeField: prefix + "changeField",
     downloadfile: prefix + "downloadfile",
-    allDatasource: prefix + "allDatasource",
     fetchData: prefix + "fetchData",
     fetchFieldMeta: prefix + "fetchFieldMeta",
     fetchTableMetaData: prefix + "fetchTableMetaData",
     fetchTableData: prefix + "fetchTableData",
+    allDataSource: prefix + "allDataSource",
     checkConnection: prefix + "checkConnection",
     checkConnectionByObj: prefix + "checkConnectionByObj",
     checkDBUrl: prefix + "checkDB",
+}
+
+// 获取到所有数据源库
+export function allDataSource(){
+  return request({
+    url: managerUrl.allDataSource , 
+    method: 'get'
+  })
 }
 
 /** 连接验证是否正常 */
