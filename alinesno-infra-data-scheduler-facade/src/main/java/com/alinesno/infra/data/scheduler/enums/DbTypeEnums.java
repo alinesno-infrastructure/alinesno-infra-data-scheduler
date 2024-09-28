@@ -35,6 +35,16 @@ public enum DbTypeEnums {
     private static final Map<Integer, DbTypeEnums> DB_TYPE_MAP =
             Arrays.stream(DbTypeEnums.values()).collect(toMap(DbTypeEnums::getCode, Functions.identity()));
 
+    // 通过descp获取枚举
+    public static DbTypeEnums of(String descp) {
+        for (DbTypeEnums dbType : DbTypeEnums.values()) {
+            if (dbType.descp.equals(descp)) {
+                return dbType;
+            }
+        }
+        return null;
+    }
+
     public static DbTypeEnums of(int type) {
         if (DB_TYPE_MAP.containsKey(type)) {
             return DB_TYPE_MAP.get(type);
