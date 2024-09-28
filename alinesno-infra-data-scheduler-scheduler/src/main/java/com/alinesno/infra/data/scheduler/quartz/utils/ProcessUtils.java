@@ -109,7 +109,7 @@ public class ProcessUtils {
             ParamsDto params = task.getParams();
 
             String name = task.getName() ;
-            String desc = task.getName() ;
+            String desc = task.getDescription() ;
             int retryCount = 0 ;
             String taskParams = null;
             String resourceId = null ;
