@@ -30,9 +30,8 @@ public class ShellExecutor extends BaseExecutorService {
         CommandLine cmdLine = CommandLine.parse(rawScript);
 
         // 创建用于捕获输出的流
-        CollectingLogOutputStream outputStream = new CollectingLogOutputStream();
+        CollectingLogOutputStream outputStream = new CollectingLogOutputStream(taskInfo);
         PumpStreamHandler streamHandler = new PumpStreamHandler(outputStream);
-//        PumpStreamHandler streamHandler = new PumpStreamHandler(new CollectingLogOutputStream());
 
         // 设置执行器
         DefaultExecutor executor = DefaultExecutor.builder().get();
@@ -52,16 +51,26 @@ public class ShellExecutor extends BaseExecutorService {
             log.error("命令执行失败: " + e.getMessage());
         } catch (Exception e) {
             log.error("运行异常" , e);
+            writeLog(taskInfo , rawScript) ;
+            writeLog(taskInfo , e) ;
         }
     }
 
     @Getter
-    static class CollectingLogOutputStream extends LogOutputStream {
-        private final List<String> lines = new LinkedList<String>();
+    class CollectingLogOutputStream extends LogOutputStream {
+        private final List<String> lines = new LinkedList<>();
+
+        private final TaskInfoBean taskInfo ;
+
+        public CollectingLogOutputStream(TaskInfoBean taskInfo) {
+            this.taskInfo = taskInfo ;
+        }
+
         @Override
         protected void processLine(String line, int level) {
             lines.add(line);
             log.debug("-->> {}" , line);
+            writeLog(taskInfo , line) ;
         }
     }
 }
