@@ -22,7 +22,25 @@ var managerUrl = {
     exportUrl: prefix + "exportExcel",
     changeField: prefix + "changeField",
     defaultProject: prefix + "defaultProject",
+    choiceProject: prefix + "choiceProject",
+    currentProject: prefix + "currentProject",
     downloadfile: prefix + "downloadfile"
+}
+
+// 选择当前应用
+export function getCurrentProject(){
+  return request({
+      url: managerUrl.currentProject , 
+      method: 'get'
+  })
+}
+
+// 配置当前应用
+export function choiceProject(id){
+  return request({
+      url: managerUrl.choiceProject + '?projectId=' + parseStrEmpty(id),
+      method: 'get'
+  })
 }
 
 // 获取默认应用
