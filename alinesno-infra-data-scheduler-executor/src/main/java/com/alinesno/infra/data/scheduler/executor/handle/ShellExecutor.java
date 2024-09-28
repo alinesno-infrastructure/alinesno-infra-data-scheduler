@@ -1,17 +1,15 @@
 package com.alinesno.infra.data.scheduler.executor.handle;
 
 import com.alinesno.infra.data.scheduler.api.ParamsDto;
+import com.alinesno.infra.data.scheduler.constants.PipeConstants;
 import com.alinesno.infra.data.scheduler.executor.BaseExecutorService;
 import com.alinesno.infra.data.scheduler.executor.bean.TaskInfoBean;
-import lombok.Getter;
+import com.alinesno.infra.data.scheduler.executor.shell.ShellHandle;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.exec.*;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
-import java.util.LinkedList;
-import java.util.List;
+import java.io.File;
 
 @Slf4j
 @Service("shellExecutor")
@@ -24,53 +22,17 @@ public class ShellExecutor extends BaseExecutorService {
         ParamsDto paramsDto = getParamsDto(taskInfo) ;
         String rawScript = paramsDto.getRawScript();
 
-        log.debug("SQL Executor rawScript: {}", rawScript) ;
+        log.debug("Shell Executor rawScript: {}", rawScript) ;
 
         // 设置命令行
-        CommandLine cmdLine = CommandLine.parse(rawScript);
+        File logFile = new File(getWorkspace(taskInfo), PipeConstants.RUNNING_LOGGER);
 
-        // 创建用于捕获输出的流
-        CollectingLogOutputStream outputStream = new CollectingLogOutputStream(taskInfo);
-        PumpStreamHandler streamHandler = new PumpStreamHandler(outputStream);
+        log.debug("logFile: {}", logFile.getAbsoluteFile());
 
-        // 设置执行器
-        DefaultExecutor executor = DefaultExecutor.builder().get();
-        executor.setStreamHandler(streamHandler);
+        ShellHandle shellHandle = new ShellHandle("/bin/sh", "-c", rawScript);
+        shellHandle.setLogPath(logFile.getAbsolutePath());
 
-        // 设置超时时间
-        int timeoutInSeconds = 300;
-        ExecuteWatchdog watchdog = ExecuteWatchdog.builder().setTimeout(Duration.ofSeconds(timeoutInSeconds)).get();
-        executor.setWatchdog(watchdog);
-
-        try {
-            // 执行命令
-            executor.execute(cmdLine);
-            // 输出命令执行结果
-            // log.debug("命令输出: " + outputStream.toString("GBK")) ;
-        } catch (ExecuteException e) {
-            log.error("命令执行失败: " + e.getMessage());
-        } catch (Exception e) {
-            log.error("运行异常" , e);
-            writeLog(taskInfo , rawScript) ;
-            writeLog(taskInfo , e) ;
-        }
+        shellHandle.execute();
     }
 
-    @Getter
-    class CollectingLogOutputStream extends LogOutputStream {
-        private final List<String> lines = new LinkedList<>();
-
-        private final TaskInfoBean taskInfo ;
-
-        public CollectingLogOutputStream(TaskInfoBean taskInfo) {
-            this.taskInfo = taskInfo ;
-        }
-
-        @Override
-        protected void processLine(String line, int level) {
-            lines.add(line);
-            log.debug("-->> {}" , line);
-            writeLog(taskInfo , line) ;
-        }
-    }
 }
