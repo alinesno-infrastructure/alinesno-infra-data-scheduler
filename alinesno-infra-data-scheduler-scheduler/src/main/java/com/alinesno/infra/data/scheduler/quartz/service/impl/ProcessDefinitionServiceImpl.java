@@ -84,8 +84,8 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
         processInstance.setState(ProcessStatusEnums.RUNNING.getCode());
 
         // 生成实例工作空间
-        String instanceWorkspace = workspacePath + File.separator + process.getId() + File.separator + count ;
-        FileUtils.forceMkdir(new File(instanceWorkspace)); // 创建工作空间
+        String instanceWorkspace = process.getId() + File.separator + count ;
+        FileUtils.forceMkdir(new File(workspacePath + File.separator + instanceWorkspace)); // 创建工作空间
         processInstance.setWorkspace(instanceWorkspace);
 
         processInstanceService.save(processInstance) ;
