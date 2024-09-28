@@ -17,31 +17,18 @@ import java.util.Map;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ParamsDto {
 
-    // 字段名与 JSON 键对应
-    private String name;
+    private String name; // 字段名与 JSON 键对应
+    private String desc; // 描述
+    private boolean delivery; // 注意布尔值在 JSON 中是 true/false，在 Java 中是 boolean
+    private int retryCount; // 重试次数，整型数值
+    private long dataSourceId ; // 数据源ID
+    private String env; // 环境变量
+    private String rawScript; // 原始脚本
+    private List<String> resourceId; // 资源名称
+    private Map<String,String> customParams; // 自定义参数
 
-    // 描述
-    private String desc;
-
-    // 注意布尔值在 JSON 中是 true/false，在 Java 中是 boolean
-    private boolean delivery;
-
-    // 重试次数，整型数值
-    private int retryCount;
-
-    // 数据源ID
-    private long dataSourceId ;
-
-    // 环境变量
-    private String env;
-
-    // 原始脚本
-    private String rawScript;
-
-    // 资源名称
-    private List<String> resourceId;
-
-    // 自定义参数
-    private Map<String,String> customParams;
-
+    private String gitUrl; // Git仓库地址
+    private String gitBranch;  // Git分支
+    private String gitUsername; // Git用户名
+    private String gitPassword; // Git密码
 }
