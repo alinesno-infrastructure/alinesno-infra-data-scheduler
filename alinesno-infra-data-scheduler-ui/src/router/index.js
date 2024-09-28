@@ -162,6 +162,13 @@ export const constantRoutes = [
         hidden: false,
         component: () => import('@/views/data/scheduler/processDefinition/createDefinition'),
         meta: { title: '添加任务', icon: 'fa-solid fa-code-pull-request', affix: false }
+      },
+      {
+        path: '/data/scheduler/datasource/addSource',
+        name: 'data.scheduler.datasource.addSource',
+        hidden: true,
+        component: () => import('@/views/data/scheduler/datasource/addSource'),
+        meta: { title: '创建读取源', icon: 'dashboard', affix: true }
       }
 
     ]
