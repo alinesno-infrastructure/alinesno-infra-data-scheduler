@@ -8,9 +8,6 @@
               <el-form-item label="应用名称" prop="dbName">
                  <el-input v-model="queryParams.dbName" placeholder="请输入应用名称" clearable style="width: 240px" @keyup.enter="handleQuery" />
               </el-form-item>
-              <el-form-item label="应用名称" prop="dbName">
-                 <el-input v-model="queryParams['condition[dbName|like]']" placeholder="请输入应用名称" clearable style="width: 240px" @keyup.enter="handleQuery" />
-              </el-form-item>
               <el-form-item>
                  <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
                  <el-button icon="Refresh" @click="resetQuery">重置</el-button>
@@ -19,12 +16,6 @@
 
            <el-row :gutter="10" class="mb8">
 
-              <el-col :span="1.5">
-                 <el-button type="primary" plain icon="Plus" @click="handleAdd">新增</el-button>
-              </el-col>
-              <el-col :span="1.5">
-                 <el-button type="success" plain icon="Edit" :disabled="single" @click="handleUpdate">修改</el-button>
-              </el-col>
               <el-col :span="1.5">
                  <el-button type="danger" plain icon="Delete" :disabled="multiple" @click="handleDelete">删除</el-button>
               </el-col>
@@ -39,11 +30,13 @@
               <el-table-column label="任务名称" align="left" width="200" key="projectName" prop="projectName" v-if="columns[0].visible" :show-overflow-tooltip="true">
                  <template #default="scope">
                      <div>
-                        {{ scope.row.name}}
+                        <i class="fa-solid fa-sun" style="font-size:17px;margin-right:5px"></i> {{ scope.row.name}}
                      </div>
+                     <!-- 
                      <div style="font-size: 13px;color: #a5a5a5;cursor: pointer;" v-copyText="scope.row.promptId">
                        任务:{{ scope.row.jobDesc}}
-                     </div>
+                     </div> 
+                     -->
                   </template>
               </el-table-column>
               
@@ -57,11 +50,21 @@
                   </template>
               </el-table-column>
 
-              <el-table-column label="流程任务" align="center" key="jobDesc" prop="jobDesc" v-if="columns[1].visible">
+              <el-table-column label="流程任务" width="130" align="center" key="jobDesc" prop="jobDesc" v-if="columns[1].visible">
                  <template #default="scope">
                      <div style="margin-top: 5px;">
                         <el-button type="primary" text @click="handleProcessTaskInstance(scope.row)">  
-                           <i class="fa-solid fa-ferry" style="margin-right:5px"></i> 流程任务
+                           <i class="fa-solid fa-truck-fast" style="margin-right:5px"></i> 流程任务
+                        </el-button>
+                     </div>
+                  </template>
+              </el-table-column>
+
+              <el-table-column label="日志" width="130" align="center" key="jobDesc" prop="jobDesc" v-if="columns[1].visible">
+                 <template #default="scope">
+                     <div style="margin-top: 5px;">
+                        <el-button type="primary" text @click="handleProcessInstanceLog(scope.row)">  
+                           <i class="fa-solid fa-ferry" style="margin-right:5px"></i> 运行日志 
                         </el-button>
                      </div>
                   </template>
@@ -96,12 +99,6 @@
                  </template>
               </el-table-column>
 
-              <!-- <el-table-column label="任务耗时" align="center" prop="addTime" v-if="columns[6].visible" width="100">
-                 <template #default="scope">
-                    <span>{{ timeDifference(scope.row.startTime , scope.row.endTime) }}</span>
-                 </template>
-              </el-table-column> -->
-
               <!-- 操作字段  -->
               <el-table-column label="操作" align="center" width="150" class-name="small-padding fixed-width">
                  <template #default="scope">
@@ -121,130 +118,23 @@
         </el-col>
      </el-row>
 
-     <!-- 添加或修改应用配置对话框 -->
-     <el-dialog :title="title" v-model="open" width="900px" append-to-body>
-        <el-form :model="form" :rules="rules" ref="databaseRef" label-width="100px">
-           <el-row>
-              <el-col :span="24">
-                 <el-form-item label="应用图标" prop="logo">
-                    <!-- <el-input v-model="form.logo" placeholder="请输入应用图标" maxlength="255" /> -->
-
-                    <el-upload action="#" list-type="picture-card" :auto-upload="false">
-                          <el-icon><Plus /></el-icon>
-
-                          <template #file="{ file }">
-                             <div>
-                             <img class="el-upload-list__item-thumbnail" :src="file.url" alt="" />
-                             <span class="el-upload-list__item-actions">
-                                <span
-                                   class="el-upload-list__item-preview"
-                                   @click="handlePictureCardPreview(file)"
-                                >
-                                   <el-icon><zoom-in /></el-icon>
-                                </span>
-                                <span
-                                   v-if="!disabled"
-                                   class="el-upload-list__item-delete"
-                                   @click="handleDownload(file)"
-                                >
-                                   <el-icon><Download /></el-icon>
-                                </span>
-                                <span
-                                   v-if="!disabled"
-                                   class="el-upload-list__item-delete"
-                                   @click="handleRemove(file)"
-                                >
-                                   <el-icon><Delete /></el-icon>
-                                </span>
-                             </span>
-                             </div>
-                          </template>
-                       </el-upload>
-
-                 </el-form-item>
-              </el-col>
-              <el-col :span="24">
-                 <el-form-item label="应用名称" prop="projectName">
-                    <el-input v-model="form.projectName" placeholder="请输入应用名称" maxlength="50" />
-                 </el-form-item>
-              </el-col>
-           </el-row>
-           <el-row>
-              <el-col :span="24">
-                 <el-form-item label="应用介绍" prop="intro">
-                    <el-input v-model="form.intro" type="textarea" placeholder="请输入应用介绍" maxlength="255" />
-                 </el-form-item>
-              </el-col>
-           </el-row>
-           <el-row>
-              <el-col :span="24">
-                 <el-form-item label="授权地址" prop="allowUrl">
-                    <el-input v-model="form.allowUrl" placeholder="请输入授权地址" maxlength="255" />
-                 </el-form-item>
-              </el-col>
-
-              <el-col :span="24">
-                 <el-form-item label="应用状态" prop="status">
-                    <el-radio-group v-model="form.status">
-                       <el-radio
-                          v-for="dict in sys_normal_disable"
-                          :key="dict.value"
-                          :label="dict.value"
-                       >{{ dict.label }}</el-radio>
-                    </el-radio-group>
-                 </el-form-item>
-              </el-col>
-
-              <el-col :span="24">
-                 <!-- <el-form-item label="是否公开" prop="isPublic">
-                    <el-input v-model="form.isPublic" placeholder="请输入是否公开" maxlength="1" />
-                 </el-form-item> -->
-
-                 <el-form-item label="是否公开" prop="isPublic">
-                    <el-radio-group v-model="form.isPublic">
-                       <el-radio
-                          v-for="dict in sys_normal_disable"
-                          :key="dict.value"
-                          :label="dict.value"
-                       >{{ dict.label }}</el-radio>
-                    </el-radio-group>
-                 </el-form-item>
-              </el-col>
-           </el-row>
-
-           <el-row>
-              <el-col :span="24">
-                 <el-form-item label="备注" prop="description">
-                    <el-input v-model="form.description"  placeholder="请输入应用备注"></el-input>
-                 </el-form-item>
-              </el-col>
-           </el-row>
-        </el-form>
-        <template #footer>
-           <div class="dialog-footer">
-              <el-button type="primary" @click="submitForm">确 定</el-button>
-              <el-button @click="cancel">取 消</el-button>
-           </div>
-        </template>
-     </el-dialog>
-
-
-     <!-- 文档列表 -->
-     <!-- <el-dialog :title="title" v-model="openDocumentTypeDialog" width="1024px" append-to-body>
-
-        <TypeList />
-
-        <template #footer>
-           <div class="dialog-footer">
-              <el-button type="primary" @click="submitDocumentTypeForm">确 定</el-button>
-              <el-button @click="openDocumentTypeDialog = false">取 消</el-button>
-           </div>
-        </template>
-     </el-dialog> -->
-
-      <!-- 实例列表 -->
-      <el-drawer v-model="openTaskInstanceDialog" :size="'50%'" :title="processDefinitionTitle" :direction="'rtl'">
+      <!-- 任务实例列表 -->
+      <el-drawer v-model="openTaskInstanceDialog" 
+         :size="'50%'" 
+         :title="processDefinitionTitle" 
+         :direction="'rtl'">
          <ListInstance ref="processTaskDefinitionRef" />
+      </el-drawer>
+
+      <!-- 任务实例日志 -->
+      <el-drawer v-model="openProcessInstanceLogDialog" 
+         class="process-instance-log-drawer"
+         :with-header="false"
+         :size="'60%'" 
+         :title="openProcessInstanceLogTitle" 
+         :before-close="handleCloseProcessInstanceLogDialog"
+         :direction="'rtl'">
+         <ProcessInstanceLog ref="processInstanceLogRef" />
       </el-drawer>
 
   </div>
@@ -262,6 +152,7 @@ import {
 } from "@/api/data/scheduler/processInstance";
 
 import ListInstance from '@/views/data/scheduler/taskInstance/listInstance.vue'
+import ProcessInstanceLog from './processInstanceLog.vue'
 
 const router = useRouter();
 const { proxy } = getCurrentInstance();
@@ -282,6 +173,10 @@ const dateRange = ref([]);
 const processTaskDefinitionRef = ref(null);
 const openTaskInstanceDialog = ref(false);
 const processDefinitionTitle = ref('')
+
+const processInstanceLogRef = ref(null)
+const openProcessInstanceLogDialog = ref(false);
+const openProcessInstanceLogTitle = ref('');
 
 // 列显隐信息
 const columns = ref([
@@ -433,6 +328,21 @@ function handleProcessTaskInstance(row) {
    nextTick(() => {
       processTaskDefinitionRef.value.getList(row.id);
    })
+}
+
+/** 打开任务实例日志界面 */
+function handleProcessInstanceLog(row) {
+   openProcessInstanceLogDialog.value = true
+   openProcessInstanceLogTitle.value = row.name
+   nextTick(() => {
+      processInstanceLogRef.value.connectLogger(row.id);
+   })
+}
+
+/** 关闭任务实例日志界面 */
+function handleCloseProcessInstanceLogDialog(){
+   openProcessInstanceLogDialog.value = false ;
+   processInstanceLogRef.value.clearLoggerInterval();
 }
 
 /** 修改状态 */
