@@ -3,7 +3,7 @@
     <a-popover placement="right" v-model="visible">
       <template #content>
         <a-menu mode="vertical" class="flow-ant-menu-vertical">
-          <a-menu-item key="8" @click="addType(7)">
+          <a-menu-item key="8" @click="addType(8)">
             <img :src="parallelIcon" class="anticon" />
             <span>Checkout操作</span>
           </a-menu-item>
