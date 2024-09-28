@@ -1,6 +1,6 @@
 <template>
-  <el-scrollbar ref="scrollbarRef" class="log-container">
-      <pre ref="logOutput" class="log-output" >{{ logText }}</pre>
+  <el-scrollbar ref="scrollbarRef" class="log-container" v-loading="loading">
+      <pre ref="logOutput" class="log-output">{{ logText }}</pre>
   </el-scrollbar>
   <div class="log-footer">
     <el-button v-if="hasMoreLog" text bg type="primary" loading>获取日志中</el-button> 
@@ -23,9 +23,9 @@ const logOutput = ref(null);
 const logText = ref('');
 
 // 滚动条的处理_starter
-const scrollbarRef = ref(null);
+const scrollbarRef = ref(null)
 const hasMoreLog = ref(true)
-
+const loading = ref(false)
 const processInstanceId = ref(null)
 const start = ref(0)
 const interval = ref(null) 
@@ -36,6 +36,7 @@ const simulateLogOutput = (processInstanceId) => {
     // 获取新的日志
     readLog({'processInstanceId': processInstanceId,'start': logger.value.start }).then(res => {
       let loggerT = res.data;
+      loading.value = false;
       
       logText.value += loggerT.log ; 
 
@@ -70,6 +71,7 @@ function clearLoggerInterval(){
 
 /** 绑定日志输出 */
 function connectLogger(id){
+  loading.value = true ;
   logger.value.start = 0; 
   logText.value = ''; 
   simulateLogOutput(id);
