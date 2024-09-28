@@ -4,16 +4,20 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.alinesno.infra.common.web.log.utils.SpringUtils;
 import com.alinesno.infra.data.scheduler.api.ParamsDto;
+import com.alinesno.infra.data.scheduler.constants.PipeConstants;
 import com.alinesno.infra.data.scheduler.entity.EnvironmentEntity;
 import com.alinesno.infra.data.scheduler.executor.bean.TaskInfoBean;
 import com.alinesno.infra.data.scheduler.service.IDataSourceService;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.springframework.beans.factory.annotation.Value;
 
 import javax.sql.DataSource;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
@@ -23,6 +27,9 @@ import java.util.Map;
 @Slf4j
 public abstract class BaseExecutorService implements IExecutorService {
 
+    @Value("${alinesno.data.scheduler.workspacePath:#{systemProperties['java.io.tmpdir']}}")
+    private String workspacePath;
+
     /**
      * 获取到运行实例的工作空间
      *
@@ -30,7 +37,7 @@ public abstract class BaseExecutorService implements IExecutorService {
      * @return
      */
     protected String getWorkspace(TaskInfoBean task) {
-        return task.getWorkspace();
+        return workspacePath + File.separator +  task.getWorkspace();
     }
 
     /**
@@ -120,7 +127,7 @@ public abstract class BaseExecutorService implements IExecutorService {
     protected void writeLog(TaskInfoBean task, String logText) {
 
         String workspace = getWorkspace(task);
-        File logFile = new File(workspace, "running.log");
+        File logFile = new File(workspace, PipeConstants.RUNNING_LOGGER);
 
         // 确保日志文件的父目录存在
         if (!logFile.getParentFile().exists() && !logFile.getParentFile().mkdirs()) {
@@ -140,5 +147,18 @@ public abstract class BaseExecutorService implements IExecutorService {
         log.debug("任务[{}]的日志已成功写入: {}", task.getTask().getId(), logText);
     }
 
+    /**
+     * 写入项目空间的日志文件中，每个任务开始的时候都会调用这个方法
+     */
+    @SneakyThrows
+    protected void writeLog(TaskInfoBean task, Exception e) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+
+        e.printStackTrace(pw);
+        String stackTrace = sw.toString(); // 获取完整的堆栈跟踪信息
+
+        writeLog(task, stackTrace);
+    }
 
 }
