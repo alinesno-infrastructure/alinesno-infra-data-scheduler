@@ -11,7 +11,7 @@ import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-@TableName("datasource")
+@TableName(value = "datasource" , autoResultMap = true)
 public class DataSourceEntity extends InfraBaseEntity {
 
   @ColumnComment("描述")
@@ -77,6 +77,12 @@ public class DataSourceEntity extends InfraBaseEntity {
   @ColumnComment("读取源类型")
   @Excel(name = "读取源类型")
   @TableField("reader_type")
-  private int readerType;
+  private String readerType;
+
+  // 类型（读取/写入)
+  @ColumnComment("类型（读取/写入)")
+  @Excel(name = "类型（读取/写入)")
+  @TableField("operation_type")
+  private String operationType;
 
 }
