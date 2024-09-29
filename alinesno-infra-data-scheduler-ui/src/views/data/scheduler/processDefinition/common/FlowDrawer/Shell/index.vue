@@ -1,6 +1,6 @@
 <template>
     <a-drawer :headerStyle="headerStyle" :bodyStyle="bodyStyle" :closable="true" :visible="visible"
-        :after-visible-change="afterVisibleChange" width="40%" placement="right" @close="onClose">
+        :after-visible-change="afterVisibleChange" width="50%" placement="right" @close="onClose">
         <template #title>
             <img :src="branchIcon2" class="anticon" />
             <span class="flow-ant-drawer-title">
@@ -13,11 +13,12 @@
 
                 <el-form :model="form" :rules="rules" label-width="auto" style="max-width: 980px" ref="ruleForm">
                     <el-form-item label="节点名称" prop="name">
-                        <el-input v-model="form.name" :value="node.name" disabled="disabled" placeholder="请输入节点名称" />
+                        <el-input v-model="form.name" placeholder="请输入节点名称" />
                     </el-form-item>
+                    <!-- 
                     <el-form-item label="描述" prop="desc">
                         <el-input v-model="form.desc" resize="none" :rows="3" type="textarea" placeholder="请输入节点描述" />
-                    </el-form-item>
+                    </el-form-item> 
                     <el-form-item label="超时告警" prop="delivery">
                         <el-switch v-model="form.delivery" />
                     </el-form-item>
@@ -28,6 +29,7 @@
                             <el-radio :label="3">3次</el-radio>
                         </el-radio-group>
                     </el-form-item>
+                    -->
                     <el-form-item label="环境名称" prop="env">
                         <el-radio-group v-model="form.env">
                             <el-radio :label="'shabox'">沙箱环境</el-radio>
@@ -56,13 +58,13 @@
                 </el-form>
 
                 <div class="flow-setting-footer">
-                    <el-button type="primary" bg size="large" @click="submitForm('ruleForm')">确认提交</el-button>
+                    <el-button type="primary" bg size="large" @click="submitForm('ruleForm')">确认保存</el-button>
                     <el-button @click="onClose" size="large" text bg>取消</el-button>
                 </div>
             </div>
         </div>
 
-        <el-dialog title="全局环境变量" v-model="paramsDialog" append-to-body destroy-on-close class="scrollbar">
+        <el-dialog title="任务环境变量" v-model="paramsDialog" append-to-body destroy-on-close class="scrollbar">
             <ContextParam ref="taskParamRef" :context="form.context" />
             <template #footer>
             <div class="dialog-footer">
@@ -81,7 +83,7 @@
 <script setup>
 
 import flowNodeStore from '@/store/modules/flowNode'
-
+import { getAllResource } from '@/api/data/scheduler/resource'
 import { branchIcon2 } from '@/utils/flowMixin';
 import ContextParam from "../../../params/contextParam.vue";
 import CodeEditor from '../../CodeEditor.vue';
@@ -99,22 +101,7 @@ const headerStyle = ref({
     'border-radius': '0px 0px 0 0',
 })
 
-const resourceData = ref([
-  {
-    value: '2',
-    label: '项目文档', // Level one 2 换成 项目文档
-    children: [
-      {
-        value: '2-1-1',
-        label: 'requirements.docx' // 假设 Level three 2-1-1 换成 requirements.docx 文件
-      },
-      {
-        value: '2-2-1',
-        label: 'design.pdf' // 假设 Level three 2-2-1 换成 design.pdf 文件
-      },
-    ],
-  },
-])
+const resourceData = ref([])
 
 const data = reactive({
     form: {
@@ -124,8 +111,8 @@ const data = reactive({
         retryCount: 0,
         env: 'shabox',
         rawScript: '' ,
-        resourceId: '',
-        customParams: ''
+        resourceId: [],
+        customParams: {} 
     },
     rules: {
         desc: [
@@ -195,6 +182,13 @@ function showDrawer(_node) {
 
     visible.value = true;
     node.value = _node;
+    form.value.name = _node.name;
+    
+    nextTick(() => {
+        getAllResource().then(res => {
+            resourceData.value = res.data
+        })
+    })
 }
 
 /**
