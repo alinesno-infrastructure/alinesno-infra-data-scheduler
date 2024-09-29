@@ -1,6 +1,6 @@
 <template>
     <a-drawer :headerStyle="headerStyle" :bodyStyle="bodyStyle" :closable="true" :visible="visible"
-        :after-visible-change="afterVisibleChange" width="40%" placement="right" @close="onClose">
+        :after-visible-change="afterVisibleChange" width="50%" placement="right" @close="onClose">
         <template #title>
             <img :src="branchIcon2" class="anticon" />
             <span class="flow-ant-drawer-title">
@@ -12,35 +12,43 @@
 
                 <el-form :model="form" :rules="rules" label-width="auto" style="max-width: 980px" ref="ruleForm">
                     <el-form-item label="节点名称" prop="name">
-                        <el-input v-model="form.name" placeholder="请输入节点名称" />
+                        <el-input v-model="form.name" :value="node.name" disabled="disabled" placeholder="请输入节点名称" />
                     </el-form-item>
+                    <!--
                     <el-form-item label="描述" prop="desc">
                         <el-input v-model="form.desc" resize="none" :rows="3" type="textarea" placeholder="请输入节点描述" />
                     </el-form-item>
                     <el-form-item label="超时告警" prop="delivery">
                         <el-switch v-model="form.delivery" />
                     </el-form-item>
-                    <el-form-item label="失败重试次数" prop="retryCount">
-                        <el-radio-group v-model="form.retryCount">
-                            <el-radio :label="0">0次</el-radio>
-                            <el-radio :label="1">1次</el-radio>
-                            <el-radio :label="3">3次</el-radio>
-                        </el-radio-group>
+                    -->
+                    <el-form-item label="数据源" prop="dataSourceId">
+                        <el-tree-select
+                            v-model="form.dataSourceId"
+                            :data="dataSourceData"
+                            placeholder="请选择数据源"
+                            :render-after-expand="false"
+                            style="width: 500px"
+                        />
                     </el-form-item>
-                    <el-form-item label="环境名称" prop="env">
-                        <el-radio-group v-model="form.env">
-                            <el-radio :label="'Sponsor'">沙箱环境</el-radio>
-                            <el-radio :label="'Venue'">生产环境</el-radio>
-                        </el-radio-group>
-                    </el-form-item>
-                    <el-form-item label="脚本">
-                        <CodeEditor ref="codeEditorRef" :lang="sql" />
+                    <el-form-item label="执行SQL">
+                        <CodeEditor ref="codeEditorRef" :lang="'sql'" />
                     </el-form-item>
                     <el-form-item label="资源" prop="resourceId">
-                        <el-input v-model="form.resourceId" placeholder="请选择资源" />
+                        <!-- <el-input v-model="form.resourceId" placeholder="请选择资源" /> -->
+                        <el-tree-select
+                            v-model="form.resourceId"
+                            :data="resourceData"
+                            multiple
+                            placeholder="请选择资源"
+                            :render-after-expand="false"
+                            style="width: 500px"
+                        />
                     </el-form-item>
-                    <el-form-item label="自定义参数" prop="customParams">
-                        <el-input v-model="form.customParams" placeholder="请输入自定义参数" />
+                    <el-form-item label="自定义参数">
+                        <el-button type="primary" bg text @click="paramsDialog = true">
+                            <i class="fa-solid fa-screwdriver-wrench"></i>&nbsp;配置任务参数
+                        </el-button>
                     </el-form-item>
                 </el-form>
 
@@ -50,6 +58,19 @@
                 </div>
             </div>
         </div>
+
+        <el-dialog title="任务环境变量" v-model="paramsDialog" append-to-body destroy-on-close class="scrollbar">
+            <ContextParam ref="taskParamRef" :context="form.context" />
+            <template #footer>
+            <div class="dialog-footer">
+                <el-button @click="paramsDialog = false">取消</el-button>
+                <el-button type="primary" @click="callTaskParamRef()">
+                确认 
+                </el-button>
+            </div>
+            </template>
+        </el-dialog>
+        
         <FlowDrawerFooter @close="onClose" @save="onSave" />
     </a-drawer>
 </template>
@@ -57,8 +78,10 @@
 <script setup>
 
 import flowNodeStore from '@/store/modules/flowNode'
-
+import { listAllDataSource } from '@/api/data/scheduler/datasources'
+import { getAllResource } from '@/api/data/scheduler/resource'
 import { branchIcon2 } from '@/utils/flowMixin';
+import ContextParam from "../../../params/contextParam.vue";
 import CodeEditor from '../../CodeEditor.vue';
 
 const { proxy } = getCurrentInstance();
@@ -70,6 +93,11 @@ const headerStyle = ref({
     'background-image': 'linear-gradient(90deg, #498ff2, #6da4f2), linear-gradient(#3b5998, #3b5998)',
     'border-radius': '0px 0px 0 0',
 })
+const resourceData = ref([])
+const dataSourceData = ref([])
+
+const paramsDialog = ref(false) 
+const taskParamRef = ref(null)
 
 const data = reactive({
     form: {
@@ -79,19 +107,11 @@ const data = reactive({
         retryCount: 0,
         env: '',
         rawScript: '' ,
-        resourceId: '',
-        customParams: ''
+        resourceId: [],
+        customParams: {} 
     },
     rules: {
-        name: [
-            { required: true, message: '请输入节点名称', trigger: 'blur' },
-            { min: 3, max: 50, message: '长度在 3 到 50 个字符', trigger: 'blur' }
-        ],
-        desc: [
-            { required: true, message: '请输入节点描述', trigger: 'blur' },
-            { min: 10, max: 200, message: '长度在 10 到 200 个字符', trigger: 'blur' }
-        ],
-        delivery: [
+        dataSourceId: [
             { required: true, message: '请选择超时告警', trigger: 'change' }
         ],
         retryCount: [
@@ -134,6 +154,17 @@ const submitForm = (formName) => {
 };
 
 
+/** 
+ * 获取到环境变量值  
+ */
+ function callTaskParamRef(){
+ let contextParam = taskParamRef.value.getEnvVarsAsJson() ; 
+ form.value.customParams = contextParam ;
+ paramsDialog.value = false ;
+
+ console.log(JSON.stringify(contextParam, null, 2));
+}
+
 /**
  * 打开侧边栏 
  * @param {*} node 
@@ -144,6 +175,16 @@ function showDrawer(_node) {
 
     visible.value = true;
     node.value = _node;
+
+    nextTick(() => {
+        listAllDataSource().then(res => {
+            dataSourceData.value = res.data
+        })
+        
+        getAllResource().then(res => {
+            resourceData.value = res.data
+        })
+    })
 }
 
 /**
