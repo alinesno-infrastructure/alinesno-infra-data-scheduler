@@ -79,8 +79,8 @@ function goBack() {
  * 提交流程流程定义
  */
 function submitProcessDefinition(){
-  let nodes = flowNodeStore().currentNode;
-  console.log('submitProcessDefinition:' + nodes)
+  let nodes = flowNodeStore().getAllNodes();
+  console.log('submitProcessDefinition:' + JSON.stringify(nodes))
 
   const formDataStr = localStorage.getItem('processDefinitionFormData');
    const formData = JSON.parse(formDataStr);
