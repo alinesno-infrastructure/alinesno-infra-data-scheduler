@@ -353,6 +353,8 @@ public abstract class AbstractShell {
 
   @SneakyThrows
   protected void writeLog(String logText){
-    FileUtils.writeStringToFile(new File(this.getLogPath()), logText + System.lineSeparator() , StandardCharsets.UTF_8, true);
+    if(this.getLogPath() != null){
+      FileUtils.writeStringToFile(new File(this.getLogPath()), logText + System.lineSeparator() , StandardCharsets.UTF_8, true);
+    }
   }
 }
