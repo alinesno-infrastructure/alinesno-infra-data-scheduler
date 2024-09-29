@@ -1,5 +1,6 @@
 package com.alinesno.infra.data.scheduler.executor.handle;
 
+import com.alinesno.infra.data.scheduler.api.ParamsDto;
 import com.alinesno.infra.data.scheduler.executor.BaseExecutorService;
 import com.alinesno.infra.data.scheduler.executor.bean.TaskInfoBean;
 import lombok.SneakyThrows;
@@ -8,7 +9,6 @@ import org.apache.maven.shared.invoker.*;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Collections;
 
 @Slf4j
@@ -20,9 +20,16 @@ public class MavenExecutor extends BaseExecutorService {
     public void execute(TaskInfoBean task) {
         log.debug("maven executor");
 
+        ParamsDto params = getParamsDto(task) ;
+
+        String pomXml = params.getPomXml() ;
+        String goals = params.getGoals() ;
+        String settings = params.getSettings() ;
+
         InvocationRequest request = new DefaultInvocationRequest();
-        request.setPomFile(new File("pom.xml"));
-        request.setGoals(Collections.singletonList("package"));
+        request.setPomFile(new File(pomXml));
+        request.setGoals(Collections.singletonList(goals));
+        request.setUserSettingsFile(new File(settings));
 
         Invoker invoker = new DefaultInvoker();
         invoker.setMavenHome(new File(getM2Home(task.getEnvironment()))) ;
@@ -31,11 +38,9 @@ public class MavenExecutor extends BaseExecutorService {
 
         });
 
-        invoker.setOutputHandler(new InvocationOutputHandler() {
-            @Override
-            public void consumeLine(String s) throws IOException {
-                log.debug("-->> {}" , s);
-            }
+        invoker.setOutputHandler(s -> {
+            log.debug("-->> {}" , s);
+            writeLog(task, s);
         });
 
         invoker.execute(request);
