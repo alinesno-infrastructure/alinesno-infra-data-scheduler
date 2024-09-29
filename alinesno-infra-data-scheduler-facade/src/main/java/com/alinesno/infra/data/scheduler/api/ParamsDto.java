@@ -27,8 +27,21 @@ public class ParamsDto {
     private List<String> resourceId; // 资源名称
     private Map<String,String> customParams; // 自定义参数
 
+    // Git仓库信息
     private String gitUrl; // Git仓库地址
     private String gitBranch;  // Git分支
     private String gitUsername; // Git用户名
     private String gitPassword; // Git密码
+
+    // 企业微信群机器人Webhook地址
+    private String wechatKey ;
+
+    // Maven项目配置信息
+    private String pomXml ;
+    private String goals ;
+    private String settings ;
+
+    // HTTP请求信息
+    private String method ;
+    private String url ;
 }
