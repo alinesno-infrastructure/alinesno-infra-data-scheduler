@@ -92,9 +92,21 @@ public class DataSourceController extends BaseController<DataSourceEntity, IData
      * 获取到所有数据库源
      * @return
      */
-    @GetMapping("/listDataSource")
-    public AjaxResult listDataSource(){
-        return AjaxResult.success(service.list()) ;
+    @GetMapping("/listAllDataSource")
+    public AjaxResult listAllDataSource(){
+
+        List<DataSourceEntity> list = service.list() ;
+
+        List<Map<String, Object>> result = list.stream().map(item -> {
+
+            Map<String , Object> map = new java.util.HashMap<>();
+            map.put("value", item.getId()) ;
+            map.put("label" , item.getReaderName()) ;
+
+            return map ;
+        }).toList();
+
+        return AjaxResult.success("success" , result) ;
     }
 
     @PostMapping("/saveDb")
