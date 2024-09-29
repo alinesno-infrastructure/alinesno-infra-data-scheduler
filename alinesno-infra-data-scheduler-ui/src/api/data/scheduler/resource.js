@@ -21,8 +21,17 @@ var managerUrl = {
     removeUrl: prefix + "delete" ,
     exportUrl: prefix + "exportExcel",
     changeField: prefix + "changeField",
+    getAllResource: prefix + "getAllResource",
     catalogTreeSelect: prefix + "catalogTreeSelect",
     downloadfile: prefix + "downloadfile"
+}
+
+// 查询所有的资源列表
+export function getAllResource() {
+  return request({
+    url: managerUrl.getAllResource, 
+    method: 'get'
+  })
 }
 
 // 查询部门下拉树结构
