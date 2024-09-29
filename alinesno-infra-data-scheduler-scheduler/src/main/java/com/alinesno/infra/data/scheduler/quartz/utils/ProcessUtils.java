@@ -11,6 +11,7 @@ import com.alinesno.infra.data.scheduler.entity.TaskDefinitionEntity;
 import com.alinesno.infra.data.scheduler.entity.TaskInstanceEntity;
 import com.alinesno.infra.data.scheduler.enums.ExecutorTypeEnums;
 import com.alinesno.infra.data.scheduler.enums.ProcessStatusEnums;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -82,7 +83,7 @@ public class ProcessUtils {
 
         entity.setName(context.getTaskName());
         entity.setProjectId(context.getProjectCode());
-        entity.setGlobalParams(context.getContext()!= null? JSONObject.toJSONString(context.getContext()):null);
+        entity.setGlobalParams(context.getGlobalParams()!= null? JSONObject.toJSONString(context.getGlobalParams()):null);
         entity.setTimeout(context.getTimeout());
         entity.setScheduleCron(context.getCronExpression());
 
@@ -114,8 +115,12 @@ public class ProcessUtils {
             String taskParams = null;
             String resourceId = null ;
             if(params != null){
-                name = params.getName() ;
-                desc = params.getDesc() ;
+                if(StringUtils.isNoneBlank(params.getName())){
+                    name = params.getName() ;
+                }
+                if(StringUtils.isNoneBlank(params.getDesc())){
+                    desc = params.getDesc() ;
+                }
                 retryCount = params.getRetryCount() ;
                 taskParams = JSONObject.toJSONString(params) ;
                 resourceId = JSONObject.toJSONString(params.getResourceId()) ;
