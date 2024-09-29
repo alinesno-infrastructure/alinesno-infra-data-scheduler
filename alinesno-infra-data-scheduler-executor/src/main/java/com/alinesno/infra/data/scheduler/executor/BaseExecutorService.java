@@ -25,10 +25,12 @@ import java.util.Map;
  * BaseExecutorService
  */
 @Slf4j
-public abstract class BaseExecutorService implements IExecutorService {
+public abstract class BaseExecutorService extends BaseResourceService implements IExecutorService {
 
     @Value("${alinesno.data.scheduler.workspacePath:#{systemProperties['java.io.tmpdir']}}")
     private String workspacePath;
+
+
 
     /**
      * 获取到运行实例的工作空间
