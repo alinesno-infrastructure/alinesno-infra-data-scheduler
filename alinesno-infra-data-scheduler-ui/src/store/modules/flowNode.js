@@ -16,6 +16,12 @@ const flowNodeStore = defineStore(
       currentMapImage: (state) => state.mapImg
     },
     actions: {
+      /** 
+       * 通过nodeId获取到node信息
+       */
+      getNodeById(nodeId) {
+        return this.nodes.find(node => node.id === nodeId);
+      },
       /**
        * 设置或替换节点
        * @param {Object} node - 新的或要替换的节点对象
@@ -84,7 +90,13 @@ const flowNodeStore = defineStore(
         } else {
           console.warn(`Node with ID ${id} not found.`);
         }
-      } 
+      } ,
+      /**
+       * 获取所有的节点
+       */
+      getAllNodes() {
+        return this.nodes;
+      },
     }
   }
 );
