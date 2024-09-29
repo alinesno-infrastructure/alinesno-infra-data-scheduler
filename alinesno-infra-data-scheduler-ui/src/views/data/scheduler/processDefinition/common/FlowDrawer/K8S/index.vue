@@ -1,6 +1,6 @@
 <template>
     <a-drawer :headerStyle="headerStyle" :bodyStyle="bodyStyle" :closable="true" :visible="visible"
-        :after-visible-change="afterVisibleChange" width="40%" placement="right" @close="onClose">
+        :after-visible-change="afterVisibleChange" width="50%" placement="right" @close="onClose">
         <template #title>
             <img :src="branchIcon2" class="anticon" />
             <span class="flow-ant-drawer-title">
@@ -14,6 +14,7 @@
                     <el-form-item label="节点名称" prop="name">
                         <el-input v-model="form.name" placeholder="请输入节点名称" />
                     </el-form-item>
+                    <!--
                     <el-form-item label="描述" prop="desc">
                         <el-input v-model="form.desc" resize="none" :rows="3" type="textarea" placeholder="请输入节点描述" />
                     </el-form-item>
@@ -27,6 +28,7 @@
                             <el-radio :label="3">3次</el-radio>
                         </el-radio-group>
                     </el-form-item>
+                    -->
                     <el-form-item label="环境名称" prop="env">
                         <el-radio-group v-model="form.env">
                             <el-radio :label="'Sponsor'">沙箱环境</el-radio>
@@ -45,7 +47,7 @@
                 </el-form>
 
                 <div class="flow-setting-footer">
-                    <el-button type="primary" bg size="large" @click="submitForm('ruleForm')">确认提交</el-button>
+                    <el-button type="primary" bg size="large" @click="submitForm('ruleForm')">确认保存</el-button>
                     <el-button @click="onClose" size="large" text bg>取消</el-button>
                 </div>
             </div>
