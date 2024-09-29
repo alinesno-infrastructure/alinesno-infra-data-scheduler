@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import lombok.ToString;
 
+import java.util.Map;
+
 /**
  * 任务执行上下文DTO类
  * 用于在任务调度API中传递任务执行的相关信息
@@ -20,7 +22,7 @@ public class ProcessContextDto {
     private String taskDesc ;
 
     // 上下文信息，可用于存储任务执行的额外信息
-    private String context;
+    private Map<String,String> globalParams;
 
     // 项目代码
     private long projectCode ;
