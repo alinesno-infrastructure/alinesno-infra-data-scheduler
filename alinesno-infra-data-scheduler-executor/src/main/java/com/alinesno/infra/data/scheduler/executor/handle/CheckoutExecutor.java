@@ -39,8 +39,7 @@ public class CheckoutExecutor extends BaseExecutorService {
             // 克隆仓库
             CloneCommand cloneCommand = Git.cloneRepository()
                     .setURI(remoteUrl)
-                    .setBranch(branch)
-                    .setDirectory(localPath) ;
+                    .setBranch(branch);
 
             if( paramsDto.getGitUsername() != null && !paramsDto.getGitUsername().isEmpty()){
                 CredentialsProvider credentialsProvider = new UsernamePasswordCredentialsProvider(paramsDto.getGitUsername(), paramsDto.getGitPassword());
@@ -48,10 +47,12 @@ public class CheckoutExecutor extends BaseExecutorService {
             }
 
             Git git = cloneCommand.call();
-            writeLog(task , "仓库: " +remoteUrl+ "  克隆成功:" + localPath.getAbsolutePath());
+            writeLog(task , "仓库: " +git.getRepository()+ "  克隆成功") ;
 
             File[] gitFiles = localPath.listFiles() ;
-            Arrays.stream(gitFiles).forEach(file -> writeLog(task , "-->> 文件: " + file.getName()));
+            if( gitFiles != null){
+                Arrays.stream(gitFiles).forEach(file -> writeLog(task , "-->> 文件: " + file.getName()));
+            }
 
         } catch (GitAPIException e) {
             log.error("克隆仓库时发生错误: " , e);
