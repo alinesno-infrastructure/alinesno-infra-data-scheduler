@@ -70,7 +70,7 @@
               <el-table-column label="文件名" align="left" key="originalFilename" prop="originalFilename" v-if="columns[0].visible">
                  <template #default="scope">
                     <div>
-                       {{ scope.row.originalFilename }}
+                       {{ scope.row.fileName }}
                     </div>
                     <div style="font-size: 13px;color: #a5a5a5;cursor: pointer;" v-copyText="scope.row.id">
                        标识: {{ scope.row.id }} <el-icon><CopyDocument /></el-icon>
