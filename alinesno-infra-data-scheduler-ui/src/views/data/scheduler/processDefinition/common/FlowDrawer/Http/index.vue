@@ -1,6 +1,6 @@
 <template>
     <a-drawer :headerStyle="headerStyle" :bodyStyle="bodyStyle" :closable="true" :visible="visible"
-        :after-visible-change="afterVisibleChange" width="40%" placement="right" @close="onClose">
+        :after-visible-change="afterVisibleChange" width="50%" placement="right" @close="onClose">
         <template #title>
             <img :src="branchIcon2" class="anticon" />
             <span class="flow-ant-drawer-title">
@@ -45,7 +45,7 @@
                 </el-form>
 
                 <div class="flow-setting-footer">
-                    <el-button type="primary" bg size="large" @click="submitForm('ruleForm')">确认提交</el-button>
+                    <el-button type="primary" bg size="large" @click="submitForm('ruleForm')">确认保存</el-button>
                     <el-button @click="onClose" size="large" text bg>取消</el-button>
                 </div>
             </div>
