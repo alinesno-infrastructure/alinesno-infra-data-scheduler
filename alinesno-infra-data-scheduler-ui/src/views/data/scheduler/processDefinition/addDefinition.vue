@@ -98,7 +98,7 @@
    </el-dialog>
 
   <el-dialog title="全局环境变量" v-model="centerDialogVisible" append-to-body destroy-on-close class="scrollbar">
-     <ContextParam ref="contextParamRef" :context="form.context" />
+     <ContextParam ref="contextParamRef" :context="form.globalParams" />
      <template #footer>
        <div class="dialog-footer">
          <el-button @click="centerDialogVisible = false">取消</el-button>
@@ -165,7 +165,7 @@ const shortcuts = ref([
 const data = reactive({
  form: {
      taskName: "", // 任务名称
-     context: "" , // 上下文内容
+     globalParams: "" , // 上下文内容
      dataCollectionTemplate: "", // 数据采集模板
      dataQuality: "", // 数据质量
      isAlertEnabled: false, // 是否告警
@@ -246,7 +246,7 @@ function handleShowCron() {
 /** 获取到环境变量值  */
 function callContextParamRef(){
  let contextParam = contextParamRef.value.getEnvVarsAsJson() ; 
- form.value.context = contextParam ;
+ form.value.globalParams = contextParam ;
  centerDialogVisible.value = false ;
 
  console.log(JSON.stringify(contextParam, null, 2));
@@ -280,7 +280,7 @@ function loadFormDataFromStorage() {
 function resetForm() {
  form.value = {
      taskName: "", // 任务名称
-     context: "", // 上下文内容
+     globalParams: {}, // 上下文内容
      dataCollectionTemplate: "", // 数据采集模板
      dataQuality: "", // 数据质量
      isAlertEnabled: false, // 是否告警
