@@ -1,6 +1,6 @@
 package com.alinesno.infra.data.scheduler.adapter;
 
-import com.alinesno.infra.common.facade.response.AjaxResult;
+import com.alinesno.infra.common.facade.response.R;
 import com.dtflys.forest.annotation.*;
 import com.dtflys.forest.callback.OnProgress;
 
@@ -13,7 +13,7 @@ import java.io.File;
 public interface CloudStorageConsumer {
 
     @Post(url = "/api/base/storage/upload" , contentType = "multipart/form-data")
-    AjaxResult upload(@DataFile("file") File file, @Body("platform") String platform, OnProgress onProgress) ;
+    R<String> upload(@DataFile("file") File file, @Body("platform") String platform, OnProgress onProgress) ;
 
     @Get(url = "/api/base/storage/download")
     byte[] download(@Query("storageId") String storageId, OnProgress onProgress) ;
