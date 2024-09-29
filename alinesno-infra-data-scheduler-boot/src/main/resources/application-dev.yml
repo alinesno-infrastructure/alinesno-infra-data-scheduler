@@ -3,6 +3,12 @@ server:
 
 # spring 配置
 spring:
+  servlet:
+    multipart:
+      max-file-size: 512MB
+      max-request-size: 512MB
+      enabled: true
+      file-size-threshold: 0
   application:
     name: alinesno-infra-data-scheduler-boot
   datasource:
@@ -54,12 +60,14 @@ spring:
     job-store-type: jdbc
     #初始化表结构
     jdbc:
-      initialize-schema: always # always/never
+      initialize-schema: never # always/never
   devtools:
     restart:
       enabled: true
 
 alinesno:
+  infra:
+   gateway.host: http://alinesno-infra-base-gateway-proxy-application.beta.base.infra.linesno.com
   data:
     scheduler:
       workspacePath: ${user.home}/.infra-data-scheduler
