@@ -5,9 +5,11 @@ import com.alinesno.infra.common.core.constants.SpringInstanceScope;
 import com.alinesno.infra.common.facade.pageable.DatatablesPageBean;
 import com.alinesno.infra.common.facade.pageable.TableDataInfo;
 import com.alinesno.infra.common.facade.response.AjaxResult;
+import com.alinesno.infra.common.facade.response.R;
 import com.alinesno.infra.common.web.adapter.rest.BaseController;
 import com.alinesno.infra.data.scheduler.adapter.CloudStorageConsumer;
 import com.alinesno.infra.data.scheduler.entity.ResourceEntity;
+import com.alinesno.infra.data.scheduler.enums.ResourceTypeEnums;
 import com.alinesno.infra.data.scheduler.service.ICategoryService;
 import com.alinesno.infra.data.scheduler.service.IResourceService;
 import io.swagger.annotations.Api;
@@ -24,6 +26,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -73,11 +77,19 @@ public class ResourceController extends BaseController<ResourceEntity, IResource
      */
     @SneakyThrows
     @PostMapping("/importData")
-    public AjaxResult importData(@RequestPart("file") MultipartFile file, String type , String updateSupport){
+    public AjaxResult importData(@RequestPart("file") MultipartFile file){
+
+        ResourceEntity resourceEntity = new ResourceEntity() ;
 
         // 新生成的文件名称
         String fileSuffix = Objects.requireNonNull(file.getOriginalFilename()).substring(file.getOriginalFilename().lastIndexOf(".")+1);
-        String newFileName = IdUtil.getSnowflakeNextId() + "." + fileSuffix;
+        String fileName = file.getOriginalFilename();
+        String aliasName = IdUtil.getSnowflakeNextIdStr() ;
+        String newFileName = aliasName + "." + fileSuffix;
+
+        resourceEntity.setFileName(fileName);
+        resourceEntity.setAlias(aliasName);
+        resourceEntity.setDirectory(false);
 
         // 复制文件
         File targetFile = new File(localPath , newFileName);
@@ -85,18 +97,42 @@ public class ResourceController extends BaseController<ResourceEntity, IResource
 
         log.debug("newFileName = {} , targetFile = {}" , newFileName , targetFile.getAbsoluteFile());
 
-        if("img".equals(type)){  // 图片上传类型
-            AjaxResult ajaxResult = storageConsumer.upload(targetFile , "qiniu-kodo" , progress -> {
-                System.out.println("total bytes: " + progress.getTotalBytes());
-                System.out.println("current bytes: " + progress.getCurrentBytes());
-                System.out.println("progress: " + Math.round(progress.getRate() * 100) + "%");
-            }) ;
+        R<String> ajaxResult = storageConsumer.upload(targetFile , "qiniu-kodo" , progress -> {
+            System.out.println("total bytes: " + progress.getTotalBytes());
+            System.out.println("current bytes: " + progress.getCurrentBytes());
+            System.out.println("progress: " + Math.round(progress.getRate() * 100) + "%");
+        }) ;
 
-            log.debug("ajaxResult= {}" , ajaxResult);
-            return ajaxResult ;
-        }
+        log.debug("ajaxResult= {}" , ajaxResult);
 
-        return AjaxResult.success();
+        resourceEntity.setType(ResourceTypeEnums.FILE);
+        resourceEntity.setPid(0);
+        resourceEntity.setSize(targetFile.length());
+        resourceEntity.setStorageId(Long.parseLong(ajaxResult.getData()));
+
+        service.save(resourceEntity) ;
+
+        return AjaxResult.success("上传成功." , resourceEntity.getId()) ;
+    }
+
+    /**
+     * 获取到所有的资源列表，并返回如下格式:
+     * [{key:xxx,value:xxx}]
+     */
+    @GetMapping("/getAllResource")
+    public AjaxResult getAllResource(){
+        List<ResourceEntity> list = service.list() ;
+
+        List<Map<String, Object>> result = list.stream().map(item -> {
+
+            Map<String , Object> map = new java.util.HashMap<>();
+            map.put("value", item.getId()) ;
+            map.put("label" , item.getFileName()) ;
+
+            return map ;
+        }).toList();
+
+        return AjaxResult.success("success" , result) ;
     }
 
     @GetMapping("/catalogTreeSelect")
