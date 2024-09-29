@@ -1,6 +1,6 @@
 <template>
     <a-drawer :headerStyle="headerStyle" :bodyStyle="bodyStyle" :closable="true" :visible="visible"
-        :after-visible-change="afterVisibleChange" width="40%" placement="right" @close="onClose">
+        :after-visible-change="afterVisibleChange" width="50%" placement="right" @close="onClose">
         <template #title>
             <img :src="branchIcon2" class="anticon" />
             <span class="flow-ant-drawer-title">
@@ -14,42 +14,65 @@
                     <el-form-item label="节点名称" prop="name">
                         <el-input v-model="form.name" placeholder="请输入节点名称" />
                     </el-form-item>
+                    <!-- 
                     <el-form-item label="描述" prop="desc">
                         <el-input v-model="form.desc" resize="none" :rows="3" type="textarea" placeholder="请输入节点描述" />
-                    </el-form-item>
-                    <el-form-item label="超时告警" prop="delivery">
-                        <el-switch v-model="form.delivery" />
-                    </el-form-item>
-                    <el-form-item label="失败重试次数" prop="retryCount">
-                        <el-radio-group v-model="form.retryCount">
-                            <el-radio :label="0">0次</el-radio>
-                            <el-radio :label="1">1次</el-radio>
-                            <el-radio :label="3">3次</el-radio>
-                        </el-radio-group>
-                    </el-form-item>
+                    </el-form-item> 
+                    -->
                     <el-form-item label="环境名称" prop="env">
                         <el-radio-group v-model="form.env">
-                            <el-radio :label="'Sponsor'">沙箱环境</el-radio>
-                            <el-radio :label="'Venue'">生产环境</el-radio>
+                            <el-radio :label="'shabox'">沙箱环境</el-radio>
+                            <el-radio :label="'prod'">生产环境</el-radio>
                         </el-radio-group>
                     </el-form-item>
-                    <el-form-item label="脚本">
-                        <CodeEditor ref="codeEditorRef" :lang="python" />
+                    <el-form-item label="仓库地址" prop="gitUrl">
+                        <el-input v-model="form.gitUrl" placeholder="请配置仓库地址" />
                     </el-form-item>
-                    <el-form-item label="资源" prop="resourceId">
-                        <el-input v-model="form.resourceId" placeholder="请选择资源" />
-                    </el-form-item>
-                    <el-form-item label="自定义参数" prop="customParams">
-                        <el-input v-model="form.customParams" placeholder="请输入自定义参数" />
+                    <el-row>
+                        <el-col :span="12">
+                            <el-form-item label="分支" prop="gitBranch">
+                                <el-input v-model="form.gitBranch" placeholder="请配置分支" />
+                            </el-form-item>
+                        </el-col>
+                    </el-row>
+                    <el-row>
+                        <el-col :span="12">
+                            <el-form-item label="账号" prop="gitUsername">
+                                <el-input v-model="form.gitUsername" placeholder="请配置账号" />
+                            </el-form-item>
+                        </el-col>
+                        <el-col :span="12">
+                            <el-form-item label="密码" prop="gitPassword">
+                                <el-input v-model="form.gitPassword" placeholder="请配置密码" />
+                            </el-form-item>
+                        </el-col>
+                    </el-row>
+                    <el-form-item label="自定义参数">
+                        <el-button type="primary" bg text @click="paramsDialog = true">
+                            <i class="fa-solid fa-screwdriver-wrench"></i>&nbsp;配置任务参数
+                        </el-button>
                     </el-form-item>
                 </el-form>
 
                 <div class="flow-setting-footer">
-                    <el-button type="primary" bg size="large" @click="submitForm('ruleForm')">确认提交</el-button>
+                    <el-button type="primary" bg size="large" @click="submitForm('ruleForm')">确认保存</el-button>
                     <el-button @click="onClose" size="large" text bg>取消</el-button>
                 </div>
             </div>
         </div>
+
+        <el-dialog title="任务环境变量" v-model="paramsDialog" append-to-body destroy-on-close class="scrollbar">
+            <ContextParam ref="taskParamRef" :context="form.context" />
+            <template #footer>
+            <div class="dialog-footer">
+                <el-button @click="paramsDialog = false">取消</el-button>
+                <el-button type="primary" @click="callTaskParamRef()">
+                确认 
+                </el-button>
+            </div>
+            </template>
+        </el-dialog>
+
         <FlowDrawerFooter @close="onClose" @save="onSave" />
     </a-drawer>
 </template>
@@ -59,7 +82,7 @@
 import flowNodeStore from '@/store/modules/flowNode'
 
 import { branchIcon2 } from '@/utils/flowMixin';
-import CodeEditor from '../../CodeEditor.vue';
+import ContextParam from "../../../params/contextParam.vue";
 
 const { proxy } = getCurrentInstance();
 
@@ -70,6 +93,9 @@ const headerStyle = ref({
     'background-image': 'linear-gradient(90deg, #ff9313, #faab4b), linear-gradient(#3b5998, #3b5998)',
     'border-radius': '0px 0px 0 0',
 })
+
+const paramsDialog = ref(false) 
+const taskParamRef = ref(null)
 
 const data = reactive({
     form: {
@@ -87,24 +113,17 @@ const data = reactive({
             { required: true, message: '请输入节点名称', trigger: 'blur' },
             { min: 3, max: 50, message: '长度在 3 到 50 个字符', trigger: 'blur' }
         ],
-        desc: [
+        gitUrl: [
             { required: true, message: '请输入节点描述', trigger: 'blur' },
-            { min: 10, max: 200, message: '长度在 10 到 200 个字符', trigger: 'blur' }
         ],
-        delivery: [
+        gitUsername: [
             { required: true, message: '请选择超时告警', trigger: 'change' }
         ],
-        retryCount: [
+        gitPassword: [
             { required: true, message: '请选择失败重试次数', trigger: 'change' }
         ],
-        env: [
+        gitBranch: [
             { required: true, message: '请选择环境名称', trigger: 'change' }
-        ],
-        resourceId: [
-            { required: true, message: '请选择资源', trigger: 'blur' }
-        ],
-        customParams: [
-            { required: true, message: '请输入自定义参数', trigger: 'blur' }
         ]
     }
 });
