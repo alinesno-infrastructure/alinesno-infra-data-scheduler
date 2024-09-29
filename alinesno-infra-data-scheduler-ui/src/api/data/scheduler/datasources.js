@@ -27,9 +27,18 @@ var managerUrl = {
     fetchTableMetaData: prefix + "fetchTableMetaData",
     fetchTableData: prefix + "fetchTableData",
     allDataSource: prefix + "allDataSource",
+    listAllDataSource: prefix + "listAllDataSource",
     checkConnection: prefix + "checkConnection",
     checkConnectionByObj: prefix + "checkConnectionByObj",
     checkDBUrl: prefix + "checkDB",
+}
+
+// 列出所有数据源列表
+export function listAllDataSource() {
+  return request({
+    url: managerUrl.listAllDataSource,
+    method: 'get'
+  })
 }
 
 // 获取到所有数据源库
