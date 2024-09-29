@@ -28,11 +28,6 @@ public class ResourceEntity extends InfraBaseEntity {
     private String alias;
 
     @TableField
-    @ColumnType(value = MySqlTypeConstant.BIGINT, length = 32)
-    @ColumnComment("资源全称")
-    private String fullName;
-
-    @TableField
     @ColumnType(value = MySqlTypeConstant.VARCHAR, length = 128)
     @ColumnComment("资源描述")
     private String description;
@@ -45,6 +40,11 @@ public class ResourceEntity extends InfraBaseEntity {
     @TableField
     @ColumnComment("是否为目录")
     private boolean isDirectory = false;
+
+    @TableField
+    @ColumnComment("云存储ID")
+    @ColumnType(value = MySqlTypeConstant.BIGINT, length = 32)
+    private long storageId ;
 
     @TableField
     @ColumnComment("资源类型")
