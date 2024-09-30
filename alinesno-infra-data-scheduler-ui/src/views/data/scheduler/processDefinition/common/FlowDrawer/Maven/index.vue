@@ -12,7 +12,7 @@
 
                 <el-form :model="form" :rules="rules" label-width="auto" style="max-width: 980px" ref="ruleForm">
                     <el-form-item label="节点名称" prop="name">
-                        <el-input v-model="form.name" placeholder="请输入节点名称" />
+                        <el-input v-model="form.name" disabled="disabled" placeholder="请输入节点名称" />
                     </el-form-item>
                     <!--
                     <el-form-item label="描述" prop="desc">
@@ -39,7 +39,10 @@
                         <el-input v-model="form.goals" placeholder="请输入maven命令，比如 clean install" />
                     </el-form-item>
                     <el-form-item label="构建文件" prop="name">
-                        <el-input v-model="form.pomXml" value="pom.xml" placeholder="请输入maven命令，比如 pom.xml" />
+                        <el-input v-model="form.pomXml" placeholder="请输入pom路径，比如 pom.xml" />
+                    </el-form-item>
+                    <el-form-item label="Setting路径" prop="settings">
+                        <el-input v-model="form.settings" placeholder="请输入settings.xml路径，默认取maven下的settings.xml" />
                     </el-form-item>
                     <!--
                     <el-form-item label="脚本">
@@ -64,7 +67,7 @@
                 </el-form>
 
                 <div class="flow-setting-footer">
-                    <el-button type="primary" bg size="large" @click="submitForm('ruleForm')">确认保存</el-button>
+                    <el-button type="primary" bg  @click="submitForm('ruleForm')">确认保存</el-button>
                     <el-button @click="onClose" size="large" text bg>取消</el-button>
                 </div>
             </div>
@@ -118,8 +121,8 @@ const data = reactive({
         retryCount: 0,
         env: '',
         rawScript: '' ,
-        resourceId: '',
-        customParams: ''
+        resourceId: [],
+        customParams: {} 
     },
     rules: {
         name: [
@@ -159,7 +162,7 @@ const submitForm = (formName) => {
     formInstance.validate((valid) => {
         if (valid) {
 
-            form.value.rawScript = codeEditorRef.value.getRawScript() 
+            // form.value.rawScript = codeEditorRef.value.getRawScript() 
 
             // 更新节点信息
             node.value.params = form.value;
@@ -183,6 +186,7 @@ function showDrawer(_node) {
 
     visible.value = true;
     node.value = _node;
+    form.value.name = _node.name;
     
     nextTick(() => {
         getAllResource().then(res => {
