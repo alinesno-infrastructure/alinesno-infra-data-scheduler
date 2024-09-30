@@ -1,5 +1,6 @@
 package com.alinesno.infra.data.scheduler.executor;
 
+import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.alinesno.infra.common.web.log.utils.SpringUtils;
@@ -13,7 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Value;
 
-import javax.sql.DataSource;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -48,7 +48,7 @@ public abstract class BaseExecutorService extends BaseResourceService implements
      * @param dataSourceId
      * @return
      */
-    protected DataSource getDataSource(long dataSourceId) {
+    protected DruidDataSource getDataSource(long dataSourceId) {
         log.debug("getDataSource: {}", dataSourceId);
 
         IDataSourceService dataSourceService = SpringUtils.getBean(IDataSourceService.class);
