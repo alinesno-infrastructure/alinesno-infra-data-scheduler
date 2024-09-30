@@ -20,6 +20,8 @@ public class ShellExecutor extends BaseExecutorService {
     public void execute(TaskInfoBean taskInfo) {
 
         ParamsDto paramsDto = getParamsDto(taskInfo) ;
+        downloadResource(paramsDto.getResourceId() , getWorkspace(taskInfo)) ;
+
         String rawScript = paramsDto.getRawScript();
 
         log.debug("Shell Executor rawScript: {}", rawScript) ;
@@ -29,7 +31,14 @@ public class ShellExecutor extends BaseExecutorService {
 
         log.debug("logFile: {}", logFile.getAbsoluteFile());
 
-        ShellHandle shellHandle = new ShellHandle("/bin/sh", "-c", rawScript);
+        // 构建多行命令行
+        String command = """
+                cd %s
+                %s
+                """.formatted(getWorkspace(taskInfo) , rawScript);
+
+        writeLog(taskInfo, "执行SQL:" +command);
+        ShellHandle shellHandle = new ShellHandle("/bin/sh", "-c", command);
         shellHandle.setLogPath(logFile.getAbsolutePath());
 
         shellHandle.execute();
