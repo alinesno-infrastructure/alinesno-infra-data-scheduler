@@ -7,10 +7,10 @@ import com.alinesno.infra.data.scheduler.entity.DataSourceEntity;
 import com.alinesno.infra.data.scheduler.enums.DbTypeEnums;
 import com.alinesno.infra.data.scheduler.mapper.DataSourceMapper;
 import com.alinesno.infra.data.scheduler.service.IDataSourceService;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -36,7 +36,7 @@ public class DataSourceServiceImpl extends IBaseServiceImpl<DataSourceEntity, Da
     }
 
     @Override
-    public DataSource getDataSource(long dataSourceId) {
+    public DruidDataSource getDataSource(long dataSourceId) {
         // 根据ID获取数据源实体
         DataSourceEntity entity = baseMapper.selectById(dataSourceId);
         if (entity == null) {
@@ -47,6 +47,7 @@ public class DataSourceServiceImpl extends IBaseServiceImpl<DataSourceEntity, Da
         return createDataSource(entity);
     }
 
+    @SneakyThrows
     private DruidDataSource createDataSource(DataSourceEntity entity) {
 
         // 创建Druid数据源配置
@@ -68,6 +69,8 @@ public class DataSourceServiceImpl extends IBaseServiceImpl<DataSourceEntity, Da
         dataSource.setTestOnReturn(false);
         dataSource.setPoolPreparedStatements(true);
         dataSource.setMaxPoolPreparedStatementPerConnectionSize(20);
+
+        dataSource.setFilters("stat");
 
         // 根据不同的数据库类型设置其他属性
         DbTypeEnums dbType = DbTypeEnums.of(entity.getReaderType());
