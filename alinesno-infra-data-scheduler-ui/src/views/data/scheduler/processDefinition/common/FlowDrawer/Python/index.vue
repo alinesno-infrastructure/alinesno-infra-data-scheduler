@@ -12,7 +12,7 @@
 
                 <el-form :model="form" :rules="rules" label-width="auto" style="max-width: 980px" ref="ruleForm">
                     <el-form-item label="节点名称" prop="name">
-                        <el-input v-model="form.name" placeholder="请输入节点名称" />
+                        <el-input v-model="form.name" disabled="disabled" placeholder="请输入节点名称" />
                     </el-form-item>
                     <!-- 
                     <el-form-item label="描述" prop="desc">
@@ -57,7 +57,8 @@
                 </el-form>
 
                 <div class="flow-setting-footer">
-                    <el-button type="primary" bg size="large" @click="submitForm('ruleForm')">确认保存</el-button>
+                    <el-button type="primary" text bg  @click="validateTask()"><i class="fa-solid fa-truck-fast"></i>&nbsp;验证脚本</el-button>
+                    <el-button type="primary" bg  @click="submitForm('ruleForm')"><i class="fa-solid fa-paper-plane"></i>&nbsp;确认保存</el-button>
                     <el-button @click="onClose" size="large" text bg>取消</el-button>
                 </div>
             </div>
@@ -83,6 +84,7 @@
 
 import flowNodeStore from '@/store/modules/flowNode'
 
+import { getAllResource } from '@/api/data/scheduler/resource'
 import { branchIcon2 } from '@/utils/flowMixin';
 import CodeEditor from '../../CodeEditor.vue';
 import ContextParam from "../../../params/contextParam.vue";
@@ -109,8 +111,8 @@ const data = reactive({
         retryCount: 0,
         env: '',
         rawScript: '' ,
-        resourceId: '',
-        customParams: ''
+        resourceId: [],
+        customParams: {} 
     },
     rules: {
         name: [
@@ -130,9 +132,9 @@ const data = reactive({
         env: [
             { required: true, message: '请选择环境名称', trigger: 'change' }
         ],
-        resourceId: [
-            { required: true, message: '请选择资源', trigger: 'blur' }
-        ],
+        // resourceId: [
+        //     { required: true, message: '请选择资源', trigger: 'blur' }
+        // ],
         customParams: [
             { required: true, message: '请输入自定义参数', trigger: 'blur' }
         ]
@@ -174,6 +176,7 @@ function showDrawer(_node) {
 
     visible.value = true;
     node.value = _node;
+    form.value.name = _node.name;
     
     nextTick(() => {
         getAllResource().then(res => {
