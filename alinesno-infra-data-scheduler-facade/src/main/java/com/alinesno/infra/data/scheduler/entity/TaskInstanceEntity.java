@@ -107,4 +107,9 @@ public class TaskInstanceEntity extends InfraBaseEntity {
     @ColumnComment("结束时间")
     private Date endTime;
 
+    @TableField
+    @ColumnType(value = MySqlTypeConstant.LONGTEXT)
+    @ColumnComment("错误信息")
+    private String errorMsg ;
+
 }
