@@ -30,7 +30,7 @@
           <el-icon :size="20">
             <Picture></Picture>
           </el-icon>
-          <span>图片</span>
+          <span>脚本</span>
         </el-menu-item>
         <el-menu-item
             index="2"
@@ -39,7 +39,7 @@
           <el-icon :size="20">
             <Document></Document>
           </el-icon>
-          <span>文档</span>
+          <span>UDF</span>
         </el-menu-item>
         <el-menu-item
             index="3"
@@ -48,7 +48,7 @@
           <el-icon :size="20">
             <VideoCamera></VideoCamera>
           </el-icon>
-          <span>视频</span>
+          <span>工具</span>
         </el-menu-item>
         <el-menu-item
             index="4"
@@ -57,7 +57,7 @@
           <el-icon :size="20">
             <Headset></Headset>
           </el-icon>
-          <span>音乐</span>
+          <span>配置</span>
         </el-menu-item>
         <el-menu-item
             index="5"
@@ -74,25 +74,12 @@
 </template>
 
 <script setup>
-import {Delete, Document, Files, Headset, Menu, Picture, Share, TakeawayBox, VideoCamera} from "@element-plus/icons-vue";
-import {computed, onMounted, ref, watch} from "vue";
 import {useRoute} from "vue-router";
 
 const route = useRoute()
 const isCollapse = ref(false) //  控制菜单收缩展开
-const myFileMenuMap = ref({ // 菜单 index 和名称 Map
-  0: '全部',
-  1: '图片',
-  2: '文档',
-  3: '视频',
-  4: '音乐',
-  5: '其他',
-  6: '回收站',
-  8: '我的分享'
-})
 // 当前激活菜单的 index
 const activeIndex = computed(() => route.query.fileType ? String(route.query.fileType) : String(0)); //  获取当前路由参数中包含的文件类型
-
 
 </script>
 
