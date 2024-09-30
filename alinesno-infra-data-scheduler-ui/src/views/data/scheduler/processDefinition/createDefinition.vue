@@ -40,6 +40,7 @@
 const router = useRouter();
 const { proxy } = getCurrentInstance();
 
+import { ElLoading } from 'element-plus'
 import flowNodeStore from '@/store/modules/flowNode'
 
 import { commitProcessDefinition } from '@/api/data/scheduler/processDefinition'
@@ -82,6 +83,12 @@ function submitProcessDefinition(){
   let nodes = flowNodeStore().getAllNodes();
   console.log('submitProcessDefinition:' + JSON.stringify(nodes))
 
+  const loading = ElLoading.service({
+    lock: true,
+    text: 'Loading',
+    background: 'rgba(0, 0, 0, 0.7)',
+  })
+
   const formDataStr = localStorage.getItem('processDefinitionFormData');
    const formData = JSON.parse(formDataStr);
 
@@ -94,7 +101,7 @@ function submitProcessDefinition(){
   commitProcessDefinition(data).then(response => {
       console.log(response);
       proxy.$modal.msgSuccess("流程提交成功");
-      // router.push({path:'/data/scheduler/processDefinition/index',query:{}});
+      loading.close();
   })
 }
 
