@@ -57,15 +57,6 @@
            <el-table v-loading="loading" :data="ResourceList" @selection-change="handleSelectionChange">
               <el-table-column type="selection" width="50" :align="'center'" />
 
-              <el-table-column label="图标" align="center" width="60" key="format" prop="format" v-if="columns[5].visible">
-                 <template #default="scope">
-                    <!-- <span style="font-size:25px;color:#3b5998">
-                       <i :class="scope.row.icon" />
-                    </span> -->
-                    <img :src="'http://data.linesno.com/icons/fileType/' + scope.row.icon" style="width:35px;" />
-                 </template>
-              </el-table-column>
-
               <!-- 业务字段-->
               <el-table-column label="文件名" align="left" key="originalFilename" prop="originalFilename" v-if="columns[0].visible">
                  <template #default="scope">
@@ -96,7 +87,7 @@
 
               <el-table-column label="上传时间" align="center" prop="createTime" v-if="columns[6].visible" width="160">
                  <template #default="scope">
-                    <span>{{ parseTime(scope.row.createTime) }}</span>
+                    <span>{{ parseTime(scope.row.addTime) }}</span>
                  </template>
               </el-table-column>
 
