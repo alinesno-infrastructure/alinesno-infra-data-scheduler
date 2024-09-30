@@ -89,8 +89,9 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
         processInstance.setWorkspace(instanceWorkspace);
 
         processInstanceService.save(processInstance) ;
-
         task.setWorkspace(instanceWorkspace);
+
+        boolean isFailTask = false ;
 
         // 任务开始更新状态
         for(TaskDefinitionEntity t : taskDefinition){
@@ -106,16 +107,39 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
             log.debug("TaskExecutor BeanName:{}" , beanName);
 
             executorService = SpringUtils.getBean(beanName) ;
-            executorService.execute(task);
+            try{
+                executorService.execute(task);
 
-            // 更新任务实例结束
-            taskInstance.setState(ProcessStatusEnums.END.getCode());
-            taskInstance.setEndTime(new Date());
-            taskInstanceService.update(taskInstance);
+                // 更新任务实例结束
+                taskInstance.setState(ProcessStatusEnums.END.getCode());
+                taskInstance.setEndTime(new Date());
+                taskInstanceService.update(taskInstance);
+
+            }catch (Exception e){
+
+                log.error("任务执行异常：" , e);
+
+                taskInstance.setState(ProcessStatusEnums.FAIL.getCode());
+                taskInstance.setEndTime(new Date());
+                taskInstance.setErrorMsg(e.getMessage());
+                taskInstanceService.update(taskInstance);
+
+                isFailTask = true ;
+
+                // 如果异常中断则直接跳出，否则继续执行
+                if(!t.isContinueIgnore()){
+                    break;
+                }
+            }
         }
 
-        // 任务流程结束，更新任务实例
-        processInstance.setState(ProcessStatusEnums.END.getCode());
+        if(isFailTask){
+            processInstance.setState(ProcessStatusEnums.FAIL.getCode());
+        }else{
+            // 任务流程结束，更新任务实例
+            processInstance.setState(ProcessStatusEnums.END.getCode());
+        }
+
         processInstance.setEndTime(new Date());
         processInstanceService.update(processInstance);
     }
