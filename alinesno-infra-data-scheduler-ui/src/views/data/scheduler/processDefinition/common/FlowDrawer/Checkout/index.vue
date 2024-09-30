@@ -12,7 +12,7 @@
 
                 <el-form :model="form" :rules="rules" label-width="auto" style="max-width: 980px" ref="ruleForm">
                     <el-form-item label="节点名称" prop="name">
-                        <el-input v-model="form.name" placeholder="请输入节点名称" />
+                        <el-input v-model="form.name" disabled="disabled" placeholder="请输入节点名称" />
                     </el-form-item>
                     <!-- 
                     <el-form-item label="描述" prop="desc">
@@ -35,7 +35,13 @@
                             </el-form-item>
                         </el-col>
                     </el-row>
-                    <el-row>
+                    <el-form-item label="类型" prop="sourceType">
+                        <el-radio-group v-model="form.sourceType">
+                            <el-radio :label="'public'">开源</el-radio>
+                            <el-radio :label="'private'">私有</el-radio>
+                        </el-radio-group>
+                    </el-form-item>
+                    <el-row v-if="form.sourceType == 'private'">
                         <el-col :span="12">
                             <el-form-item label="账号" prop="gitUsername">
                                 <el-input v-model="form.gitUsername" placeholder="请配置账号" />
@@ -55,7 +61,7 @@
                 </el-form>
 
                 <div class="flow-setting-footer">
-                    <el-button type="primary" bg size="large" @click="submitForm('ruleForm')">确认保存</el-button>
+                    <el-button type="primary" bg  @click="submitForm('ruleForm')">确认保存</el-button>
                     <el-button @click="onClose" size="large" text bg>取消</el-button>
                 </div>
             </div>
@@ -80,7 +86,7 @@
 <script setup>
 
 import flowNodeStore from '@/store/modules/flowNode'
-
+import { getAllResource } from '@/api/data/scheduler/resource'
 import { branchIcon2 } from '@/utils/flowMixin';
 import ContextParam from "../../../params/contextParam.vue";
 
@@ -97,6 +103,8 @@ const headerStyle = ref({
 const paramsDialog = ref(false) 
 const taskParamRef = ref(null)
 
+const resourceData = ref([])
+
 const data = reactive({
     form: {
         name: '',
@@ -104,9 +112,14 @@ const data = reactive({
         delivery: false,
         retryCount: 0,
         env: '',
+        sourceType: 'private',
         rawScript: '' ,
-        resourceId: '',
-        customParams: ''
+        resourceId: [],
+        customParams: {},
+        gitUrl: '',
+        gitBranch: '',
+        gitUsername: '',
+        gitPassword: '',
     },
     rules: {
         name: [
@@ -139,7 +152,7 @@ const submitForm = (formName) => {
     formInstance.validate((valid) => {
         if (valid) {
 
-            form.value.rawScript = codeEditorRef.value.getRawScript() 
+            // form.value.rawScript = codeEditorRef.value.getRawScript() 
 
             // 更新节点信息
             node.value.params = form.value;
@@ -163,6 +176,13 @@ function showDrawer(_node) {
 
     visible.value = true;
     node.value = _node;
+    form.value.name = _node.name;
+    
+    nextTick(() => {
+        getAllResource().then(res => {
+            resourceData.value = res.data
+        })
+    })
 }
 
 /**
