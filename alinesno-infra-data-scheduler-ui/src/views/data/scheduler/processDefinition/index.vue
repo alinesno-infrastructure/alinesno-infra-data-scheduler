@@ -94,9 +94,7 @@
                   <template #default="scope">
                      <div style="margin-top: 5px;">
                         <el-button type="primary" text> <i class="fa-solid fa-truck-fast" style="margin-right:5px;"></i>
-                           次数: {{ scope.row.runCount }} 条 </el-button><br />
-                        <el-button type="danger" text> <i class="fa-solid fa-feather" style="margin-right:5px"></i> 成功:
-                           {{ scope.row.successCount }} 条</el-button>
+                           次数: {{ scope.row.runCount }}/{{ scope.row.successCount }} 条 </el-button><br />
                      </div>
                   </template>
                </el-table-column>
