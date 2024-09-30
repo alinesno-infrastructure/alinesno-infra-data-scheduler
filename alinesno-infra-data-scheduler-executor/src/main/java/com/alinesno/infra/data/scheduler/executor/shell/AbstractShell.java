@@ -166,10 +166,10 @@ public abstract class AbstractShell {
     }
     final BufferedReader errReader = 
             new BufferedReader(
-                    new InputStreamReader(process.getErrorStream()));
+                    new InputStreamReader(process.getErrorStream(), "gbk"));
     BufferedReader inReader =
             new BufferedReader(
-                    new InputStreamReader(process.getInputStream()));
+                    new InputStreamReader(process.getInputStream() , "gbk"));
     final StringBuilder errMsg = new StringBuilder();
     
     // read error and input streams as this would free up the buffers
@@ -353,8 +353,11 @@ public abstract class AbstractShell {
 
   @SneakyThrows
   protected void writeLog(String logText){
+
+    log.debug(new String(logText.getBytes("gbk") , StandardCharsets.UTF_8));
+
     if(this.getLogPath() != null){
-      FileUtils.writeStringToFile(new File(this.getLogPath()), logText + System.lineSeparator() , StandardCharsets.UTF_8, true);
+      FileUtils.writeStringToFile(new File(this.getLogPath()), logText , StandardCharsets.UTF_8, true);
     }
   }
 }
