@@ -56,13 +56,14 @@ const isActive = ref(false)
  * @param {*} node
  * @param {*} routeNode
  */
-function open(node) {
-  console.log('--->> name = ' + node.name)
-  // 高亮
-  isActive.value = true;
+function open(selectNode) {
+  isActive.value = true; // 高亮
+
   //  打开配置
-  flowPythonSetting.value.showDrawer(node);
+  selectNode = flowNodeStore().getNodeById(selectNode.id) ; 
+  flowPythonSetting.value.showDrawer(selectNode);
 }
+
 
 /**
  * 删除节点
