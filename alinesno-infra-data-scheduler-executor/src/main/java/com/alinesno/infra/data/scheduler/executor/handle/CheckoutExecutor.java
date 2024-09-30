@@ -12,6 +12,7 @@ import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.springframework.stereotype.Service;
 
+import javax.lang.exception.RpcServiceRuntimeException;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Objects;
@@ -33,9 +34,8 @@ public class CheckoutExecutor extends BaseExecutorService {
         String branch = paramsDto.getGitBranch() ;
         File localPath = new File(getWorkspace(task) , Objects.requireNonNull(GitRepositoryUtils.getRepositoryNameFromUrl(remoteUrl)));
 
-
         try {
-            writeLog(task , "开始克隆仓库...");
+            writeLog(task , "开始克隆仓库:" + remoteUrl +",分支:" + branch);
             // 克隆仓库
             CloneCommand cloneCommand = Git.cloneRepository()
                     .setURI(remoteUrl)
@@ -56,6 +56,7 @@ public class CheckoutExecutor extends BaseExecutorService {
 
         } catch (GitAPIException e) {
             log.error("克隆仓库时发生错误: " , e);
+            throw new RpcServiceRuntimeException(e);
         }
     }
 }
