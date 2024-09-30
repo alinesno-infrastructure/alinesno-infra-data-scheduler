@@ -1,10 +1,9 @@
 package com.alinesno.infra.data.scheduler.service;
 
+import com.alibaba.druid.pool.DruidDataSource;
 import com.alinesno.infra.common.facade.services.IBaseService;
 import com.alinesno.infra.data.scheduler.api.CheckDbConnectResult;
 import com.alinesno.infra.data.scheduler.entity.DataSourceEntity;
-
-import javax.sql.DataSource;
 
 public interface IDataSourceService extends IBaseService<DataSourceEntity> {
 
@@ -20,6 +19,6 @@ public interface IDataSourceService extends IBaseService<DataSourceEntity> {
      * @param dataSourceId
      * @return
      */
-    DataSource getDataSource(long dataSourceId);
+    DruidDataSource getDataSource(long dataSourceId);
 
 }
