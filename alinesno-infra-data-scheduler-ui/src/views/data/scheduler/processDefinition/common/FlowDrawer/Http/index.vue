@@ -12,40 +12,41 @@
 
                 <el-form :model="form" :rules="rules" label-width="auto" style="max-width: 980px" ref="ruleForm">
                     <el-form-item label="节点名称" prop="name">
-                        <el-input v-model="form.name" placeholder="请输入节点名称" />
+                        <el-input v-model="form.name" :value="node.name" disabled="disabled" placeholder="请输入节点名称" />
                     </el-form-item>
-                    <el-form-item label="描述" prop="desc">
-                        <el-input v-model="form.desc" resize="none" :rows="3" type="textarea" placeholder="请输入节点描述" />
+                    <el-row>
+                        <el-col :span="24">
+                            <el-form-item label="地址" prop="url">
+                                <el-input v-model="form.url" placeholder="请输入请求地址" />
+                            </el-form-item>
+                        </el-col>
+                    </el-row>
+                    <el-form-item label="请求方式" prop="method">
+                        <el-radio-group v-model="form.method">
+                            <el-radio :label="'get'">GET</el-radio>
+                            <el-radio :label="'post'">POST</el-radio>
+                            <el-radio :label="'put'">PUT</el-radio>
+                            <el-radio :label="'delete'">DELETE</el-radio>
+                        </el-radio-group>
                     </el-form-item>
-                    <el-form-item label="超时告警" prop="delivery">
-                        <el-switch v-model="form.delivery" />
-                    </el-form-item>
-                    <el-form-item label="失败重试次数" prop="retryCount">
+                    <el-row>
+                        <el-col :span="24">
+                            <el-form-item label="请求参数" prop="requestBody">
+                                <el-input v-model="form.requestBody" resize="none" :rows="1" type="textarea" placeholder="请输入请求参数" />
+                            </el-form-item>
+                        </el-col>
+                    </el-row>
+                    <el-form-item label="重试次数" prop="retryCount">
                         <el-radio-group v-model="form.retryCount">
-                            <el-radio :label="0">0次</el-radio>
                             <el-radio :label="1">1次</el-radio>
                             <el-radio :label="3">3次</el-radio>
+                            <el-radio :label="5">5次</el-radio>
                         </el-radio-group>
-                    </el-form-item>
-                    <el-form-item label="环境名称" prop="env">
-                        <el-radio-group v-model="form.env">
-                            <el-radio :label="'Sponsor'">沙箱环境</el-radio>
-                            <el-radio :label="'Venue'">生产环境</el-radio>
-                        </el-radio-group>
-                    </el-form-item>
-                    <el-form-item label="脚本">
-                        <CodeEditor ref="codeEditorRef" :lang="python" />
-                    </el-form-item>
-                    <el-form-item label="资源" prop="resourceId">
-                        <el-input v-model="form.resourceId" placeholder="请选择资源" />
-                    </el-form-item>
-                    <el-form-item label="自定义参数" prop="customParams">
-                        <el-input v-model="form.customParams" placeholder="请输入自定义参数" />
                     </el-form-item>
                 </el-form>
 
                 <div class="flow-setting-footer">
-                    <el-button type="primary" bg size="large" @click="submitForm('ruleForm')">确认保存</el-button>
+                    <el-button type="primary" bg  @click="submitForm('ruleForm')">确认保存</el-button>
                     <el-button @click="onClose" size="large" text bg>取消</el-button>
                 </div>
             </div>
@@ -74,38 +75,18 @@ const headerStyle = ref({
 const data = reactive({
     form: {
         name: '',
-        desc: '',
-        delivery: false,
-        retryCount: 0,
-        env: '',
-        rawScript: '' ,
-        resourceId: '',
-        customParams: ''
+        url: '',
+        method: 'get',
+        requestBody: '',
+        retryCount: 0
     },
     rules: {
-        name: [
-            { required: true, message: '请输入节点名称', trigger: 'blur' },
-            { min: 3, max: 50, message: '长度在 3 到 50 个字符', trigger: 'blur' }
+        url: [
+            { required: true, message: '请输入请求地址', trigger: 'blur' }
         ],
-        desc: [
-            { required: true, message: '请输入节点描述', trigger: 'blur' },
-            { min: 10, max: 200, message: '长度在 10 到 200 个字符', trigger: 'blur' }
+        method: [
+            { required: true, message: '请选择请求方式', trigger: 'change' }
         ],
-        delivery: [
-            { required: true, message: '请选择超时告警', trigger: 'change' }
-        ],
-        retryCount: [
-            { required: true, message: '请选择失败重试次数', trigger: 'change' }
-        ],
-        env: [
-            { required: true, message: '请选择环境名称', trigger: 'change' }
-        ],
-        resourceId: [
-            { required: true, message: '请选择资源', trigger: 'blur' }
-        ],
-        customParams: [
-            { required: true, message: '请输入自定义参数', trigger: 'blur' }
-        ]
     }
 });
 
@@ -119,9 +100,6 @@ const submitForm = (formName) => {
     const formInstance = proxy.$refs[formName];
     formInstance.validate((valid) => {
         if (valid) {
-
-            form.value.rawScript = codeEditorRef.value.getRawScript() 
-
             // 更新节点信息
             node.value.params = form.value;
             flowNodeStore().setNode(node.value);
