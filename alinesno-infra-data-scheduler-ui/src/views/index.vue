@@ -5,7 +5,7 @@
     <el-col :span="24">
       <div class="aip-appinfo-header">
         <div class="header-icon-banner">
-          <i class="fa-solid fa-house-tsunami"></i>
+          <i class="fa-solid fa-masks-theater"></i>
         </div>
         <div class="icon">
           <div class="title">
