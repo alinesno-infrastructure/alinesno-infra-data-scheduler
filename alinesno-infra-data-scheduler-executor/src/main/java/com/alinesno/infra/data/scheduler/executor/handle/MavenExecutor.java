@@ -26,10 +26,12 @@ public class MavenExecutor extends BaseExecutorService {
         String goals = params.getGoals() ;
         String settings = params.getSettings() ;
 
+        log.debug("pomXml:{} , goals:{} , settings:{}" , pomXml , goals , settings);
+
         InvocationRequest request = new DefaultInvocationRequest();
         request.setPomFile(new File(pomXml));
         request.setGoals(Collections.singletonList(goals));
-        request.setUserSettingsFile(new File(settings));
+        // request.setUserSettingsFile(new File(settings));
 
         Invoker invoker = new DefaultInvoker();
         invoker.setMavenHome(new File(getM2Home(task.getEnvironment()))) ;
