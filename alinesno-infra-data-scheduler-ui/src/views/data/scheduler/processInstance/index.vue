@@ -27,25 +27,25 @@
               <el-table-column type="selection" width="50" align="center" />
 
               <!-- 业务字段-->
-              <el-table-column label="任务名称" align="left" width="200" key="projectName" prop="projectName" v-if="columns[0].visible" :show-overflow-tooltip="true">
+              <el-table-column label="任务名称" align="left" key="projectName" prop="projectName" v-if="columns[0].visible" :show-overflow-tooltip="true">
                  <template #default="scope">
                      <div>
                         <i class="fa-solid fa-sun" style="font-size:17px;margin-right:5px"></i> {{ scope.row.name}}
                      </div>
-                     <!-- 
-                     <div style="font-size: 13px;color: #a5a5a5;cursor: pointer;" v-copyText="scope.row.promptId">
-                       任务:{{ scope.row.jobDesc}}
-                     </div> 
-                     -->
+                     <div style="font-size: 13px;margin-left:25px;color: #a5a5a5;cursor: pointer;" v-copyText="scope.row.promptId">
+                        耗时: <span>{{ getTimeDifference(scope.row.startTime , scope.row.endTime).seconds }} 秒</span>
+                     </div>
                   </template>
               </el-table-column>
               
-              <el-table-column label="当前流程节点" align="center" key="jobDesc" prop="jobDesc" v-if="columns[1].visible">
+              <el-table-column label="当前流程节点" width="250" align="center" key="jobDesc" prop="jobDesc" v-if="columns[1].visible">
                  <template #default="scope">
                      <div style="margin-top: 5px;">
-                        <el-button type="primary" text> <i class="fa-solid fa-truck-fast" style="margin-right:5px;"></i> 读: {{ scope.row.readerCount }} 条</el-button>
+                        <el-button type="primary" text> <i class="fa-solid fa-truck-fast" style="margin-right:2px;"></i></el-button>
                         <i class="fa-solid fa-angles-right" style="font-size:0.8rem;margin-top:10px"></i>
-                        <el-button type="success" text> <i class="fa-solid fa-feather" style="margin-right:5px"></i> 写: {{ scope.row.writerCount }} 条</el-button>
+                        <el-button type="success" text> <i class="fa-solid fa-feather" style="margin-right:2px"></i></el-button>
+                        <i class="fa-solid fa-angles-right" style="font-size:0.8rem;margin-top:10px"></i>
+                        <el-button type="success" text> <i class="fa-solid fa-feather" style="margin-right:2px"></i></el-button>
                      </div>
                   </template>
               </el-table-column>
@@ -93,9 +93,6 @@
               <el-table-column label="结束时间" align="left" width="180" key="hasStatus" prop="hasStatus" v-if="columns[1].visible" :show-overflow-tooltip="true" >
                  <template #default="scope">
                     <div>{{ parseTime(scope.row.endTime) }}</div>
-                     <div style="font-size: 13px;color: #a5a5a5;cursor: pointer;" v-copyText="scope.row.promptId">
-                        耗时: <span>{{ getTimeDifference(scope.row.startTime , scope.row.endTime).seconds }} 秒</span>
-                     </div>
                  </template>
               </el-table-column>
 
