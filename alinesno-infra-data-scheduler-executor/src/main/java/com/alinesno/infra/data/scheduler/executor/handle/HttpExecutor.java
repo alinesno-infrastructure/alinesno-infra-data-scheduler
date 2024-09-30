@@ -33,26 +33,23 @@ public class HttpExecutor extends BaseExecutorService {
         String method = params.getMethod() ;
         String url = params.getUrl() ;
 
-        Callable<Response> callable = new Callable<Response>() {
-            @Override
-            public Response call() throws Exception {
-                log.info("重试调用");
+        Callable<Response> callable = () -> {
+            log.info("重试调用");
 
-                OkHttpClient client = new OkHttpClient();
-                Request request = new Request.Builder()
-                        .url(url)
-                        .method(method, null)
-                        .build();
+            OkHttpClient client = new OkHttpClient();
+            Request request = new Request.Builder()
+                    .url(url)
+                    .method(method, null)
+                    .build();
 
-                return client.newCall(request).execute();
-            }
+            return client.newCall(request).execute();
         };
 
-        Response result =  graceRetry(callable , retryCount);
+        Response result =  graceRetry(callable , retryCount , taskInfo);
         log.debug("HttpExecutor execute result : " + result);
     }
 
-    public Response graceRetry(Callable<Response> callable, int retryCount) {
+    public Response graceRetry(Callable<Response> callable, int retryCount, TaskInfoBean taskInfo) {
         Retryer<Response> retryer = RetryerBuilder.<Response>newBuilder()
                 .retryIfException()		// 当发生异常时重试
                 .retryIfResult(response -> response.code() != 200)		// 当返回码不为200时重试
@@ -60,7 +57,9 @@ public class HttpExecutor extends BaseExecutorService {
                 .withStopStrategy(StopStrategies.stopAfterAttempt(retryCount))		// 重试达到10次时退出
                 .build();
         try {
-            return retryer.call(callable);
+            Response response = retryer.call(callable);
+            writeLog(taskInfo, String.valueOf(response.body()));
+            return response ;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
