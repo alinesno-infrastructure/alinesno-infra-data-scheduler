@@ -6,6 +6,7 @@ import com.alinesno.infra.data.scheduler.constants.PipeConstants;
 import com.alinesno.infra.data.scheduler.executor.BaseExecutorService;
 import com.alinesno.infra.data.scheduler.executor.bean.TaskInfoBean;
 import com.alinesno.infra.data.scheduler.executor.shell.ShellHandle;
+import com.alinesno.infra.data.scheduler.executor.utils.OSUtils;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -36,7 +37,14 @@ public class PythonExecutor extends BaseExecutorService {
         File pythonFile = new File(getWorkspace(taskInfo), "python_" + IdUtil.getSnowflakeNextIdStr() + ".py") ;
         FileUtils.writeStringToFile(pythonFile, rawScript  , Charset.defaultCharset() , false);
 
-        String res = ShellHandle.execCommand("/bin/sh", "-c", "python " + pythonFile.getAbsolutePath());
-        log.debug("thread id:" + Thread.currentThread().getId() + ", result:" + res);
+        ShellHandle shellHandle = new ShellHandle("/bin/sh", "-c", "python " + pythonFile.getAbsolutePath());
+
+        if(OSUtils.isWindows()){
+            shellHandle = new ShellHandle("cmd.exe", "/C", "python " + pythonFile.getAbsolutePath());
+        }
+
+        shellHandle.setLogPath(logFile.getAbsolutePath());
+
+        shellHandle.execute();
     }
 }
