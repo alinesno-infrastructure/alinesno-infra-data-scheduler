@@ -96,4 +96,10 @@ public class TaskDefinitionEntity extends InfraBaseEntity {
     @ColumnComment("任务排序")
     private int orderNum;
 
+    // 异常是否继续执行(跳过|中断)
+    @TableField
+    @ColumnType(value = MySqlTypeConstant.INT)
+    @ColumnComment("异常是否继续执行(跳过|中断)")
+    private boolean continueIgnore = true;
+
 }
