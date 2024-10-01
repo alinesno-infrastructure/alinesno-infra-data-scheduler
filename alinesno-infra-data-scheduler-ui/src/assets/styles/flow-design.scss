@@ -372,6 +372,22 @@
                                     background-image: -o-linear-gradient(left, #ff9313 0, #faab4b 100%), -o-linear-gradient(#3b5998, #3b5998);
                                     background-image: linear-gradient(90deg, #ff9313, #faab4b), linear-gradient(#3b5998, #3b5998);
                                 }
+                                
+                                .node-notice {
+                                    /* WebKit-based browsers (Safari, Chrome) */
+                                    background-image: -webkit-gradient(linear, left top, right top, from(#0084FF), to(#00A2FF)),
+                                                      -webkit-gradient(linear, left top, left bottom, from(#3b5998), to(#3b5998));
+                                    background-image: -webkit-linear-gradient(left, #0084FF, #00A2FF), 
+                                                      -webkit-linear-gradient(#3b5998, #3b5998);
+                                
+                                    /* Old versions of Opera */
+                                    background-image: -o-linear-gradient(left, #0084FF 0, #00A2FF 100%), 
+                                                      -o-linear-gradient(#3b5998, #3b5998);
+                                
+                                    /* Standard syntax for modern browsers */
+                                    background-image: linear-gradient(90deg, #0084FF, #00A2FF), 
+                                                      linear-gradient(#3b5998, #3b5998);
+                                }
 
                                 .node-status-current {
                                     background-image: -webkit-gradient(linear, left top, right top, from(#1890ff), to(#1890ff)),
