@@ -12,7 +12,7 @@
 
                 <el-form :model="form" :rules="rules" label-width="auto" style="max-width: 980px" ref="ruleForm">
                     <el-form-item label="节点名称" prop="name">
-                        <el-input v-model="form.name" placeholder="请输入节点名称" />
+                        <el-input v-model="form.name" disabled="disabled" placeholder="请输入节点名称" />
                     </el-form-item>
                     <!--
                     <el-form-item label="描述" prop="desc">
@@ -163,6 +163,7 @@ function showDrawer(_node) {
 
     visible.value = true;
     node.value = _node;
+    form.value.name = _node.name;
     
     nextTick(() => {
         getAllResource().then(res => {
