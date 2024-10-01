@@ -34,7 +34,10 @@ public class ParamsDto {
     private String gitPassword; // Git密码
 
     // 企业微信群机器人Webhook地址
+    private String imType;
     private String wechatKey ;
+    private String email;
+    private String noticeContent ;
 
     // Maven项目配置信息
     private String pomXml ;
