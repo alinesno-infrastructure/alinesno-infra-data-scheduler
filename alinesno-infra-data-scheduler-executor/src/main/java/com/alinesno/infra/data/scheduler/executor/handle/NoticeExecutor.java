@@ -1,8 +1,10 @@
 package com.alinesno.infra.data.scheduler.executor.handle;
 
+import com.alibaba.fastjson.JSONObject;
 import com.alinesno.infra.data.scheduler.api.ParamsDto;
 import com.alinesno.infra.data.scheduler.executor.BaseExecutorService;
 import com.alinesno.infra.data.scheduler.executor.bean.TaskInfoBean;
+import com.alinesno.infra.data.scheduler.executor.bean.WechatMessage;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
@@ -14,6 +16,8 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.springframework.stereotype.Service;
 
+import static com.alinesno.infra.common.core.constants.Constants.SUCCESS;
+
 /**
  * 通知接口执行，目前只支持企业微信
  */
@@ -21,31 +25,53 @@ import org.springframework.stereotype.Service;
 @Service("noticeExecutor")
 public class NoticeExecutor extends BaseExecutorService {
 
+    private static final int MAX_LENGTH = 1024;
+
     public void execute(TaskInfoBean task){
         // 发送企业微信通知
         log.info("noticeExecutor execute");
 
         ParamsDto params = getParamsDto(task) ;
+        String imType = params.getImType() ;
+        String email = params.getEmail();
         String wechatKey =  params.getWechatKey() ;
+        String noticeContent = params.getNoticeContent() ;
 
-        String result = send(wechatKey , params.getName()+":" + params.getDesc()) ;
-        log.debug("企业微信通知结果：" + result);
+        if(imType.equals("email")){
+            String result = sendEmail(email , noticeContent) ;
+            log.debug("邮件通知结果：" + result);
+        }else if(imType.equals("wechat_work")){
+            String result = sendWechatWork(wechatKey , noticeContent) ;
+            log.debug("企业微信通知结果：" + result);
+        }
     }
 
-    @SneakyThrows
-    public String send(String key , String textMsg) {
+    /**
+     * 发送邮件通知
+     */
+    public String sendEmail(String email , String textMsg) {
+        log.info("发送邮件通知：" + email + " , " + textMsg);
+        return null ;
+    }
 
-        String content =   "{\n" +
-                "   \"msgtype\": \"text\",\n" +
-                "   \"text\": {\n" +
-                "    \"content\": \"" + textMsg + "\"\n" +
-                "  }\n" +
-                "}";
+    /**
+     * 发送企业微信
+     * @param key
+     * @param textMsg
+     * @return
+     */
+    @SneakyThrows
+    public String sendWechatWork(String key , String textMsg) {
+
+        WechatMessage message = WechatMessage.type("markdown").markdown(truncateText(textMsg));
+        String json = JSONObject.toJSONString(message);
+        log.debug("发送企业微信消息：" + json);
+
 
         CloseableHttpClient httpClient = HttpClients.createDefault();//实例化对象
         HttpPost httpPost = new HttpPost("https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=" + key);//url地址
         httpPost.addHeader("Content-Type", "application/json; charset=utf-8");//发送消息的格式;
-        StringEntity se = new StringEntity(content, "utf-8");//编码转换
+        StringEntity se = new StringEntity(json, "utf-8");//编码转换
         httpPost.setEntity(se);
 
         CloseableHttpResponse response = httpClient.execute(httpPost);
@@ -62,7 +88,27 @@ public class NoticeExecutor extends BaseExecutorService {
         httpClient.close();
         response.close();
 
-        return "发送微信机器人消息失败";
+        return SUCCESS ;
+    }
+
+    /**
+     * 截取文本消息，避免超过企业微信限制
+     * @param textMsg
+     * @return
+     */
+    public static String truncateText(String textMsg) {
+        if (textMsg == null) {
+            throw new IllegalArgumentException("textMsg cannot be null");
+        }
+
+        int length = textMsg.length();
+
+        if (length > MAX_LENGTH) {
+            // 截取字符
+            textMsg = textMsg.substring(0, MAX_LENGTH);
+        }
+
+        return textMsg;
     }
 
 }
