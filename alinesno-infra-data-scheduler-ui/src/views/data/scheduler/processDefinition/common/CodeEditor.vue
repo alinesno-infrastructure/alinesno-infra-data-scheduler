@@ -4,7 +4,7 @@
         basic 
         :lang="lang" 
         v-model="codeVal" 
-        style="height: 400px;" 
+        :style="'height:' + props.height " 
         :theme="theme"
         :extensions="extensions" />
     </div>
@@ -19,6 +19,7 @@ import { python } from '@codemirror/lang-python';
 import { json } from '@codemirror/lang-json';
 import { sql } from '@codemirror/lang-sql';
 import { yaml } from '@codemirror/lang-yaml';
+import { markdown } from '@codemirror/lang-markdown';
 
 const router = useRouter();
 const { proxy } = getCurrentInstance();
@@ -28,17 +29,27 @@ const props = defineProps({
     type: String,
     default: 'python' , 
   },
+  aa: {
+    type: String,
+    default: 'python' , 
+  },
+  height: {
+    type: String,
+    default: '400px',
+  },
 });
 
 // 初始化
 let codeVal = ref('');
+
 const lang = props.lang == 'python'? python(): 
   props.lang == 'json'?json():
   props.lang == 'yaml'?yaml():
   props.lang == 'sql'?sql():
+  props.lang == 'markdown'?markdown():
   python() ;
 
-console.log('props.lang  = ' + props.lang  + ' , lang = ' + lang);
+console.log('aa = ' + props.aa +  ' , props.lang  = ' + props.lang  + ' , lang = ' + lang);
 
 // 扩展
 const extensions = [oneDark];
