@@ -35,6 +35,10 @@
             <img :src="parallelIcon" class="anticon" />
             <span>K8S操作</span>
           </a-menu-item>
+          <a-menu-item key="9" @click="addType(9)">
+            <img :src="branchIcon2" class="anticon" />
+            <span>通知回调</span>
+          </a-menu-item>
         </a-menu>
       </template>
       <img :src="plusIcon" />
@@ -135,6 +139,10 @@ function getTypeInfo(type) {
       case 8:
         name = 'Checkout操作';
         icon = parallelIcon;
+        break;
+      case 9:
+        name = '通知回调';
+        icon = branchIcon2;
         break;
       default:
         console.error(`未知类型: ${type}`);
