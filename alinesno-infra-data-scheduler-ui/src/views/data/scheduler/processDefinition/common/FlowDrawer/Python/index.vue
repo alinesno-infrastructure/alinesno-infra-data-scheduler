@@ -85,6 +85,7 @@
 import flowNodeStore from '@/store/modules/flowNode'
 
 import { getAllResource } from '@/api/data/scheduler/resource'
+import { getAllEnvironment } from '@/api/data/scheduler/environment'
 import { branchIcon2 } from '@/utils/flowMixin';
 import CodeEditor from '../../CodeEditor.vue';
 import ContextParam from "../../../params/contextParam.vue";
@@ -102,6 +103,7 @@ const headerStyle = ref({
 const paramsDialog = ref(false) 
 const taskParamRef = ref(null)
 const resourceData = ref([])
+const envData = ref([])
 
 const data = reactive({
     form: {
@@ -179,6 +181,11 @@ function showDrawer(_node) {
     form.value.name = _node.name;
     
     nextTick(() => {
+        // 获取所有环境
+        getAllEnvironment().then(res => {
+            envData.value = res.data
+        })
+        // 获取所有资源
         getAllResource().then(res => {
             resourceData.value = res.data
         })
