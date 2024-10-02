@@ -27,7 +27,7 @@ const menuItems = ref([
   {id:'3' , icon:'fa-solid fa-masks-theater' , link:'/data/scheduler/processDefinition/index' , desc:'流程管理'},
   {id:'5' , icon:'fa-brands fa-wordpress' , link:'/data/scheduler/processInstance/index' , desc:'流程实例'},
   {id:'8' , icon:'fa-solid fa-file-pdf' , link:'/data/scheduler/resources/index' , desc:'资源中心'},
-  {id:'7' , icon:'fa-solid fa-computer' , link:'/data/scheduler/datasource/index' , desc:'数据源管理'},
+  {id:'7' , icon:'fa-solid fa-database' , link:'/data/scheduler/datasource/index' , desc:'数据源管理'},
   {id:'4' , icon:'fa-brands fa-skype' , link:'/data/scheduler/analyse/index' , desc:'监控服务'},
   {id:'10' , icon:'fa-solid fa-computer' , link:'/data/scheduler/configuration/index' , desc:'配置管理'},
   {id:'9' , icon:'fa-solid fa-code-pull-request' , link:'/data/scheduler/apiRecord/index' , desc:'操作记录'},
