@@ -13,12 +13,13 @@ var prefix = '/api/infra/data/scheduler/environment/' ;
 var managerUrl = {
     datatables : prefix +"datatables" ,
     createUrl: prefix + 'add' ,
-    saveUrl: prefix + 'save' ,
-    updateUrl: prefix +"modify" ,
+    saveUrl: prefix + 'saveEnv' ,
+    updateUrl: prefix +"updateEnv" ,
     statusUrl: prefix +"changeStatus" ,
     cleanUrl: prefix + "clean",
-    detailUrl: prefix +"detail",
+    detailUrl: prefix +"getEnv",
     removeUrl: prefix + "delete" ,
+    getAllEnv: prefix + "getAllEnv" ,
     exportUrl: prefix + "exportExcel",
     changeField: prefix + "changeField",
     getAllEnvironment: prefix + "getAllEnvironment",
@@ -54,7 +55,7 @@ export function listEnvironment(query) {
 // 查询环境详细
 export function getEnvironment(databaseId) {
   return request({
-    url: managerUrl.detailUrl + '/' + parseStrEmpty(databaseId),
+    url: managerUrl.detailUrl + '?id=' + parseStrEmpty(databaseId),
     method: 'get'
   })
 }
