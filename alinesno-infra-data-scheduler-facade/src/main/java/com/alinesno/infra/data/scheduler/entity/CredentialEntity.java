@@ -4,6 +4,7 @@ import com.alinesno.infra.common.facade.mapper.entity.InfraBaseEntity;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.gitee.sunchenbin.mybatis.actable.annotation.Column;
+import com.gitee.sunchenbin.mybatis.actable.annotation.ColumnType;
 import com.gitee.sunchenbin.mybatis.actable.annotation.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -19,6 +20,7 @@ public class CredentialEntity extends InfraBaseEntity {
 
     @TableField
     @Column(name = "credential_id", comment = "凭据标识")
+    @ColumnType(length = 32)
     private String credentialId;
 
     @TableField
@@ -27,19 +29,26 @@ public class CredentialEntity extends InfraBaseEntity {
 
     @TableField
     @Column(name = "username", comment = "用户名")
+    @ColumnType(length = 32)
     private String username;
 
     @TableField
     @Column(name = "password", comment = "密码")
+    @ColumnType(length = 32)
     private String password; // 注意：在实际应用中应考虑对密码进行加密存储
 
     @TableField
     @Column(name = "type", comment = "类型")
+    @ColumnType(length = 16)
     private String type;
 
     @TableField
     @Column(name = "description", comment = "描述")
     private String description;
 
+    @TableField
+    @Column(name = "credential_scope", comment = "范围")
+    @ColumnType(length = 16)
+    private String credentialScope ;
 
 }
