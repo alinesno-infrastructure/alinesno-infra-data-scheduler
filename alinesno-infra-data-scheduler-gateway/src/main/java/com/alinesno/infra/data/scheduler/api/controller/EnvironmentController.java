@@ -58,13 +58,28 @@ public class EnvironmentController extends BaseController<EnvironmentEntity, IEn
     }
 
     /**
+     * 配置默认环境
+     */
+    @GetMapping("/defaultEnv")
+    public AjaxResult defaultEnv(@RequestParam("id") Long id) {
+        service.defaultEnv(id);
+        return AjaxResult.success("success");
+    }
+
+
+    /**
      * 获取到所有的资源列表，并返回如下格式:
      * [{key:xxx,value:xxx}]
      */
     @GetMapping("/getAllEnvironment")
     public AjaxResult getAllEnvironment(){
         List<EnvironmentEntity> list = service.list() ;
-        return AjaxResult.success("success" , list) ;
+        AjaxResult result = AjaxResult.success(list) ;
+
+        long defaultId = list.stream().filter(EnvironmentEntity::isDefaultEnv).findFirst().map(EnvironmentEntity::getId).orElse(0L);
+        result.put("systemEnvId" ,defaultId) ;
+
+        return result ;
     }
 
     /**
