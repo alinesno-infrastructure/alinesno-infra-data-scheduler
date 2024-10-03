@@ -31,10 +31,15 @@
                     </el-form-item>
                     -->
                     <el-form-item label="环境名称" prop="env">
-                        <el-radio-group v-model="form.env">
-                            <el-radio :label="'shabox'">沙箱环境</el-radio>
-                            <el-radio :label="'prod'">生产环境</el-radio>
-                        </el-radio-group>
+                        <el-select v-model="form.env" placeholder="选择执行环境" style="width:100%">
+                            <el-option
+                                v-for="item in envData"
+                                :key="item.id"
+                                :label="'(' + item.systemEnv + ')' + item.name"
+                                :value="item.id"
+                                :systemEnv="item.systemEnv"
+                            />
+                        </el-select>
                     </el-form-item>
                     <el-form-item label="脚本">
                         <CodeEditor ref="codeEditorRef" :lang="shell" />
@@ -84,6 +89,7 @@
 
 import flowNodeStore from '@/store/modules/flowNode'
 import { getAllResource } from '@/api/data/scheduler/resource'
+import { getAllEnvironment } from '@/api/data/scheduler/environment'
 import { branchIcon2 } from '@/utils/flowMixin';
 import ContextParam from "../../../params/contextParam.vue";
 import CodeEditor from '../../CodeEditor.vue';
@@ -92,6 +98,7 @@ const { proxy } = getCurrentInstance();
 
 const paramsDialog = ref(false) 
 const taskParamRef = ref(null)
+const envData = ref([])
 
 const codeEditorRef = ref(null)
 const node = ref({})
@@ -185,6 +192,13 @@ function showDrawer(_node) {
     form.value.name = _node.name;
     
     nextTick(() => {
+        // 获取所有环境
+        getAllEnvironment().then(res => {
+            envData.value = res.data
+            // nextTick(() => {
+            //     form.value.env = res.defaultEnvId
+            // })
+        })
         getAllResource().then(res => {
             resourceData.value = res.data
         })
