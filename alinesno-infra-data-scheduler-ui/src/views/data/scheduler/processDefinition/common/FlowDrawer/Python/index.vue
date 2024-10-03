@@ -14,26 +14,16 @@
                     <el-form-item label="节点名称" prop="name">
                         <el-input v-model="form.name" disabled="disabled" placeholder="请输入节点名称" />
                     </el-form-item>
-                    <!-- 
-                    <el-form-item label="描述" prop="desc">
-                        <el-input v-model="form.desc" resize="none" :rows="3" type="textarea" placeholder="请输入节点描述" />
-                    </el-form-item> 
-                    <el-form-item label="超时告警" prop="delivery">
-                        <el-switch v-model="form.delivery" />
-                    </el-form-item>
-                    <el-form-item label="失败重试次数" prop="retryCount">
-                        <el-radio-group v-model="form.retryCount">
-                            <el-radio :label="0">0次</el-radio>
-                            <el-radio :label="1">1次</el-radio>
-                            <el-radio :label="3">3次</el-radio>
-                        </el-radio-group>
-                    </el-form-item>
-                    -->
                     <el-form-item label="环境名称" prop="env">
-                        <el-radio-group v-model="form.env">
-                            <el-radio :label="'Sponsor'">沙箱环境</el-radio>
-                            <el-radio :label="'Venue'">生产环境</el-radio>
-                        </el-radio-group>
+                        <el-select v-model="form.env" placeholder="选择执行环境" style="width:100%">
+                            <el-option
+                                v-for="item in envData"
+                                :key="item.id"
+                                :label="'(' + item.systemEnv + ')' + item.name"
+                                :value="item.id"
+                                :systemEnv="item.systemEnv"
+                            />
+                        </el-select>
                     </el-form-item>
                     <el-form-item label="脚本">
                         <CodeEditor ref="codeEditorRef" :lang="python" />
@@ -167,6 +157,16 @@ const submitForm = (formName) => {
     });
 };
 
+/** 
+ * 获取到环境变量值  
+ */
+function callTaskParamRef(){
+ let contextParam = taskParamRef.value.getEnvVarsAsJson() ; 
+ form.value.customParams = contextParam ;
+ paramsDialog.value = false ;
+
+ console.log(JSON.stringify(contextParam, null, 2));
+}
 
 /**
  * 打开侧边栏 
@@ -184,6 +184,9 @@ function showDrawer(_node) {
         // 获取所有环境
         getAllEnvironment().then(res => {
             envData.value = res.data
+            // nextTick(() => {
+            //     form.value.env = res.defaultEnvId
+            // })
         })
         // 获取所有资源
         getAllResource().then(res => {
