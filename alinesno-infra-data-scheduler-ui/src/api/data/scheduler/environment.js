@@ -21,9 +21,18 @@ var managerUrl = {
     removeUrl: prefix + "delete" ,
     getAllEnv: prefix + "getAllEnv" ,
     exportUrl: prefix + "exportExcel",
+    defaultEnv: prefix + "defaultEnv",
     changeField: prefix + "changeField",
     getAllEnvironment: prefix + "getAllEnvironment",
     downloadfile: prefix + "downloadfile"
+}
+
+// 配置默认环境
+export function defaultEnv(id){
+  return request({
+    url: managerUrl.defaultEnv + '?id=' + parseStrEmpty(id) ,
+    method: 'get',
+  })
 }
 
 // 修改字段
