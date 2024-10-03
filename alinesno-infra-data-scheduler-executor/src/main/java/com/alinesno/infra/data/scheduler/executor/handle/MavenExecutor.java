@@ -1,7 +1,7 @@
 package com.alinesno.infra.data.scheduler.executor.handle;
 
 import com.alinesno.infra.data.scheduler.api.ParamsDto;
-import com.alinesno.infra.data.scheduler.executor.BaseExecutorService;
+import com.alinesno.infra.data.scheduler.executor.AbstractExecutorService;
 import com.alinesno.infra.data.scheduler.executor.bean.TaskInfoBean;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -13,14 +13,14 @@ import java.util.Collections;
 
 @Slf4j
 @Service("mavenExecutor")
-public class MavenExecutor extends BaseExecutorService {
+public class MavenExecutor extends AbstractExecutorService {
 
     @SneakyThrows
     @Override
     public void execute(TaskInfoBean task) {
         log.debug("maven executor");
 
-        ParamsDto params = getParamsDto(task) ;
+        ParamsDto params = getParamsDto() ;
 
         String pomXml = params.getPomXml() ;
         String goals = params.getGoals() ;
@@ -34,7 +34,7 @@ public class MavenExecutor extends BaseExecutorService {
         // request.setUserSettingsFile(new File(settings));
 
         Invoker invoker = new DefaultInvoker();
-        invoker.setMavenHome(new File(getM2Home(task.getEnvironment()))) ;
+        invoker.setMavenHome(new File(getM2Home())) ;
 
         invoker.setLogger(new PrintStreamLogger(System.err, InvokerLogger.ERROR) {
 
@@ -42,7 +42,7 @@ public class MavenExecutor extends BaseExecutorService {
 
         invoker.setOutputHandler(s -> {
             log.debug("-->> {}" , s);
-            writeLog(task, s);
+            writeLog(s);
         });
 
         invoker.execute(request);
