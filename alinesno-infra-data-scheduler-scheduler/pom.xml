@@ -23,6 +23,12 @@
 		</dependency>
 
 		<dependency>
+			<groupId>com.alinesno.infra.data</groupId>
+			<artifactId>alinesno-infra-data-scheduler-adapter</artifactId>
+			<version>${revision}</version>
+		</dependency>
+
+		<dependency>
 			<groupId>com.github.kagkarlsson</groupId>
 			<artifactId>db-scheduler</artifactId>
 			<version>12.4.0</version>
