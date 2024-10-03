@@ -52,6 +52,12 @@ public class EnvironmentEntity extends InfraBaseEntity {
     @ColumnType(length = 16)
     private String credentialScope ;
 
+    // 默认环境
+    @TableField
+    @Column(name = "default_env", comment = "默认环境")
+    @ColumnType(length = 1)
+    private boolean defaultEnv ;
+
     // 判断是否是windows/mac/linux类型
     public boolean isWindows() {
         return "windows".equalsIgnoreCase(systemEnv);
