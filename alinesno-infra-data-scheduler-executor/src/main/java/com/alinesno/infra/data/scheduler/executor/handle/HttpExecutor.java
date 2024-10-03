@@ -1,7 +1,7 @@
 package com.alinesno.infra.data.scheduler.executor.handle;
 
 import com.alinesno.infra.data.scheduler.api.ParamsDto;
-import com.alinesno.infra.data.scheduler.executor.BaseExecutorService;
+import com.alinesno.infra.data.scheduler.executor.AbstractExecutorService;
 import com.alinesno.infra.data.scheduler.executor.bean.TaskInfoBean;
 import com.github.rholder.retry.Retryer;
 import com.github.rholder.retry.RetryerBuilder;
@@ -21,13 +21,13 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @Service("httpExecutor")
-public class HttpExecutor extends BaseExecutorService {
+public class HttpExecutor extends AbstractExecutorService {
 
     @Override
     public void execute(TaskInfoBean taskInfo) {
         log.debug("HttpExecutor execute");
 
-        ParamsDto params = getParamsDto(taskInfo);
+        ParamsDto params = getParamsDto();
 
         int retryCount = params.getRetryCount() ; // 重试次数
         String method = params.getMethod() ;
@@ -58,7 +58,7 @@ public class HttpExecutor extends BaseExecutorService {
                 .build();
         try {
             Response response = retryer.call(callable);
-            writeLog(taskInfo, String.valueOf(response.body()));
+            writeLog(String.valueOf(response.body()));
             return response ;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
