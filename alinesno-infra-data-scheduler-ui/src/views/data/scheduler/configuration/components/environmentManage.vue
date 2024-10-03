@@ -41,6 +41,17 @@
                </el-table-column>
                <el-table-column label="环境描述" align="left" key="description" prop="description"
                   v-if="columns[1].visible" />
+  
+                <el-table-column label="默认" align="center" width="100" key="hasStatus" prop="hasStatus" v-if="columns[1].visible" :show-overflow-tooltip="true" >
+                   <template #default="scope">
+                      <el-switch
+                         v-model="scope.row.defaultEnv"
+                         :active-value="true"
+                         :inactive-value="false"
+                         @change="handleChangDefaultEnv(scope.row.id)"
+                      />
+                   </template>
+                </el-table-column>
                <el-table-column label="环境代码" align="center" width="200" key="systemEvn" prop="systemEvn"
                   v-if="columns[2].visible" :show-overflow-tooltip="true">
                   <template #default="scope">
@@ -151,6 +162,7 @@ import {
    getEnvironment,
    updateEnvironment,
    addEnvironment,
+   defaultEnv,
    changStatusField
 } from "@/api/data/scheduler/environment";
 
@@ -295,6 +307,14 @@ function handleUpdate(row) {
       title.value = "修改环境";
    });
 };
+
+/** 修改默认环境 */
+function handleChangDefaultEnv(id) {
+   defaultEnv(id).then(response => {
+      proxy.$modal.msgSuccess("修改成功");
+      getList();
+   });
+}
 
 /** 查看项目告警空间 */
 function handleEnvironmentSpace(id) {
