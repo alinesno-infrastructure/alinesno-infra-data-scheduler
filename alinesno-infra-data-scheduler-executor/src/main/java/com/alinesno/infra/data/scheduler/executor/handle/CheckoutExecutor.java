@@ -1,7 +1,7 @@
 package com.alinesno.infra.data.scheduler.executor.handle;
 
 import com.alinesno.infra.data.scheduler.api.ParamsDto;
-import com.alinesno.infra.data.scheduler.executor.BaseExecutorService;
+import com.alinesno.infra.data.scheduler.executor.AbstractExecutorService;
 import com.alinesno.infra.data.scheduler.executor.bean.TaskInfoBean;
 import com.alinesno.infra.data.scheduler.executor.utils.GitRepositoryUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -22,20 +22,20 @@ import java.util.Objects;
  */
 @Slf4j
 @Service("checkoutExecutor")
-public class CheckoutExecutor extends BaseExecutorService {
+public class CheckoutExecutor extends AbstractExecutorService {
 
     @Override
     public void execute(TaskInfoBean task) {
         log.debug("checkout executor");
 
-        ParamsDto paramsDto = getParamsDto(task) ;
+        ParamsDto paramsDto = getParamsDto() ;
 
         String remoteUrl = paramsDto.getGitUrl() ;
         String branch = paramsDto.getGitBranch() ;
-        File localPath = new File(getWorkspace(task) , Objects.requireNonNull(GitRepositoryUtils.getRepositoryNameFromUrl(remoteUrl)));
+        File localPath = new File(getWorkspace() , Objects.requireNonNull(GitRepositoryUtils.getRepositoryNameFromUrl(remoteUrl)));
 
         try {
-            writeLog(task , "开始克隆仓库:" + remoteUrl +",分支:" + branch);
+            writeLog("开始克隆仓库:" + remoteUrl +",分支:" + branch);
             // 克隆仓库
             CloneCommand cloneCommand = Git.cloneRepository()
                     .setURI(remoteUrl)
@@ -47,15 +47,16 @@ public class CheckoutExecutor extends BaseExecutorService {
             }
 
             Git git = cloneCommand.call();
-            writeLog(task , "仓库: " +git.getRepository()+ "  克隆成功") ;
+            writeLog("仓库: " +git.getRepository()+ "  克隆成功") ;
 
             File[] gitFiles = localPath.listFiles() ;
             if( gitFiles != null){
-                Arrays.stream(gitFiles).forEach(file -> writeLog(task , "-->> 文件: " + file.getName()));
+                Arrays.stream(gitFiles).forEach(file -> writeLog("-->> 文件: " + file.getName()));
             }
 
         } catch (GitAPIException e) {
             log.error("克隆仓库时发生错误: " , e);
+            writeLog(e);
             throw new RpcServiceRuntimeException(e);
         }
     }
