@@ -3,7 +3,7 @@ package com.alinesno.infra.data.scheduler.executor.handle;
 import cn.hutool.db.sql.SqlFormatter;
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alinesno.infra.data.scheduler.api.ParamsDto;
-import com.alinesno.infra.data.scheduler.executor.BaseExecutorService;
+import com.alinesno.infra.data.scheduler.executor.AbstractExecutorService;
 import com.alinesno.infra.data.scheduler.executor.bean.TaskInfoBean;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ByteArrayResource;
@@ -16,27 +16,28 @@ import java.sql.SQLException;
 
 @Slf4j
 @Service("sqlExecutor")
-public class SQLExecutor extends BaseExecutorService {
+public class SQLExecutor extends AbstractExecutorService {
 
     @Override
     public void execute(TaskInfoBean task) {
 
-        ParamsDto paramsDto = getParamsDto(task) ;
+        ParamsDto paramsDto = getParamsDto() ;
         String rawScript = paramsDto.getRawScript();
-        String rawScriptFormat = SqlFormatter.format(rawScript) ;
 
-        writeLog(task , rawScriptFormat);
+        writeLog(SqlFormatter.format(rawScript));
 
         // 创建一个数据源
-        DruidDataSource dataSource = getDataSource(paramsDto.getDataSourceId()) ;
+        DruidDataSource dataSource = getDataSource() ;
 
         try (Connection connection = dataSource.getConnection()) {
+
             // 执行SQL脚本
             ScriptUtils.executeSqlScript(connection, new ByteArrayResource(rawScript.getBytes()));
-            writeLog(task , "SQL 脚本执行成功.");
+            writeLog("SQL 脚本执行成功.");
+
             DataSourceUtils.releaseConnection(connection, dataSource);
         } catch (SQLException e) {
-            writeLog(task , "SQL 脚本执行失败: " + e.getMessage());
+            writeLog(e) ;
         }
     }
 
