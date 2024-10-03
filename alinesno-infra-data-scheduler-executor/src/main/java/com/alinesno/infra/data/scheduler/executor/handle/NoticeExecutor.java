@@ -2,7 +2,7 @@ package com.alinesno.infra.data.scheduler.executor.handle;
 
 import com.alibaba.fastjson.JSONObject;
 import com.alinesno.infra.data.scheduler.api.ParamsDto;
-import com.alinesno.infra.data.scheduler.executor.BaseExecutorService;
+import com.alinesno.infra.data.scheduler.executor.AbstractExecutorService;
 import com.alinesno.infra.data.scheduler.executor.bean.TaskInfoBean;
 import com.alinesno.infra.data.scheduler.executor.bean.WechatMessage;
 import lombok.SneakyThrows;
@@ -23,7 +23,7 @@ import static com.alinesno.infra.common.core.constants.Constants.SUCCESS;
  */
 @Slf4j
 @Service("noticeExecutor")
-public class NoticeExecutor extends BaseExecutorService {
+public class NoticeExecutor extends AbstractExecutorService {
 
     private static final int MAX_LENGTH = 1024;
 
@@ -31,7 +31,7 @@ public class NoticeExecutor extends BaseExecutorService {
         // 发送企业微信通知
         log.info("noticeExecutor execute");
 
-        ParamsDto params = getParamsDto(task) ;
+        ParamsDto params = getParamsDto() ;
         String imType = params.getImType() ;
         String email = params.getEmail();
         String wechatKey =  params.getWechatKey() ;
