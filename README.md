@@ -23,15 +23,15 @@
 <table>
   <tr>
     <td>
-      <img src="images/02.png" />
+      <img src="/images/02.png" />
     </td>
     <td>
-      <img src="images/01.png" />
+      <img src="/images/01.png" />
     </td>
   </tr>
   <tr>
     <td>
-      <img src="images/03.png" />
+      <img src="/images/03.png" />
     </td>
     <td>
     </td>
