@@ -219,7 +219,7 @@ public abstract class AbstractShell {
       //the timeout thread handling
       //taken care in finally block
       if (exitCode != 0 || !errMsg.isEmpty()) {
-        throw new ExitCodeException(exitCode, errMsg.toString());
+        throw new ExitCodeException(exitCode, new String(errMsg.toString().getBytes() , "gbk"));
       }
     } catch (InterruptedException ie) {
       throw new IOException(ie.toString());
