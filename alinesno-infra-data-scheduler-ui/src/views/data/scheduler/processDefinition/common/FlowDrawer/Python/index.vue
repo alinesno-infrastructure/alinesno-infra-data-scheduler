@@ -14,7 +14,7 @@
                     <el-form-item label="节点名称" prop="name">
                         <el-input v-model="form.name" disabled="disabled" placeholder="请输入节点名称" />
                     </el-form-item>
-                    <el-form-item label="环境名称" prop="env">
+                    <!-- <el-form-item label="环境名称" prop="env">
                         <el-select v-model="form.env" placeholder="选择执行环境" style="width:100%">
                             <el-option
                                 v-for="item in envData"
@@ -24,20 +24,14 @@
                                 :systemEnv="item.systemEnv"
                             />
                         </el-select>
-                    </el-form-item>
+                    </el-form-item> -->
                     <el-form-item label="脚本">
                         <CodeEditor ref="codeEditorRef" :lang="python" />
                     </el-form-item>
                     <el-form-item label="资源" prop="resourceId">
                         <!-- <el-input v-model="form.resourceId" placeholder="请选择资源" /> -->
-                        <el-tree-select
-                            v-model="form.resourceId"
-                            :data="resourceData"
-                            multiple
-                            placeholder="请选择资源"
-                            :render-after-expand="false"
-                            style="width: 500px"
-                        />
+                        <el-tree-select v-model="form.resourceId" :data="resourceData" multiple placeholder="请选择资源"
+                            :render-after-expand="false" style="width: 500px" />
                     </el-form-item>
                     <el-form-item label="自定义参数">
                         <el-button type="primary" bg text @click="paramsDialog = true">
@@ -47,8 +41,8 @@
                 </el-form>
 
                 <div class="flow-setting-footer">
-                    <el-button type="primary" text bg  @click="validateTask()"><i class="fa-solid fa-truck-fast"></i>&nbsp;验证脚本</el-button>
-                    <el-button type="primary" bg  @click="submitForm('ruleForm')"><i class="fa-solid fa-paper-plane"></i>&nbsp;确认保存</el-button>
+                    <el-button type="primary" text bg @click="handleValidateTask()"><i class="fa-solid fa-truck-fast"></i>&nbsp;验证任务</el-button>
+                    <el-button type="primary" bg @click="submitForm('ruleForm')"><i class="fa-solid fa-paper-plane"></i>&nbsp;确认保存</el-button>
                     <el-button @click="onClose" size="large" text bg>取消</el-button>
                 </div>
             </div>
@@ -57,25 +51,26 @@
         <el-dialog title="任务环境变量" v-model="paramsDialog" append-to-body destroy-on-close class="scrollbar">
             <ContextParam ref="taskParamRef" :context="form.context" />
             <template #footer>
-            <div class="dialog-footer">
-                <el-button @click="paramsDialog = false">取消</el-button>
-                <el-button type="primary" @click="callTaskParamRef()">
-                确认 
-                </el-button>
-            </div>
+                <div class="dialog-footer">
+                    <el-button @click="paramsDialog = false">取消</el-button>
+                    <el-button type="primary" @click="callTaskParamRef()">
+                        确认
+                    </el-button>
+                </div>
             </template>
         </el-dialog>
-        
+
         <FlowDrawerFooter @close="onClose" @save="onSave" />
     </a-drawer>
 </template>
 
 <script setup>
 
+import { ElLoading } from 'element-plus'
 import flowNodeStore from '@/store/modules/flowNode'
 
 import { getAllResource } from '@/api/data/scheduler/resource'
-import { getAllEnvironment } from '@/api/data/scheduler/environment'
+import { validateTask } from '@/api/data/scheduler/processDefinition'
 import { branchIcon2 } from '@/utils/flowMixin';
 import CodeEditor from '../../CodeEditor.vue';
 import ContextParam from "../../../params/contextParam.vue";
@@ -90,10 +85,10 @@ const headerStyle = ref({
     'border-radius': '0px 0px 0 0',
 })
 
-const paramsDialog = ref(false) 
+const paramsDialog = ref(false)
 const taskParamRef = ref(null)
 const resourceData = ref([])
-const envData = ref([])
+// const envData = ref([])
 
 const data = reactive({
     form: {
@@ -102,9 +97,9 @@ const data = reactive({
         delivery: false,
         retryCount: 0,
         env: '',
-        rawScript: '' ,
+        rawScript: '',
         resourceId: [],
-        customParams: {} 
+        customParams: {}
     },
     rules: {
         name: [
@@ -144,7 +139,7 @@ const submitForm = (formName) => {
     formInstance.validate((valid) => {
         if (valid) {
 
-            form.value.rawScript = codeEditorRef.value.getRawScript() 
+            form.value.rawScript = codeEditorRef.value.getRawScript()
 
             // 更新节点信息
             node.value.params = form.value;
@@ -160,12 +155,40 @@ const submitForm = (formName) => {
 /** 
  * 获取到环境变量值  
  */
-function callTaskParamRef(){
- let contextParam = taskParamRef.value.getEnvVarsAsJson() ; 
- form.value.customParams = contextParam ;
- paramsDialog.value = false ;
+function callTaskParamRef() {
+    let contextParam = taskParamRef.value.getEnvVarsAsJson();
+    form.value.customParams = contextParam;
+    paramsDialog.value = false;
 
- console.log(JSON.stringify(contextParam, null, 2));
+    console.log(JSON.stringify(contextParam, null, 2));
+}
+
+/** 验证脚本任务 */
+function handleValidateTask() {
+
+    const loading = ElLoading.service({
+        lock: true,
+        text: 'Loading',
+        background: 'rgba(0, 0, 0, 0.7)',
+    })
+
+    const formDataStr = localStorage.getItem('processDefinitionFormData');
+    const formData = JSON.parse(formDataStr);
+    form.value.rawScript = codeEditorRef.value.getRawScript()
+    let data = {
+        taskParams: form.value,
+        taskType: node.value.type,
+        context: formData
+    }
+
+    // 提交流程信息
+    validateTask(data).then(response => {
+        console.log(response);
+        proxy.$modal.msgSuccess("任务执行成功,无异常.");
+        loading.close();
+    }).catch(error => {
+        loading.close();
+    })
 }
 
 /**
@@ -174,20 +197,20 @@ function callTaskParamRef(){
  * @param {*} routeNode 
  */
 function showDrawer(_node) {
-    console.log('node = ' + _node.name)
+    console.log('node = ' + JSON.stringify(_node))
 
     visible.value = true;
     node.value = _node;
     form.value.name = _node.name;
-    
+
     nextTick(() => {
         // 获取所有环境
-        getAllEnvironment().then(res => {
-            envData.value = res.data
-            // nextTick(() => {
-            //     form.value.env = res.defaultEnvId
-            // })
-        })
+        // getAllEnvironment().then(res => {
+        //     envData.value = res.data
+        //     // nextTick(() => {
+        //     //     form.value.env = res.defaultEnvId
+        //     // })
+        // })
         // 获取所有资源
         getAllResource().then(res => {
             resourceData.value = res.data
