@@ -31,6 +31,11 @@ public class ProcessDefinitionEntity extends InfraBaseEntity {
     private String description ;
 
     @TableField
+    @ColumnType(value = MySqlTypeConstant.BIGINT)
+    @ColumnComment("环境ID")
+    private long envId ;
+
+    @TableField
     @ColumnType(value = MySqlTypeConstant.VARCHAR, length = 128)
     @ColumnComment("项目编码")
     private long projectId;
