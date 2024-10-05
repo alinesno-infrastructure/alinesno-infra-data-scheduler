@@ -27,6 +27,9 @@ public class ProcessContextDto {
     // 项目代码
     private long projectCode ;
 
+    // 环境ID
+    private long envId ;
+
     // 超时时间
     private int timeout ;
 
