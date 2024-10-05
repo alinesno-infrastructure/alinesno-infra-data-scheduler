@@ -4,6 +4,7 @@ import com.alinesno.infra.common.core.service.impl.IBaseServiceImpl;
 import com.alinesno.infra.data.scheduler.entity.EnvironmentEntity;
 import com.alinesno.infra.data.scheduler.mapper.EnvironmentMapper;
 import com.alinesno.infra.data.scheduler.service.IEnvironmentService;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -33,5 +34,38 @@ public class EnvironmentServiceImpl extends IBaseServiceImpl<EnvironmentEntity, 
 
         update(updateWrapper) ;
 
+    }
+
+    /**
+     * 获取默认环境
+     *
+     * @return 默认的EnvironmentEntity对象
+     */
+    @Override
+    public EnvironmentEntity getDefaultEnv() {
+        // 创建查询包装器，用于查询默认环境
+        LambdaQueryWrapper<EnvironmentEntity> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(EnvironmentEntity::isDefaultEnv, true);
+        // 返回查询到的默认环境实体
+        return getOne(queryWrapper);
+    }
+
+    /**
+     * 保存环境实体，并在没有其他环境实体时将其设置为默认环境
+     *
+     * @param e 要保存的EnvironmentEntity对象
+     */
+    @Override
+    public void saveEnv(EnvironmentEntity e) {
+        // 保存环境实体
+        save(e) ;
+        // 获取当前环境实体总数
+        long count = count() ;
+        // 如果只有一个环境实体，将其设置为默认环境
+        if(count == 1){
+            e.setDefaultEnv(true);
+            // 更新环境实体信息
+            update(e) ;
+        }
     }
 }
