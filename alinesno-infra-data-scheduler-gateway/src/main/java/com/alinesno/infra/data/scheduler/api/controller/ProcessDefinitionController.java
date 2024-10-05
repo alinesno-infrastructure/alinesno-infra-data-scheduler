@@ -1,5 +1,7 @@
 package com.alinesno.infra.data.scheduler.api.controller;
 
+import cn.hutool.json.JSONUtil;
+import com.alibaba.fastjson.JSONObject;
 import com.alinesno.infra.common.core.constants.SpringInstanceScope;
 import com.alinesno.infra.common.facade.pageable.DatatablesPageBean;
 import com.alinesno.infra.common.facade.pageable.TableDataInfo;
@@ -7,6 +9,7 @@ import com.alinesno.infra.common.facade.response.AjaxResult;
 import com.alinesno.infra.common.web.adapter.rest.BaseController;
 import com.alinesno.infra.data.scheduler.api.ProcessDefinitionDto;
 import com.alinesno.infra.data.scheduler.api.ProcessTaskDto;
+import com.alinesno.infra.data.scheduler.api.ProcessTaskValidateDto;
 import com.alinesno.infra.data.scheduler.constants.PipeConstants;
 import com.alinesno.infra.data.scheduler.entity.ProcessDefinitionEntity;
 import com.alinesno.infra.data.scheduler.service.ICategoryService;
@@ -23,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.ui.Model;
 import org.springframework.util.Assert;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -68,6 +72,22 @@ public class ProcessDefinitionController extends BaseController<ProcessDefinitio
     @GetMapping("/catalogTreeSelect")
     public AjaxResult catalogTreeSelect(){
         return AjaxResult.success("success" , catalogService.selectCatalogTreeList()) ;
+    }
+
+    /**
+     * 验证脚本任务
+     * @param dto
+     * @return
+     */
+    @PostMapping("/validateTask")
+    public AjaxResult validateTask(@RequestBody @Validated ProcessTaskValidateDto dto){
+
+        log.debug("dto = {}", JSONUtil.toJsonPrettyStr(JSONObject.toJSONString(dto)));
+
+        // 运行任务验证
+        service.runProcessTask(dto) ;
+
+        return AjaxResult.success() ;
     }
 
     /**
