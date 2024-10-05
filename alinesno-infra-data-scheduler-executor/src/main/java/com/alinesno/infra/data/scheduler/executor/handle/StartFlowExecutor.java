@@ -5,6 +5,8 @@ import com.alinesno.infra.data.scheduler.executor.bean.TaskInfoBean;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
+
 @Slf4j
 @Service("startFlowExecutor")
 public class StartFlowExecutor extends AbstractExecutorService {
@@ -13,10 +15,10 @@ public class StartFlowExecutor extends AbstractExecutorService {
     public void execute(TaskInfoBean taskInfo) {
         log.debug("StartFlowExecutor execute");
 
-        writeLog("--->>> StartFlowExecutor execute");
-        writeLog("--->>> 运行空间: " + getWorkspace());
-        writeLog("--->>> PythonHome : " + getPythonHome());
-        writeLog("--->>> M2Home: " + getM2Home());
-        writeLog("--->>> JavaHome: " + getJavaHome(taskInfo.getEnvironment()));
+        Map<String , String> globalMap = this.getGlobalEnv() ;
+
+        // 打印全局变量
+        globalMap.forEach((k, v) -> writeLog("--->>> GlobalEnv: " + k + " = " + v));
+
     }
 }
