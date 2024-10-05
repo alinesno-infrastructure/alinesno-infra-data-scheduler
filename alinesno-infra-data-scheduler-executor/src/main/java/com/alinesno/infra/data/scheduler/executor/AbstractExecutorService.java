@@ -8,25 +8,69 @@ import com.alinesno.infra.data.scheduler.constants.PipeConstants;
 import com.alinesno.infra.data.scheduler.entity.EnvironmentEntity;
 import com.alinesno.infra.data.scheduler.executor.bean.TaskInfoBean;
 import com.alinesno.infra.data.scheduler.executor.shell.ShellHandle;
+import com.alinesno.infra.data.scheduler.executor.utils.FreeMarkerStringRenderer;
+import com.alinesno.infra.data.scheduler.executor.utils.OSUtils;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 
-import javax.lang.exception.RpcServiceRuntimeException;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.StringTokenizer;
 
 /**
  * BaseExecutorService
  */
+@Getter
 @Slf4j
 public abstract class AbstractExecutorService extends BaseResourceService implements IExecutorService {
+
+    /**
+     * 定义一个用于存储参数的DTO（数据传输对象）
+     */
+    private ParamsDto paramsDto ;
+
+    /**
+     * 工作空间的标识符，用于区分不同的工作环境或项目
+     */
+    private String workspace ;
+
+    /**
+     * 数据源对象，用于连接数据库
+     */
+    private DruidDataSource dataSource;
+
+    /**
+     * 环境实体对象，用于存储运行环境相关信息
+     */
+    private EnvironmentEntity environment ;
+
+    /**
+     * 资源列表，存储与任务或服务相关的资源名称或标识
+     */
+    private List<String> resources ;
+
+    /**
+     * 任务信息对象，包含任务的详细信息
+     */
+    private TaskInfoBean taskInfo ;
+
+    /**
+     * 全局环境变量映射，存储全局适用的环境配置
+     */
+    private Map<String , String> globalEnv;
+
+    /**
+     * 密钥映射，用于存储敏感信息或需要保密的配置项
+     */
+    private Map<String , String> secretMap ;
 
     /**
      * 获取到M2_Home环境配置，如果没有的话，则自动获取系统环境变量
@@ -39,7 +83,7 @@ public abstract class AbstractExecutorService extends BaseResourceService implem
         }
 
         try {
-            Map<String, String> mapEnv = JSONObject.parseObject(environment.getConfig(), new TypeReference<Map<String, String>>() {
+            Map<String, String> mapEnv = JSONObject.parseObject(environment.getConfig(), new TypeReference<>() {
             });
             return mapEnv.getOrDefault(envVarName, System.getenv(envVarName));
         } catch (Exception e) {
@@ -117,23 +161,10 @@ public abstract class AbstractExecutorService extends BaseResourceService implem
         writeLog(stackTrace);
     }
 
-    @Getter
-    private ParamsDto paramsDto ;
-
-    @Getter
-    private String workspace ;
-
-    @Getter
-    private DruidDataSource dataSource;
-
-    @Getter
-    private EnvironmentEntity environment ;
-
-    @Getter
-    private List<String> resources ;
-
-    @Getter
-    private TaskInfoBean taskInfo ;
+    @Override
+    public void setGlobalEnv(Map<String , String> globalEnv) {
+        this.globalEnv = globalEnv ;
+    }
 
     @Override
     public void setParams(ParamsDto paramsDto) {
@@ -162,12 +193,13 @@ public abstract class AbstractExecutorService extends BaseResourceService implem
 
         ShellHandle shellHandle;
 
-        if(getEnvironment().isMac() || getEnvironment().isLinux()){
-            shellHandle = new ShellHandle("/bin/sh", "-c", command);
-        }else if(getEnvironment().isWindows()){
+        boolean isWindows = OSUtils.isWindows() ;
+        if(isWindows){
             shellHandle = new ShellHandle("cmd.exe", "/C", command);
+        }else if(OSUtils.isMacOS()){
+            shellHandle = new ShellHandle("/bin/sh", "-c", command);
         }else{
-            throw new RpcServiceRuntimeException("请设置任务运行环境.");
+            shellHandle = new ShellHandle("/bin/sh", "-c", command);
         }
 
         shellHandle.setLogPath(logFile.getAbsolutePath());
@@ -183,6 +215,67 @@ public abstract class AbstractExecutorService extends BaseResourceService implem
     @Override
     public void setResource(List<String> resources) {
         this.resources = resources ;
+    }
+
+    @Override
+    public void setSecretMap(Map<String, String> secretMap) {
+        this.secretMap = secretMap ;
+    }
+
+    /**
+     * 替换全局参数
+     *
+     * @param environment
+     * @param globalParams
+     * @param customParams
+     */
+    @Override
+    public void replaceGlobalParams(EnvironmentEntity environment, String globalParams, Map<String, String> customParams) {
+        Map<String , String> globalEnv = new HashMap<>() ;
+
+        // 处理全局环境
+        if(environment.getConfig() != null){
+            StringTokenizer tokenizer = new StringTokenizer(environment.getConfig(), "\n");
+            while (tokenizer.hasMoreTokens()) {
+                String line = tokenizer.nextToken();
+                if (line.contains("=") && line.split("=", 2).length == 2) {
+                    String[] parts = line.split("=", 2);
+                    globalEnv.put(parts[0], parts[1]);
+                }
+            }
+        }
+
+        // 处理全局参数
+        if( globalParams != null){
+            Map<String, String> mapEnv = JSONObject.parseObject(environment.getConfig(), new TypeReference<>() {});
+            globalEnv.putAll(mapEnv);
+        }
+
+        // 处理自定义参数
+        if (customParams != null && !customParams.isEmpty()) {
+            globalEnv.putAll(customParams);
+        }
+
+        // 打印全局变量
+        globalEnv.forEach((k, v) -> log.debug("--->>> GlobalEnv: " + k + " = " + v));
+
+        this.globalEnv = globalEnv ;
+    }
+
+    /**
+     * 结果渲染
+     * @return
+     */
+    @SneakyThrows
+    public String readerRawScript(){
+        String templateContent = paramsDto.getRawScript();
+
+        // 准备数据模型
+        Map<String, Object> root = new HashMap<>();
+        root.put("env", getGlobalEnv());
+        root.put("secrets", secretMap);
+
+        return FreeMarkerStringRenderer.getInstance().render("example", templateContent, root);
     }
 
 }
