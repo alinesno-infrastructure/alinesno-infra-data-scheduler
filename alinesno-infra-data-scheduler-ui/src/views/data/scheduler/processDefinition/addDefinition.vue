@@ -29,6 +29,18 @@
               </el-col>
            </el-row>
         </el-form-item>
+        
+        <el-form-item label="环境名称" prop="envId">
+            <el-select v-model="form.envId" placeholder="选择执行环境" style="width:100%">
+                <el-option
+                    v-for="item in envData"
+                    :key="item.id"
+                    :label="'(' + item.systemEnv + ')' + item.name"
+                    :value="item.id"
+                    :systemEnv="item.systemEnv"
+                />
+            </el-select>
+        </el-form-item>
 
         <el-form-item label="变量">
            <el-button type="primary" bg text @click="centerDialogVisible = true">
@@ -116,17 +128,20 @@
 
 import ContextParam from "./params/contextParam.vue";
 import Crontab from '@/components/Crontab'
+import { getAllEnvironment } from '@/api/data/scheduler/environment'
+import { nextTick } from "vue";
 
 const { proxy } = getCurrentInstance();
 const router = useRouter();
 
 const loginStyleArr = ref([
-  {id:'1' , icon:'http://data.linesno.com/icons/flow/style-04.png' , desc:'表数据采集抽取，针对单一数据表进行全量或增量数据的采集'} ,
-  {id:'2' , icon:'http://data.linesno.com/icons/flow/style-05.png' , desc:'文件型数据采集，从文件系统中读取文件数据进行解析和加载'} ,
-  {id:'3' , icon:'http://data.linesno.com/icons/flow/style-06.png' , desc:'消息数据采集，消息中间件中实时或定时地收集数据'} 
+  {id:'1' , icon:'http://data.linesno.com/icons/flow/style-04.png' , desc:'数据分析处理,从数据库中读取数据进行解析和加载'} ,
+  {id:'2' , icon:'http://data.linesno.com/icons/flow/style-05.png' , desc:'运维自动化任务,运维自动化管理和处理结果'} ,
+  {id:'3' , icon:'http://data.linesno.com/icons/flow/style-06.png' , desc:'数据采集,Agent智能体数据资产分析及更新'} 
 ]);
 const currentLoginStyle = ref('0')
 
+const envData = ref([])
 const contextParamRef = ref(null)
 
 // 是否显示Cron表达式弹出层
@@ -165,6 +180,7 @@ const shortcuts = ref([
 const data = reactive({
  form: {
      taskName: "", // 任务名称
+     envId: "" , // 环境ID
      globalParams: "" , // 上下文内容
      dataCollectionTemplate: "", // 数据采集模板
      dataQuality: "", // 数据质量
@@ -183,6 +199,9 @@ const data = reactive({
  rules: {
     taskName: [
         { required: true, message: "请输入任务名称", trigger: "blur" }
+     ],
+     envId: [
+        { required: true, message: "请选择环境ID", trigger: "blur" }
      ],
      dataCollectionTemplate: [
         { required: true, message: "请输入数据采集模板", trigger: "blur" }
@@ -295,7 +314,13 @@ function resetForm() {
 }
 
 // 调用此方法以加载数据
-loadFormDataFromStorage();
+getAllEnvironment().then(res => {
+    envData.value = res.data
+    
+    nextTick(() => {
+      loadFormDataFromStorage();
+    })
+})
 
 </script>
 
