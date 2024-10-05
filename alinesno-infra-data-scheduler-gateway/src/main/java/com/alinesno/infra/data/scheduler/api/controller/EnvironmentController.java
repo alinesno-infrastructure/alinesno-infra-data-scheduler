@@ -22,6 +22,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.lang.exception.RpcServiceRuntimeException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -117,7 +118,8 @@ public class EnvironmentController extends BaseController<EnvironmentEntity, IEn
      */
     @PutMapping("/updateEnv")
     public AjaxResult updateEnv(@RequestBody @Validated EnvironmentDto dto) {
-        processEnvironment(dto, new Date());
+        EnvironmentEntity e = processEnvironment(dto, new Date());
+        service.update(e);
         return ok();
     }
 
@@ -128,12 +130,13 @@ public class EnvironmentController extends BaseController<EnvironmentEntity, IEn
      */
     @PostMapping("/saveEnv")
     public AjaxResult saveEnv(@RequestBody @Validated EnvironmentDto dto) {
-        processEnvironment(dto, new Date());
+        EnvironmentEntity e = processEnvironment(dto, new Date());
+        service.saveEnv(e) ;
         return ok();
     }
 
     // 增加一个方法参数用于注入 Date 对象
-    public void processEnvironment(EnvironmentDto dto, Date updateTime) {
+    public EnvironmentEntity processEnvironment(EnvironmentDto dto, Date updateTime) {
         EnvironmentEntity entity = new EnvironmentEntity();
         BeanUtils.copyProperties(dto, entity);
 
@@ -146,23 +149,18 @@ public class EnvironmentController extends BaseController<EnvironmentEntity, IEn
         StringTokenizer tokenizer = new StringTokenizer(dto.getConfig(), "\n");
         while (tokenizer.hasMoreTokens()) {
             String line = tokenizer.nextToken();
-            if (line.contains("=")) {
+            if (line.contains("=") && line.split("=", 2).length == 2) {
                 String[] parts = line.split("=", 2);
-                if (parts.length == 2) {
-                    envVars.put(parts[0], parts[1]);
-                } else {
-                    log.warn("Invalid config line: {}", line);
-                }
+                envVars.put(parts[0], parts[1]);
+            }else{
+                log.warn("Invalid config line: {}", line);
+                throw new RpcServiceRuntimeException("环境配置参数格式不正确.") ;
             }
         }
 
         entity.setConfig(JSONObject.toJSONString(envVars));
-        try {
-            service.saveOrUpdate(entity);
-        } catch (Exception e) {
-            log.error("Failed to save environment entity", e);
-            throw new RuntimeException("Failed to save environment entity", e);
-        }
+
+        return entity ;
     }
 
 
