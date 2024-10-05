@@ -1,6 +1,5 @@
 package com.alinesno.infra.data.scheduler.executor.handle;
 
-import com.alinesno.infra.data.scheduler.api.ParamsDto;
 import com.alinesno.infra.data.scheduler.executor.AbstractExecutorService;
 import com.alinesno.infra.data.scheduler.executor.bean.TaskInfoBean;
 import lombok.SneakyThrows;
@@ -15,8 +14,7 @@ public class ShellExecutor extends AbstractExecutorService {
     @Override
     public void execute(TaskInfoBean taskInfo) {
 
-        ParamsDto paramsDto = getParamsDto() ;
-        String rawScript = paramsDto.getRawScript();
+        String rawScript = readerRawScript() ;
 
         log.debug("Shell Executor rawScript: {}", rawScript) ;
 
