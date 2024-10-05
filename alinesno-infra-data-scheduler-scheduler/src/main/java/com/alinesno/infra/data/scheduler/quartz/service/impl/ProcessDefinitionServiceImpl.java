@@ -1,12 +1,15 @@
 package com.alinesno.infra.data.scheduler.quartz.service.impl;
 
+import cn.hutool.core.util.IdUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.alinesno.infra.common.core.service.impl.IBaseServiceImpl;
 import com.alinesno.infra.common.web.log.utils.SpringUtils;
 import com.alinesno.infra.data.scheduler.adapter.CloudStorageConsumer;
 import com.alinesno.infra.data.scheduler.api.ParamsDto;
 import com.alinesno.infra.data.scheduler.api.ProcessDefinitionDto;
+import com.alinesno.infra.data.scheduler.api.ProcessTaskValidateDto;
 import com.alinesno.infra.data.scheduler.entity.*;
+import com.alinesno.infra.data.scheduler.enums.ExecutorTypeEnums;
 import com.alinesno.infra.data.scheduler.enums.ProcessStatusEnums;
 import com.alinesno.infra.data.scheduler.executor.IExecutorService;
 import com.alinesno.infra.data.scheduler.executor.bean.TaskInfoBean;
@@ -28,6 +31,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Component
@@ -47,6 +51,9 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
 
     @Autowired
     private ITaskInstanceService taskInstanceService;
+
+    @Autowired
+    private ISecretsService secretsService;
 
     @Autowired
     protected CloudStorageConsumer storageConsumer;
@@ -176,10 +183,17 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
         executorService.setWorkspace(workspace);
 
         // 配置数据库源
-        IDataSourceService dataSourceService = SpringUtils.getBean(IDataSourceService.class);
-        executorService.setDataSource(dataSourceService.getDataSource(paramsDto.getDataSourceId()));
+        try{
+            IDataSourceService dataSourceService = SpringUtils.getBean(IDataSourceService.class);
+            executorService.setDataSource(dataSourceService.getDataSource(paramsDto.getDataSourceId()));
+        }catch (Exception e){
+            log.warn("没有配置数据源：{}",e.getMessage());
+        }
 
-        EnvironmentEntity environment = environmentService.getById(paramsDto.getEnv());
+        EnvironmentEntity environment = environmentService.getById(task.getProcess().getEnvId());
+        if(environment == null){
+            environment = environmentService.getDefaultEnv() ;
+        }
         executorService.setEnvironment(environment);
 
         // 配置资源
@@ -188,6 +202,15 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
 
         // 配置任务环境
         executorService.setTaskInfoBean(task);
+
+        // 添加自定义密钥值
+        Map<String , String> secretsMap = secretsService.secretMap() ;
+        executorService.setSecretMap(secretsMap);
+
+        // 替换环境变量
+        executorService.replaceGlobalParams(environment ,
+                task.getProcess().getGlobalParams() ,
+                paramsDto.getCustomParams());
     }
 
     /**
@@ -199,7 +222,11 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
     @SneakyThrows
     protected List<String> downloadResource(List<String> resourceIds, String workspace) {
 
+
         List<String> fileNameList = new ArrayList<>();
+        if(resourceIds.isEmpty()){
+            return fileNameList ;
+        }
 
         List<ResourceEntity> resourceEntities = resourceService.listByIds(resourceIds);
 
@@ -234,6 +261,42 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
         distSchedulerService.addJob(processId + "", dto.getContext().getCronExpression());
 
         return processId;
+    }
+
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)  // 此方法不需要开启事务
+    @SneakyThrows
+    @Override
+    public void runProcessTask(ProcessTaskValidateDto dto) {
+
+        ParamsDto params = dto.getTaskParams() ;
+        String type = ExecutorTypeEnums.fromType(Integer.parseInt(dto.getTaskType())).getCode();
+
+        String beanName = type + "Executor";
+        log.debug("TaskExecutor BeanName:{}", beanName);
+        IExecutorService executorService = SpringUtils.getBean(beanName);;
+
+        TaskInfoBean task = new TaskInfoBean() ;
+        TaskDefinitionEntity taskDefinition = new TaskDefinitionEntity() ;
+
+        taskDefinition.setTaskParams(JSONObject.toJSONString(params));
+        task.setTask(taskDefinition);
+
+        File workspace = new File(workspacePath + File.separator + IdUtil.getSnowflakeNextIdStr()) ;
+        FileUtils.forceMkdir(workspace); // 创建工作空间
+        task.setWorkspace(workspace.getAbsolutePath());
+
+        log.debug("workspace = {}" , workspace);
+
+        ProcessDefinitionEntity process = new ProcessDefinitionEntity() ;
+        process.setEnvId(dto.getContext().getEnvId()) ;
+        process.setGlobalParams(JSONObject.toJSONString((dto.getContext().getGlobalParams()))) ;
+        task.setProcess(process) ;
+
+        // 配置任务参数
+        configTaskParams(task, executorService);
+
+        // 执行任务
+        executorService.execute(task);
     }
 
 }
