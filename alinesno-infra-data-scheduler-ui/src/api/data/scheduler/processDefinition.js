@@ -29,7 +29,17 @@ var managerUrl = {
     listAllProcessDefinition: prefix + "listAllProcessDefinition",
     commitProcessDefinition: prefix + "commitProcessDefinition", // 保存任务
     catalogTreeSelect: prefix + "catalogTreeSelect",
+    validateTask: prefix + "validateTask",
     downloadfile: prefix + "downloadfile"
+}
+
+// 校验任务
+export function validateTask(data){
+  return request({
+    url: managerUrl.validateTask ,
+    method: 'post',
+    data: data
+  })
 }
 
 // 保存任务
