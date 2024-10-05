@@ -2,6 +2,7 @@ package com.alinesno.infra.data.scheduler.service;
 
 import com.alinesno.infra.common.facade.services.IBaseService;
 import com.alinesno.infra.data.scheduler.api.ProcessDefinitionDto;
+import com.alinesno.infra.data.scheduler.api.ProcessTaskValidateDto;
 import com.alinesno.infra.data.scheduler.entity.ProcessDefinitionEntity;
 import com.alinesno.infra.data.scheduler.entity.TaskDefinitionEntity;
 import com.alinesno.infra.data.scheduler.executor.bean.TaskInfoBean;
@@ -25,4 +26,9 @@ public interface IProcessDefinitionService extends IBaseService<ProcessDefinitio
      */
     long commitProcessDefinition(ProcessDefinitionDto dto);
 
+    /**
+     * 运行验证任务
+     * @param dto
+     */
+    void runProcessTask(ProcessTaskValidateDto dto);
 }
