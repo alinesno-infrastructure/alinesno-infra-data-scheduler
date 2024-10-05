@@ -1,7 +1,6 @@
 package com.alinesno.infra.data.scheduler.executor.handle;
 
 import cn.hutool.core.util.IdUtil;
-import com.alinesno.infra.data.scheduler.api.ParamsDto;
 import com.alinesno.infra.data.scheduler.executor.AbstractExecutorService;
 import com.alinesno.infra.data.scheduler.executor.bean.TaskInfoBean;
 import lombok.SneakyThrows;
@@ -21,8 +20,7 @@ public class PythonExecutor extends AbstractExecutorService {
     public void execute(TaskInfoBean taskInfo) {
         log.debug("PythonExecutor execute");
 
-        ParamsDto paramsDto = getParamsDto() ;
-        String rawScript = paramsDto.getRawScript();
+        String rawScript = readerRawScript() ;
 
         log.debug("rawScript: {}", rawScript) ;
 
