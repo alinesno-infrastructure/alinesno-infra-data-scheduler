@@ -10,4 +10,16 @@ public interface IEnvironmentService extends IBaseService<EnvironmentEntity> {
      * @param id
      */
     void defaultEnv(Long id);
+
+    /**
+     * 获取默认环境
+     * @return
+     */
+    EnvironmentEntity getDefaultEnv();
+
+    /**
+     * 保存环境变量
+     * @param e
+     */
+    void saveEnv(EnvironmentEntity e);
 }
