@@ -29,7 +29,6 @@
                             <el-radio :label="3">3次</el-radio>
                         </el-radio-group>
                     </el-form-item>
-                    -->
                     <el-form-item label="环境名称" prop="env">
                         <el-select v-model="form.env" placeholder="选择执行环境" style="width:100%">
                             <el-option
@@ -41,6 +40,7 @@
                             />
                         </el-select>
                     </el-form-item>
+                    -->
                     <el-form-item label="脚本">
                         <CodeEditor ref="codeEditorRef" :lang="shell" />
                     </el-form-item>
@@ -63,6 +63,7 @@
                 </el-form>
 
                 <div class="flow-setting-footer">
+                    <el-button type="primary" text bg @click="handleValidateTask()"><i class="fa-solid fa-truck-fast"></i>&nbsp;验证任务</el-button>
                     <el-button type="primary" bg  @click="submitForm('ruleForm')">确认保存</el-button>
                     <el-button @click="onClose" size="large" text bg>取消</el-button>
                 </div>
@@ -87,9 +88,11 @@
 
 <script setup>
 
+import { ElLoading } from 'element-plus'
 import flowNodeStore from '@/store/modules/flowNode'
 import { getAllResource } from '@/api/data/scheduler/resource'
-import { getAllEnvironment } from '@/api/data/scheduler/environment'
+import { validateTask } from '@/api/data/scheduler/processDefinition'
+// import { getAllEnvironment } from '@/api/data/scheduler/environment'
 import { branchIcon2 } from '@/utils/flowMixin';
 import ContextParam from "../../../params/contextParam.vue";
 import CodeEditor from '../../CodeEditor.vue';
@@ -98,7 +101,7 @@ const { proxy } = getCurrentInstance();
 
 const paramsDialog = ref(false) 
 const taskParamRef = ref(null)
-const envData = ref([])
+// const envData = ref([])
 
 const codeEditorRef = ref(null)
 const node = ref({})
@@ -135,9 +138,9 @@ const data = reactive({
         env: [
             { required: true, message: '请选择环境名称', trigger: 'change' }
         ],
-        resourceId: [
-            { required: true, message: '请选择资源', trigger: 'blur' }
-        ],
+        // resourceId: [
+        //     { required: true, message: '请选择资源', trigger: 'blur' }
+        // ],
         customParams: [
             { required: true, message: '请输入自定义参数', trigger: 'blur' }
         ]
@@ -179,6 +182,34 @@ function callTaskParamRef(){
  console.log(JSON.stringify(contextParam, null, 2));
 }
 
+/** 验证脚本任务 */
+function handleValidateTask() {
+
+    const loading = ElLoading.service({
+        lock: true,
+        text: 'Loading',
+        background: 'rgba(0, 0, 0, 0.7)',
+    })
+
+    const formDataStr = localStorage.getItem('processDefinitionFormData');
+    const formData = JSON.parse(formDataStr);
+    form.value.rawScript = codeEditorRef.value.getRawScript()
+    let data = {
+        taskParams: form.value,
+        taskType: node.value.type,
+        context: formData
+    }
+
+    // 提交流程信息
+    validateTask(data).then(response => {
+        console.log(response);
+        proxy.$modal.msgSuccess("任务执行成功,无异常.");
+        loading.close();
+    }).catch(error => {
+        loading.close();
+    })
+}
+
 /**
  * 打开侧边栏 
  * @param {*} node 
@@ -193,12 +224,12 @@ function showDrawer(_node) {
     
     nextTick(() => {
         // 获取所有环境
-        getAllEnvironment().then(res => {
-            envData.value = res.data
-            // nextTick(() => {
-            //     form.value.env = res.defaultEnvId
-            // })
-        })
+        // getAllEnvironment().then(res => {
+        //     envData.value = res.data
+        //     // nextTick(() => {
+        //     //     form.value.env = res.defaultEnvId
+        //     // })
+        // })
         getAllResource().then(res => {
             resourceData.value = res.data
         })
