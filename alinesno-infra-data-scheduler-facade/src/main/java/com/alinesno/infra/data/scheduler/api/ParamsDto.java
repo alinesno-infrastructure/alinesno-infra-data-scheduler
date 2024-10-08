@@ -45,5 +45,10 @@ public class ParamsDto {
 
     // HTTP请求信息
     private String method ;
+    private String requestBody ;
     private String url ;
+
+    // ANSIBLE配置信息
+    private String inventory ;
+    private String extraVars ;
 }
