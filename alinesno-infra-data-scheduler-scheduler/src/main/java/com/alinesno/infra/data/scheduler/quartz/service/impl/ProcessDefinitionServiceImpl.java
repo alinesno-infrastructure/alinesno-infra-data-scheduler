@@ -179,7 +179,7 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
         executorService.setParams(paramsDto);
 
         // 配置空间
-        String workspace = workspacePath + File.separator + task.getWorkspace();
+        String workspace = new File(workspacePath, task.getWorkspace()).getAbsolutePath();
         executorService.setWorkspace(workspace);
 
         // 配置数据库源
@@ -224,7 +224,7 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
 
 
         List<String> fileNameList = new ArrayList<>();
-        if(resourceIds.isEmpty()){
+        if(resourceIds == null || resourceIds.isEmpty()){
             return fileNameList ;
         }
 
@@ -281,11 +281,11 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
         taskDefinition.setTaskParams(JSONObject.toJSONString(params));
         task.setTask(taskDefinition);
 
-        File workspace = new File(workspacePath + File.separator + IdUtil.getSnowflakeNextIdStr()) ;
-        FileUtils.forceMkdir(workspace); // 创建工作空间
-        task.setWorkspace(workspace.getAbsolutePath());
+        String fileName = IdUtil.getSnowflakeNextIdStr() ;
+        FileUtils.forceMkdir(new File(workspacePath, fileName)); // 创建工作空间
+        task.setWorkspace(fileName);
 
-        log.debug("workspace = {}" , workspace);
+        log.debug("workspace = {}" , fileName);
 
         ProcessDefinitionEntity process = new ProcessDefinitionEntity() ;
         process.setEnvId(dto.getContext().getEnvId()) ;
@@ -297,6 +297,8 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
 
         // 执行任务
         executorService.execute(task);
+
+        FileUtils.forceDeleteOnExit(new File(workspacePath, task.getWorkspace()));
     }
 
 }
