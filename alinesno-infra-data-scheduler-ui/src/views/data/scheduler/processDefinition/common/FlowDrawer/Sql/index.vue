@@ -35,7 +35,6 @@
                         <CodeEditor ref="codeEditorRef" :lang="'sql'" />
                     </el-form-item>
                     <el-form-item label="资源" prop="resourceId">
-                        <!-- <el-input v-model="form.resourceId" placeholder="请选择资源" /> -->
                         <el-tree-select
                             v-model="form.resourceId"
                             :data="resourceData"
@@ -53,6 +52,7 @@
                 </el-form>
 
                 <div class="flow-setting-footer">
+                    <el-button type="primary" text bg @click="handleValidateTask()"><i class="fa-solid fa-truck-fast"></i>&nbsp;验证任务</el-button>
                     <el-button type="primary" bg  @click="submitForm('ruleForm')">确认提交</el-button>
                     <el-button @click="onClose" size="large" text bg>取消</el-button>
                 </div>
@@ -83,6 +83,8 @@ import { getAllResource } from '@/api/data/scheduler/resource'
 import { branchIcon2 } from '@/utils/flowMixin';
 import ContextParam from "../../../params/contextParam.vue";
 import CodeEditor from '../../CodeEditor.vue';
+import { ElLoading } from 'element-plus'
+import { validateTask } from '@/api/data/scheduler/processDefinition'
 
 const { proxy } = getCurrentInstance();
 
@@ -112,16 +114,13 @@ const data = reactive({
     },
     rules: {
         dataSourceId: [
-            { required: true, message: '请选择超时告警', trigger: 'change' }
+            { required: true, message: '请选择数据库源', trigger: 'change' }
         ],
         retryCount: [
             { required: true, message: '请选择失败重试次数', trigger: 'change' }
         ],
         env: [
             { required: true, message: '请选择环境名称', trigger: 'change' }
-        ],
-        resourceId: [
-            { required: true, message: '请选择资源', trigger: 'blur' }
         ],
         customParams: [
             { required: true, message: '请输入自定义参数', trigger: 'blur' }
@@ -185,6 +184,47 @@ function showDrawer(_node) {
             resourceData.value = res.data
         })
     })
+}
+
+/** 验证脚本任务 */
+function handleValidateTask() {
+
+    const formInstance = proxy.$refs['ruleForm'];
+    formInstance.validate((valid) => {
+        if (valid) {
+            
+            const loading = ElLoading.service({
+                lock: true,
+                text: 'Loading',
+                background: 'rgba(0, 0, 0, 0.7)',
+            })
+
+            const formDataStr = localStorage.getItem('processDefinitionFormData');
+            const formData = JSON.parse(formDataStr);
+
+            form.value.rawScript = codeEditorRef.value.getRawScript() 
+
+            let data = {
+                taskParams: form.value,
+                taskType: node.value.type,
+                context: formData
+            }
+
+            // 提交流程信息
+            validateTask(data).then(response => {
+                console.log(response);
+                proxy.$modal.msgSuccess("任务执行成功,无异常.");
+                loading.close();
+            }).catch(error => {
+                loading.close();
+            })
+            
+        } else {
+            console.log('验证失败!');
+            return false;
+        }
+    });
+
 }
 
 /**
