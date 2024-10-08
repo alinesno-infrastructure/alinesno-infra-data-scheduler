@@ -28,13 +28,13 @@
                             <el-radio :label="3">3次</el-radio>
                         </el-radio-group>
                     </el-form-item>
-                    -->
                     <el-form-item label="环境名称" prop="env">
                         <el-radio-group v-model="form.env">
                             <el-radio :label="'Sponsor'">沙箱环境</el-radio>
                             <el-radio :label="'Venue'">生产环境</el-radio>
                         </el-radio-group>
                     </el-form-item>
+                    -->
                     <el-form-item label="命令" prop="name">
                         <el-input v-model="form.goals" placeholder="请输入maven命令，比如 clean install" />
                     </el-form-item>
@@ -67,6 +67,7 @@
                 </el-form>
 
                 <div class="flow-setting-footer">
+                    <el-button type="primary" text bg @click="handleValidateTask()"><i class="fa-solid fa-truck-fast"></i>&nbsp;验证任务</el-button>
                     <el-button type="primary" bg  @click="submitForm('ruleForm')">确认保存</el-button>
                     <el-button @click="onClose" size="large" text bg>取消</el-button>
                 </div>
@@ -95,7 +96,8 @@ import flowNodeStore from '@/store/modules/flowNode'
 
 import { getAllResource } from '@/api/data/scheduler/resource'
 import { branchIcon2 } from '@/utils/flowMixin';
-import CodeEditor from '../../CodeEditor.vue';
+import { ElLoading } from 'element-plus'
+import { validateTask } from '@/api/data/scheduler/processDefinition'
 import ContextParam from "../../../params/contextParam.vue";
 
 const { proxy } = getCurrentInstance();
@@ -103,7 +105,8 @@ const { proxy } = getCurrentInstance();
 const paramsDialog = ref(false) 
 const taskParamRef = ref(null)
 
-const codeEditorRef = ref(null)
+// const codeEditorRef = ref(null)
+
 const node = ref({})
 const visible = ref(false)
 const headerStyle = ref({
@@ -121,7 +124,6 @@ const data = reactive({
         retryCount: 0,
         env: '',
         rawScript: '' ,
-        resourceId: [],
         customParams: {} 
     },
     rules: {
@@ -142,9 +144,9 @@ const data = reactive({
         env: [
             { required: true, message: '请选择环境名称', trigger: 'change' }
         ],
-        resourceId: [
-            { required: true, message: '请选择资源', trigger: 'blur' }
-        ],
+        // resourceId: [
+        //     { required: true, message: '请选择资源', trigger: 'blur' }
+        // ],
         customParams: [
             { required: true, message: '请输入自定义参数', trigger: 'blur' }
         ]
@@ -193,6 +195,44 @@ function showDrawer(_node) {
             resourceData.value = res.data
         })
     })
+}
+
+/** 验证脚本任务 */
+function handleValidateTask() {
+
+    const formInstance = proxy.$refs['ruleForm'];
+    formInstance.validate((valid) => {
+        if (valid) {
+            
+    const loading = ElLoading.service({
+        lock: true,
+        text: 'Loading',
+        background: 'rgba(0, 0, 0, 0.7)',
+    })
+
+    const formDataStr = localStorage.getItem('processDefinitionFormData');
+    const formData = JSON.parse(formDataStr);
+    let data = {
+        taskParams: form.value,
+        taskType: node.value.type,
+        context: formData
+    }
+
+    // 提交流程信息
+    validateTask(data).then(response => {
+        console.log(response);
+        proxy.$modal.msgSuccess("任务执行成功,无异常.");
+        loading.close();
+    }).catch(error => {
+        loading.close();
+    })
+            
+        } else {
+            console.log('验证失败!');
+            return false;
+        }
+    });
+
 }
 
 /**
