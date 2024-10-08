@@ -51,12 +51,12 @@
                         <el-popover placement="top-start" :title="scope.row.readerDesc" :width="500" trigger="hover"
                            :content="scope.row.readerUrl + '【' + scope.row.readerUsername + '】'">
                            <template #reference>
-                              {{ scope.row.readerName }}
+                              {{ scope.row.readerDesc  }}
                            </template>
                         </el-popover>
                      </div>
                      <div style="font-size: 13px;color: #a5a5a5;cursor: pointer;" v-copyText="scope.row.promptId">
-                        {{ scope.row.readerDesc }}
+                        {{ scope.row.readerName }}
                      </div>
                   </template>
                </el-table-column>
