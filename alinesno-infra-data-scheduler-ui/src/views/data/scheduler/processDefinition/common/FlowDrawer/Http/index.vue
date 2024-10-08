@@ -46,6 +46,7 @@
                 </el-form>
 
                 <div class="flow-setting-footer">
+                    <el-button type="primary" text bg @click="handleValidateTask()"><i class="fa-solid fa-truck-fast"></i>&nbsp;验证任务</el-button>
                     <el-button type="primary" bg  @click="submitForm('ruleForm')">确认保存</el-button>
                     <el-button @click="onClose" size="large" text bg>取消</el-button>
                 </div>
@@ -58,9 +59,9 @@
 <script setup>
 
 import flowNodeStore from '@/store/modules/flowNode'
-
 import { branchIcon2 } from '@/utils/flowMixin';
-import CodeEditor from '../../CodeEditor.vue';
+import { ElLoading } from 'element-plus'
+import { validateTask } from '@/api/data/scheduler/processDefinition'
 
 const { proxy } = getCurrentInstance();
 
@@ -78,7 +79,8 @@ const data = reactive({
         url: '',
         method: 'get',
         requestBody: '',
-        retryCount: 0
+        resourceIds:[],
+        retryCount: 1
     },
     rules: {
         url: [
@@ -122,6 +124,43 @@ function showDrawer(_node) {
 
     visible.value = true;
     node.value = _node;
+}
+
+/** 验证脚本任务 */
+function handleValidateTask() {
+
+    const formInstance = proxy.$refs['ruleForm'];
+    formInstance.validate((valid) => {
+        if (valid) {
+            
+            const loading = ElLoading.service({
+                lock: true,
+                text: 'Loading',
+                background: 'rgba(0, 0, 0, 0.7)',
+            })
+
+            const formDataStr = localStorage.getItem('processDefinitionFormData');
+            const formData = JSON.parse(formDataStr);
+            let data = {
+                taskParams: form.value,
+                taskType: node.value.type,
+                context: formData
+            }
+
+            // 提交流程信息
+            validateTask(data).then(response => {
+                console.log(response);
+                proxy.$modal.msgSuccess("任务执行成功,无异常.");
+                loading.close();
+            }).catch(error => {
+                loading.close();
+            })
+            
+        } else {
+            console.log('验证失败!');
+            return false;
+        }
+    });
 }
 
 /**
