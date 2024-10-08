@@ -11,6 +11,7 @@ import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.jdbc.datasource.init.ScriptUtils;
 import org.springframework.stereotype.Service;
 
+import javax.lang.exception.RpcServiceRuntimeException;
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -27,18 +28,21 @@ public class SQLExecutor extends AbstractExecutorService {
         writeLog(SqlFormatter.format(rawScript));
 
         // 创建一个数据源
-        DruidDataSource dataSource = getDataSource() ;
-
-        try (Connection connection = dataSource.getConnection()) {
-
+        DruidDataSource dataSource = getDataSource();
+        Connection connection = null;
+        try {
+            connection = dataSource.getConnection();
             // 执行SQL脚本
             ScriptUtils.executeSqlScript(connection, new ByteArrayResource(rawScript.getBytes()));
             writeLog("SQL 脚本执行成功.");
 
-            DataSourceUtils.releaseConnection(connection, dataSource);
         } catch (SQLException e) {
-            writeLog(e) ;
+            throw new RpcServiceRuntimeException("获取数据源异常:" + e.getMessage());
+        }finally {
+            DataSourceUtils.releaseConnection(connection, dataSource);
+            dataSource.close();
         }
+
     }
 
 }
