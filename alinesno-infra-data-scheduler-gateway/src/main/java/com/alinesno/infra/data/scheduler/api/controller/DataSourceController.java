@@ -101,7 +101,7 @@ public class DataSourceController extends BaseController<DataSourceEntity, IData
 
             Map<String , Object> map = new java.util.HashMap<>();
             map.put("value", item.getId()) ;
-            map.put("label" , item.getReaderName()) ;
+            map.put("label" , item.getReaderName() + ":" + item.getReaderDesc()) ;
 
             return map ;
         }).toList();
