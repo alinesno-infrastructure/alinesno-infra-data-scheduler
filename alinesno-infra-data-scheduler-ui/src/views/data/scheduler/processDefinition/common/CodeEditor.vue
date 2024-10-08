@@ -35,7 +35,7 @@ const props = defineProps({
   },
   height: {
     type: String,
-    default: '600px',
+    default: '400px',
   },
 });
 
