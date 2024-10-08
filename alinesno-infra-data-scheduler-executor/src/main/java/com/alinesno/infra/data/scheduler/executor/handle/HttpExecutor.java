@@ -1,20 +1,17 @@
 package com.alinesno.infra.data.scheduler.executor.handle;
 
+import cn.hutool.http.HttpUtil;
+import cn.hutool.http.Method;
 import com.alinesno.infra.data.scheduler.api.ParamsDto;
 import com.alinesno.infra.data.scheduler.executor.AbstractExecutorService;
 import com.alinesno.infra.data.scheduler.executor.bean.TaskInfoBean;
-import com.github.rholder.retry.Retryer;
-import com.github.rholder.retry.RetryerBuilder;
-import com.github.rholder.retry.StopStrategies;
-import com.github.rholder.retry.WaitStrategies;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
-import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Http执行器
@@ -29,41 +26,28 @@ public class HttpExecutor extends AbstractExecutorService {
 
         ParamsDto params = getParamsDto();
 
-        int retryCount = params.getRetryCount() ; // 重试次数
-        String method = params.getMethod() ;
+        String requestBody = params.getRequestBody() ;
+        String method = StringUtils.hasLength(params.getMethod()) ? params.getMethod() : "GET" ;
         String url = params.getUrl() ;
 
-        Callable<Response> callable = () -> {
-            log.info("重试调用");
+        Assert.hasLength(url, "调用地址为空");
 
-            OkHttpClient client = new OkHttpClient();
-            Request request = new Request.Builder()
-                    .url(url)
-                    .method(method, null)
-                    .build();
+        Map<String, Object> map = bodyToMap(requestBody) ;
+        HashMap<String, String> headers = new HashMap<>();//存放请求头，可以存放多个请求头
 
-            return client.newCall(request).execute();
-        };
+        String result= null ;
+        if(method.equalsIgnoreCase("GET")){
+            HttpUtil.createGet(url).addHeaders(headers).form(map).execute().body();
+        }else if(method.equalsIgnoreCase("POST")){
+            result= HttpUtil.createPost(url).addHeaders(headers).form(map).execute().body();
+        }else if(method.equalsIgnoreCase("PUT")){
+            result= HttpUtil.createRequest(Method.PUT, url).addHeaders(headers).execute().body();
+        }else if(method.equalsIgnoreCase("DELETE")){
+            result= HttpUtil.createRequest(Method.DELETE, url).addHeaders(headers).execute().body();
+        }
 
-        Response result =  graceRetry(callable , retryCount , taskInfo);
         log.debug("HttpExecutor execute result : " + result);
     }
 
-    public Response graceRetry(Callable<Response> callable, int retryCount, TaskInfoBean taskInfo) {
-        Retryer<Response> retryer = RetryerBuilder.<Response>newBuilder()
-                .retryIfException()		// 当发生异常时重试
-                .retryIfResult(response -> response.code() != 200)		// 当返回码不为200时重试
-                .withWaitStrategy(WaitStrategies.fibonacciWait(1000, 10, TimeUnit.SECONDS))	// 等待策略：使用斐波拉契数列递增等待
-                .withStopStrategy(StopStrategies.stopAfterAttempt(retryCount))		// 重试达到10次时退出
-                .build();
-        try {
-            Response response = retryer.call(callable);
-            writeLog(String.valueOf(response.body()));
-            return response ;
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-        }
-        throw new RuntimeException("重试失败");
-    }
 
 }
