@@ -22,16 +22,14 @@ public class MavenExecutor extends AbstractExecutorService {
 
         ParamsDto params = getParamsDto() ;
 
-        String pomXml = params.getPomXml() ;
-        String goals = params.getGoals() ;
-        String settings = params.getSettings() ;
+        String pomXml = params.getPomXml() == null ? "pom.xml" : params.getPomXml() ;
+        String goals = params.getGoals() == null ? "clean package" : params.getGoals();
 
-        log.debug("pomXml:{} , goals:{} , settings:{}" , pomXml , goals , settings);
+        log.debug("pomXml:{} , goals:{}" , pomXml , goals) ;
 
         InvocationRequest request = new DefaultInvocationRequest();
         request.setPomFile(new File(pomXml));
         request.setGoals(Collections.singletonList(goals));
-        // request.setUserSettingsFile(new File(settings));
 
         Invoker invoker = new DefaultInvoker();
         invoker.setMavenHome(new File(getM2Home())) ;
