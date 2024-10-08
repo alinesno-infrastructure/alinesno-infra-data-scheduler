@@ -29,7 +29,7 @@
           </a-menu-item>
           <a-menu-item key="6" @click="addType(6)">
             <img :src="noticeIcon2" class="anticon" />
-            <span>JAR包执行</span>
+            <span>ANSIBLE包执行</span>
           </a-menu-item>
           <a-menu-item key="7" @click="addType(7)">
             <img :src="parallelIcon" class="anticon" />
@@ -129,7 +129,7 @@ function getTypeInfo(type) {
         icon = writeIcon2;
         break;
       case 6:
-        name = 'JAR包执行';
+        name = 'ANSIBLE执行';
         icon = noticeIcon2;
         break;
       case 7:
