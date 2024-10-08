@@ -14,6 +14,8 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.util.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -231,19 +233,7 @@ public abstract class AbstractExecutorService extends BaseResourceService implem
      */
     @Override
     public void replaceGlobalParams(EnvironmentEntity environment, String globalParams, Map<String, String> customParams) {
-        Map<String , String> globalEnv = new HashMap<>() ;
-
-        // 处理全局环境
-        if(environment.getConfig() != null){
-            StringTokenizer tokenizer = new StringTokenizer(environment.getConfig(), "\n");
-            while (tokenizer.hasMoreTokens()) {
-                String line = tokenizer.nextToken();
-                if (line.contains("=") && line.split("=", 2).length == 2) {
-                    String[] parts = line.split("=", 2);
-                    globalEnv.put(parts[0], parts[1]);
-                }
-            }
-        }
+        Map<String, String> globalEnv = getGlobalEnvMap(environment);
 
         // 处理全局参数
         if( globalParams != null){
@@ -263,6 +253,29 @@ public abstract class AbstractExecutorService extends BaseResourceService implem
     }
 
     /**
+     * 获取全局环境变量
+     * @param environment
+     * @return
+     */
+    @NotNull
+    private static Map<String, String> getGlobalEnvMap(EnvironmentEntity environment) {
+        Map<String , String> globalEnv = new HashMap<>() ;
+
+        // 处理全局环境
+        if(environment.getConfig() != null){
+            StringTokenizer tokenizer = new StringTokenizer(environment.getConfig(), "\n");
+            while (tokenizer.hasMoreTokens()) {
+                String line = tokenizer.nextToken();
+                if (line.contains("=") && line.split("=", 2).length == 2) {
+                    String[] parts = line.split("=", 2);
+                    globalEnv.put(parts[0], parts[1]);
+                }
+            }
+        }
+        return globalEnv;
+    }
+
+    /**
      * 结果渲染
      * @return
      */
@@ -276,6 +289,41 @@ public abstract class AbstractExecutorService extends BaseResourceService implem
         root.put("secrets", secretMap);
 
         return FreeMarkerStringRenderer.getInstance().render("example", templateContent, root);
+    }
+
+    /**
+     * 结果渲染
+     * @return
+     */
+    @SneakyThrows
+    public String readerTemplateContent(String templateContent){
+
+        // 准备数据模型
+        Map<String, Object> root = new HashMap<>();
+        root.put("env", getGlobalEnv());
+        root.put("secrets", secretMap);
+
+        return FreeMarkerStringRenderer.getInstance().render("example", templateContent, root);
+    }
+
+    /**
+     * 参数转换成map
+     * type=&page=&page_size=&is_filter=&key=x7
+     * @param requestBody
+     * @return
+     */
+    protected Map<String, Object> bodyToMap(String requestBody) {
+        Map<String, Object> map = new HashMap<>();
+        if (StringUtils.hasLength(requestBody)) {
+            String[] params = requestBody.split("&");
+            for (String param : params) {
+                String[] keyValue = param.split("=");
+                if (keyValue.length == 2) {
+                    map.put(keyValue[0], keyValue[1]);
+                }
+            }
+        }
+        return map;
     }
 
 }
