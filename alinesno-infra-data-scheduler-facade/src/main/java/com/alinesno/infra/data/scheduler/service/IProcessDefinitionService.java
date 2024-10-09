@@ -31,4 +31,12 @@ public interface IProcessDefinitionService extends IBaseService<ProcessDefinitio
      * @param dto
      */
     void runProcessTask(ProcessTaskValidateDto dto);
+
+    /**
+     * 查询最近count条流程定义
+     * @param count
+     * @return
+     */
+    List<ProcessDefinitionEntity> queryRecentlyProcess(int count);
+
 }
