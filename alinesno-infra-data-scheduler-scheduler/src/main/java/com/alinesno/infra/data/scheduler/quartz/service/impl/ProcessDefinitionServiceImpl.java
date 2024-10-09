@@ -18,6 +18,7 @@ import com.alinesno.infra.data.scheduler.quartz.utils.ProcessUtils;
 import com.alinesno.infra.data.scheduler.scheduler.IQuartzSchedulerService;
 import com.alinesno.infra.data.scheduler.service.*;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -299,6 +300,17 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
         executorService.execute(task);
 
         FileUtils.forceDeleteOnExit(new File(workspacePath, task.getWorkspace()));
+    }
+
+    @Override
+    public List<ProcessDefinitionEntity> queryRecentlyProcess(int count) {
+
+        LambdaQueryWrapper<ProcessDefinitionEntity> queryWrapper = Wrappers.lambdaQuery();
+        queryWrapper
+                .orderByDesc(ProcessDefinitionEntity::getAddTime)
+                .last("limit " + count);
+
+        return this.list(queryWrapper);
     }
 
 }
