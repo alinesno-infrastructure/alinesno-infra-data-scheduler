@@ -11,6 +11,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 import javax.lang.exception.RpcServiceRuntimeException;
 import java.io.File;
@@ -34,10 +35,15 @@ public class CheckoutExecutor extends AbstractExecutorService {
         String branch = paramsDto.getGitBranch() ;
         File localPath = new File(getWorkspace() , Objects.requireNonNull(GitRepositoryUtils.getRepositoryNameFromUrl(remoteUrl)));
 
+        Assert.hasLength(remoteUrl , "地址不能为空");
+        Assert.hasLength(branch , "分支不能为空");
+
         try {
             writeLog("开始克隆仓库:" + remoteUrl +",分支:" + branch);
             // 克隆仓库
             CloneCommand cloneCommand = Git.cloneRepository()
+                    .setDirectory(localPath)
+                    .setDepth(1)
                     .setURI(remoteUrl)
                     .setBranch(branch);
 
@@ -57,7 +63,7 @@ public class CheckoutExecutor extends AbstractExecutorService {
         } catch (GitAPIException e) {
             log.error("克隆仓库时发生错误: " , e);
             writeLog(e);
-            throw new RpcServiceRuntimeException(e);
+            throw new RpcServiceRuntimeException(e.getMessage());
         }
     }
 }
