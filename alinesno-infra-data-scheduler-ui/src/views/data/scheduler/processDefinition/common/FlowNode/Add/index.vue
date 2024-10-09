@@ -31,10 +31,12 @@
             <img :src="noticeIcon2" class="anticon" />
             <span>ANSIBLE包执行</span>
           </a-menu-item>
+          <!--
           <a-menu-item key="7" @click="addType(7)">
             <img :src="parallelIcon" class="anticon" />
             <span>K8S操作</span>
           </a-menu-item>
+          -->
           <a-menu-item key="9" @click="addType(9)">
             <img :src="branchIcon2" class="anticon" />
             <span>通知回调</span>
