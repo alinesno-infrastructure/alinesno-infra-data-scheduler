@@ -1,0 +1,60 @@
+# 数据处理和分析
+numpy
+pandas
+scipy
+dask
+
+# 网络请求和爬虫
+requests
+beautifulsoup4
+lxml
+scrapy
+aiohttp  # 异步HTTP客户端/服务器框架
+
+# Web框架
+flask
+django
+fastapi  # 高性能异步Web框架
+starlette  # FastAPI基于Starlette构建
+
+# 数据可视化
+matplotlib
+seaborn
+plotly
+bokeh
+
+# 数据库
+sqlalchemy
+psycopg2-binary  # PostgreSQL
+pymysql  # MySQL
+redis  # Redis客户端
+pymongo  # MongoDB
+
+# 文档和配置
+pyyaml
+toml
+jsonschema
+
+# 日志
+loguru
+structlog
+
+# 测试
+pytest
+unittest-xml-reporting
+coverage  # 测试覆盖率报告
+
+# 命令行工具
+click  # 创建命令行接口
+typer  # 类型安全的Click替代品
+rich  # 用于创建富文本输出的库
+
+# 文件和目录操作
+pathlib
+watchdog  # 目录监控
+
+# 其他常用工具
+boto3  # AWS SDK
+google-cloud-storage  # Google Cloud Storage
+paramiko  # SSHv2协议的实现
+cryptography  # 加密库
