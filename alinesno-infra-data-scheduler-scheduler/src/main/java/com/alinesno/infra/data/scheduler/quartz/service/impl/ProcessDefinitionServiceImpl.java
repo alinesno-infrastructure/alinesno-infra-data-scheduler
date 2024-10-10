@@ -177,6 +177,9 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
 
         // 配置参数
         ParamsDto paramsDto = JSONObject.parseObject(task.getTask().getTaskParams(), ParamsDto.class);
+        if(paramsDto == null){
+            paramsDto = new ParamsDto();
+        }
         executorService.setParams(paramsDto);
 
         // 配置空间
