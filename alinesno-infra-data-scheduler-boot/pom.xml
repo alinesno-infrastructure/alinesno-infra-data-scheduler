@@ -13,6 +13,11 @@
 	<artifactId>alinesno-infra-data-scheduler-boot</artifactId>
 	<packaging>jar</packaging>
 
+	<properties>
+		<!-- python和内容镜像 -->
+		<docker.base.images>registry.cn-shenzhen.aliyuncs.com/alinesno-infra-base/openjdk:17-slim-python</docker.base.images>
+	</properties>
+
 	<dependencies>
 
         <!-- 引用服务 -->
