@@ -28,7 +28,7 @@ public class PythonExecutor extends AbstractExecutorService {
         File pythonFile = new File(getWorkspace(), "python_" + IdUtil.getSnowflakeNextIdStr() + ".py") ;
         FileUtils.writeStringToFile(pythonFile, rawScript  , Charset.defaultCharset() , false);
 
-        runCommand("python " + pythonFile.getAbsolutePath());
+        runCommand("python3 " + pythonFile.getAbsolutePath());
 
     }
 }
