@@ -11,6 +11,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
+import java.util.Date;
 import java.util.Map;
 
 @EqualsAndHashCode(callSuper = true)
@@ -34,6 +35,11 @@ public class ProcessDefinitionEntity extends InfraBaseEntity {
     @ColumnType(value = MySqlTypeConstant.BIGINT)
     @ColumnComment("环境ID")
     private long envId ;
+
+    @TableField
+    @ColumnType(value = MySqlTypeConstant.VARCHAR, length = 2)
+    @ColumnComment("数据采集模板")
+    private String dataCollectionTemplate ;
 
     @TableField
     @ColumnType(value = MySqlTypeConstant.VARCHAR, length = 128)
@@ -79,5 +85,22 @@ public class ProcessDefinitionEntity extends InfraBaseEntity {
     @ColumnComment("成功次数")
     private long successCount ;
 
+    // 开始时间
+    @TableField
+    @ColumnType(value = MySqlTypeConstant.DATETIME, length = 20)
+    @ColumnComment("开始时间")
+    private Date startTime ;
+
+    // 结束时间
+    @TableField
+    @ColumnType(value = MySqlTypeConstant.DATETIME, length = 20)
+    @ColumnComment("结束时间")
+    private Date endTime ;
+
+    // 监控通知邮件
+    @TableField
+    @ColumnType(value = MySqlTypeConstant.VARCHAR, length = 128)
+    @ColumnComment("监控通知邮件")
+    private String monitorEmail ;
 
 }
