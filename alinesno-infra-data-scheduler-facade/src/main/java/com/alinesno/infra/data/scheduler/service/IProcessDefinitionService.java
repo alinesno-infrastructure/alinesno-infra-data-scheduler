@@ -39,4 +39,10 @@ public interface IProcessDefinitionService extends IBaseService<ProcessDefinitio
      */
     List<ProcessDefinitionEntity> queryRecentlyProcess(int count);
 
+    /**
+     * 更新流程定义
+     * @param dto
+     */
+    void updateProcessDefinition(ProcessDefinitionDto dto);
+
 }
