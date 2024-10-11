@@ -27,6 +27,14 @@ import lombok.EqualsAndHashCode;
 public class ProjectEntity extends InfraBaseEntity {
 
     /**
+     * 项目图标
+     */
+    @TableField("project_icons")
+    @ColumnType(length = 64)
+    @ColumnComment("项目图标")
+    private String projectIcons;
+
+    /**
      * 项目名称
      */
     @TableField("project_name")
