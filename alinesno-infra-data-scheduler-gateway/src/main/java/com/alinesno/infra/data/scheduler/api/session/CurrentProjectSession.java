@@ -1,13 +1,12 @@
 package com.alinesno.infra.data.scheduler.api.session;
 
+import com.alinesno.infra.common.web.log.utils.SpringUtils;
 import com.alinesno.infra.data.scheduler.entity.ProjectAccountEntity;
 import com.alinesno.infra.data.scheduler.entity.ProjectEntity;
 import com.alinesno.infra.data.scheduler.service.IProjectAccountService;
 import com.alinesno.infra.data.scheduler.service.IProjectService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 /**
  * 获取当前应用
@@ -16,24 +15,28 @@ import org.springframework.stereotype.Component;
  * @since 1.0.0
  */
 @Slf4j
-@Component
+//@Component
 public class CurrentProjectSession {
 
-	@Autowired
-	private IProjectAccountService projectAccountService;  ;
+//	@Autowired
+//	private IProjectAccountService projectAccountService;  ;
+//
+//	@Autowired
+//	private IProjectService managerProjectService ;
 
-	@Autowired
-	private IProjectService managerProjectService ;
-
-	public ProjectEntity get() {
+	public static ProjectEntity get() {
 		// TODO 待处理账号获取异常的问题
+
+		IProjectService managerProjectService = SpringUtils.getBean(IProjectService.class);
 
 		//  CurrentAccountJwt.getUserId();
 		long userId = 1L ;
 		return managerProjectService.getProjectByAccountId(userId) ;
 	}
 
-	public void set(long applicationId) {
+	public static void set(long applicationId) {
+
+		IProjectAccountService projectAccountService = SpringUtils.getBean(IProjectAccountService.class);
 
 		//  CurrentAccountJwt.getUserId();
 		long userId = 1L ;
