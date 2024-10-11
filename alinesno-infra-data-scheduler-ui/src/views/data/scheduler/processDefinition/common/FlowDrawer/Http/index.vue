@@ -124,6 +124,7 @@ function showDrawer(_node) {
 
     visible.value = true;
     node.value = _node;
+    form.value = _node.params ;
 }
 
 /** 验证脚本任务 */
