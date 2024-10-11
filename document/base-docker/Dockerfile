@@ -8,6 +8,14 @@ RUN sed -i 's/security.debian.org/mirrors.ustc.edu.cn/g' /etc/apt/sources.list
 RUN apt-get update && \
     apt-get install -y python3 python3-pip && \
     apt-get install -y ansible && \
+    apt-get install -y tree && \
+    apt-get install -y git && \
+    apt-get install -y vim && \
+    apt-get install -y net-tools && \
+    apt-get install -y iputils-ping && \
+    apt-get install -y curl && \
+    apt-get install -y wget && \
+    apt-get install -y lsof && \
     apt-get install -y python3-apt && \
     # 清理缓存
     apt-get clean && \
