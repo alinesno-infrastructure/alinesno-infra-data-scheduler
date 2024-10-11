@@ -38,15 +38,14 @@
 <script setup name="createProcessDefinition">
 
 const router = useRouter();
+const route = useRoute();
 const { proxy } = getCurrentInstance();
 
 import { ElLoading } from 'element-plus'
 import flowNodeStore from '@/store/modules/flowNode'
 
-import { commitProcessDefinition } from '@/api/data/scheduler/processDefinition'
-
-// import { getStartNode } from '@/utils/nodeUtil';
-// import FlowZoom from './common/FlowZoom';
+import { getTaskDefinition } from '@/api/data/scheduler/taskDefinition'
+import { commitProcessDefinition , updateProcessDefinition } from '@/api/data/scheduler/processDefinition'
 
 import FlowHelper from './common/FlowHelper';
 import FlowTips from './common/FlowTips';
@@ -54,27 +53,19 @@ import FlowNode from './common/FlowNode/index';
 import FlowStartNode from './common/FlowNode/Start';
 import FlowEndNode from './common/FlowNode/End';
 
-// 定义props
-// const props = defineProps({
-//   node: {
-//     type: Object,
-//     default: getStartNode,
-//   },
-//   navable: {
-//     type: Boolean,
-//     default: true,
-//   },
-//   readable: {
-//     type: Boolean,
-//     default: false,
-//   },
-// });
-
+const processDefinitionId = route.query.processDefinitionId
 const nodeDataArr = ref(flowNodeStore().nodes);
 
 /** 返回 */
 function goBack() {
-  router.push({ path: '/data/scheduler/processDefinition/addDefinition', query: {} });
+
+  let queryObj = {} ; 
+  
+  if(processDefinitionId){
+   queryObj = {'processDefinitionId': processDefinitionId } ;
+  }
+
+  router.push({ path: '/data/scheduler/processDefinition/addDefinition', query: queryObj });
 }
 
 /**
@@ -98,18 +89,41 @@ function submitProcessDefinition() {
     context: formData
   }
 
-  // 提交流程信息
-  commitProcessDefinition(data).then(response => {
-    console.log(response);
-    proxy.$modal.msgSuccess("流程提交成功");
-    loading.close();
-  })
+  if(formData.id){ // 更新流程
+    updateProcessDefinition(data).then(response => {
+      console.log(response);
+      proxy.$modal.msgSuccess("流程更新成功");
+      loading.close();
+    })
+  }else{ // 新增流程
+    commitProcessDefinition(data).then(response => {
+      console.log(response);
+      proxy.$modal.msgSuccess("流程提交成功");
+      loading.close();
+    })
+  }
+
 }
 
 /** 初始化数据 */
-// onMounted(() => {
-//   console.log('onMounted');
-//   flowNodeStore().initNodes();
-// })
+onMounted(() => {
+  console.log('onMounted');
+  // flowNodeStore().initNodes();
+  if(processDefinitionId){
+    getTaskDefinition(processDefinitionId).then(res => {
+      // res.data.each(item => {
+      //   flowNodeStore().addNode(item);
+      // }); 
+
+      // 使用 forEach 循环遍历 data 数组
+      res.data.forEach(item => {
+        if(item.type != 0){
+          flowNodeStore().setNode(item);
+        }
+      });
+      
+    })
+  }
+})
 
 </script>
