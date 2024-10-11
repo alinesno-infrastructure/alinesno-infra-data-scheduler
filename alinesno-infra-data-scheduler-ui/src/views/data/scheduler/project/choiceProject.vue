@@ -28,11 +28,6 @@
     <el-table ref="operlogRef" v-loading="loading" :data="operlogList" @selection-change="handleSelectionChange" :default-sort="defaultSort" @sort-change="handleSortChange">
       <el-table-column type="index" width="55" label="序号" align="center" />
       <el-table-column label="图标" align="center" width="70" key="icon" >
-          <!-- <template #default="scope">
-              <span style="font-size:25px;color:#3b5998">
-                <i :class="scope.row.icon" />
-              </span>
-          </template> -->
           <template #default="scope">
               <div class="role-icon">
                 <img style="width:40px;height:40px;border-radius:5px;" :src="'http://data.linesno.com/icons/sepcialist/dataset_' + ((scope.$index + 1)%10 + 5) + '.png'" />
@@ -44,24 +39,12 @@
           <div>
             {{ scope.row.projectName }}
           </div>
-          <div style="font-size: 13px;color: #a5a5a5;cursor: pointer;" v-copyText="scope.row.promptId">
+          <div style="font-size: 13px;color: #a5a5a5;cursor: pointer;" v-copyText="scope.row.projectCode">
             调用码: {{ scope.row.projectCode }} <el-icon><CopyDocument /></el-icon>
           </div>
       </template>
       </el-table-column>
       <el-table-column label="项目描述" align="left" prop="projectDesc" />
-      <el-table-column label="状态" width="100" align="center" prop="status">
-        <!-- <template #default="scope">
-          <dict-tag :options="sys_common_status" :value="scope.row.status" />
-        </template> -->
-        <template #default="scope">
-            <el-switch
-              v-model="scope.row.hasStatus"
-              active-value="0"
-              inactive-value="1"
-            />
-        </template>
-      </el-table-column>
       <el-table-column label="操作" align="center" width="100" class-name="small-padding fixed-width">
         <template #default="scope">
           <el-button
