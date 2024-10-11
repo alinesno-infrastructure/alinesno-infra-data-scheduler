@@ -68,8 +68,14 @@ function getRawScript(){
   return codeVal.value ;
 }
 
+/** 设置值  */
+function setRawScript(val){
+  return codeVal.value = val ;
+}
+
 defineExpose({
-  getRawScript
+  getRawScript , 
+  setRawScript
 })
 
 </script>
