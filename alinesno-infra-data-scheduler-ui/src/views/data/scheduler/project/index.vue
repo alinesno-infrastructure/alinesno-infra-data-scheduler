@@ -34,24 +34,26 @@
   
              <el-table v-loading="loading" :data="ProjectList" @selection-change="handleSelectionChange">
                 <el-table-column type="selection" width="50" align="center" />
-                
-                <el-table-column label="图标" align="center" width="70" key="icon" v-if="columns[5].visible">
-                   <template #default="scope">
-                      <span style="font-size:25px;color:#3b5998">
-                         <i class="fa-solid fa-file-word" />
-                      </span>
-                   </template>
-                </el-table-column>
-  
+
+                  <el-table-column label="图标" align="center" width="70" key="icon" >
+                     <template #default="scope">
+                        <div class="role-icon">
+                           <img style="width:40px;height:40px;border-radius:5px;" :src="'http://data.linesno.com/icons/sepcialist/dataset_' + ((scope.$index + 1)%10 + 5) + '.png'" />
+                        </div>
+                     </template>
+                  </el-table-column>
   
                 <!-- 业务字段-->
-                <el-table-column label="应用名称" align="left" width="250" key="projectName" prop="projectName" v-if="columns[0].visible">
-                   <template #default="scope">
-                       <el-button type="danger" bg text @click="handleProjectSpace(scope.row.id)"> 
-                          <i class="fa-solid fa-link"></i>&nbsp;{{ scope.row.projectName }}
-                       </el-button>
-                   </template>
-                </el-table-column>
+               <el-table-column label="项目名称" width="250" align="left" prop="projectName">
+               <template #default="scope">
+                  <div>
+                     {{ scope.row.projectName }}
+                  </div>
+                  <div style="font-size: 13px;color: #a5a5a5;cursor: pointer;" v-copyText="scope.row.projectCode">
+                     调用码: {{ scope.row.projectCode }} <el-icon><CopyDocument /></el-icon>
+                  </div>
+               </template>
+               </el-table-column>
                 <el-table-column label="应用描述" align="left" key="projectDesc" prop="projectDesc" v-if="columns[1].visible" />
                 <el-table-column label="应用代码" align="center" width="200" key="projectCode" prop="projectCode" v-if="columns[2].visible" :show-overflow-tooltip="true">
                    <template #default="scope">
@@ -59,14 +61,6 @@
                           {{ scope.row.projectCode}} <el-icon><CopyDocument /></el-icon>
                        </div>
                     </template>
-                </el-table-column>
-  
-                <el-table-column label="配置文档" align="center" width="200" key="documentType" prop="documentType" v-if="columns[1].visible" :show-overflow-tooltip="true" >
-                   <template #default="scope">
-                      <el-button type="primary" bg text @click="handleConfigType(scope.row.id , scope.row.documentType)"> 
-                          <i class="fa-solid fa-link"></i>&nbsp;配置文档 
-                       </el-button>
-                   </template>
                 </el-table-column>
   
                 <el-table-column label="开启" align="center" width="100" key="hasStatus" prop="hasStatus" v-if="columns[1].visible" :show-overflow-tooltip="true" >
@@ -110,44 +104,6 @@
           <el-form :model="form" :rules="rules" ref="databaseRef" label-width="100px">
              <el-row>
                 <el-col :span="24">
-                   <el-form-item label="应用图标" prop="logo">
-                      <!-- <el-input v-model="form.logo" placeholder="请输入应用图标" maxlength="255" /> -->
-  
-                      <el-upload action="#" list-type="picture-card" :auto-upload="false">
-                            <el-icon><Plus /></el-icon>
-  
-                            <template #file="{ file }">
-                               <div>
-                               <img class="el-upload-list__item-thumbnail" :src="file.url" alt="" />
-                               <span class="el-upload-list__item-actions">
-                                  <span
-                                     class="el-upload-list__item-preview"
-                                     @click="handlePictureCardPreview(file)"
-                                  >
-                                     <el-icon><zoom-in /></el-icon>
-                                  </span>
-                                  <span
-                                     v-if="!disabled"
-                                     class="el-upload-list__item-delete"
-                                     @click="handleDownload(file)"
-                                  >
-                                     <el-icon><Download /></el-icon>
-                                  </span>
-                                  <span
-                                     v-if="!disabled"
-                                     class="el-upload-list__item-delete"
-                                     @click="handleRemove(file)"
-                                  >
-                                     <el-icon><Delete /></el-icon>
-                                  </span>
-                               </span>
-                               </div>
-                            </template>
-                         </el-upload>
-  
-                   </el-form-item>
-                </el-col>
-                <el-col :span="24">
                    <el-form-item label="应用名称" prop="projectName">
                       <el-input v-model="form.projectName" placeholder="请输入应用名称" maxlength="50" />
                    </el-form-item>
@@ -155,54 +111,12 @@
              </el-row>
              <el-row>
                 <el-col :span="24">
-                   <el-form-item label="应用介绍" prop="intro">
-                      <el-input v-model="form.intro" type="textarea" placeholder="请输入应用介绍" maxlength="255" />
-                   </el-form-item>
-                </el-col>
-             </el-row>
-             <el-row>
-                <el-col :span="24">
-                   <el-form-item label="授权地址" prop="allowUrl">
-                      <el-input v-model="form.allowUrl" placeholder="请输入授权地址" maxlength="255" />
-                   </el-form-item>
-                </el-col>
-  
-                <el-col :span="24">
-                   <el-form-item label="应用状态" prop="status">
-                      <el-radio-group v-model="form.status">
-                         <el-radio
-                            v-for="dict in sys_normal_disable"
-                            :key="dict.value"
-                            :label="dict.value"
-                         >{{ dict.label }}</el-radio>
-                      </el-radio-group>
-                   </el-form-item>
-                </el-col>
-  
-                <el-col :span="24">
-                   <!-- <el-form-item label="是否公开" prop="isPublic">
-                      <el-input v-model="form.isPublic" placeholder="请输入是否公开" maxlength="1" />
-                   </el-form-item> -->
-  
-                   <el-form-item label="是否公开" prop="isPublic">
-                      <el-radio-group v-model="form.isPublic">
-                         <el-radio
-                            v-for="dict in sys_normal_disable"
-                            :key="dict.value"
-                            :label="dict.value"
-                         >{{ dict.label }}</el-radio>
-                      </el-radio-group>
+                   <el-form-item label="应用介绍" prop="projectDesc">
+                      <el-input v-model="form.projectDesc" type="textarea" placeholder="请输入应用描述" maxlength="255" />
                    </el-form-item>
                 </el-col>
              </el-row>
   
-             <el-row>
-                <el-col :span="24">
-                   <el-form-item label="备注" prop="description">
-                      <el-input v-model="form.description"  placeholder="请输入应用备注"></el-input>
-                   </el-form-item>
-                </el-col>
-             </el-row>
           </el-form>
           <template #footer>
              <div class="dialog-footer">
@@ -276,16 +190,12 @@
     queryParams: {
        pageNum: 1,
        pageSize: 10,
-       dbName: undefined,
-       dbDesc: undefined
+       projectName : undefined,
+       projectDesc : undefined
     },
     rules: {
-       dbName: [{ required: true, message: "名称不能为空", trigger: "blur" }] , 
-       jdbcUrl: [{ required: true, message: "连接不能为空", trigger: "blur" }],
-       dbType: [{ required: true, message: "类型不能为空", trigger: "blur" }] , 
-       dbUsername: [{ required: true , message: "用户名不能为空", trigger: "blur"}],
-       dbPasswd: [{ required: true, message: "密码不能为空", trigger: "blur" }] , 
-       dbDesc: [{ required: true, message: "备注不能为空", trigger: "blur" }] 
+       projectName: [{ required: true, message: "名称不能为空", trigger: "blur" }],
+       projectDesc: [{ required: true, message: "描述不能为空", trigger: "blur" }] ,
     }
   });
   
@@ -381,7 +291,7 @@
   function submitForm() {
     proxy.$refs["databaseRef"].validate(valid => {
        if (valid) {
-          if (form.value.ProjectId != undefined) {
+          if (form.value.id != undefined) {
              updateProject(form.value).then(response => {
                 proxy.$modal.msgSuccess("修改成功");
                 open.value = false;
