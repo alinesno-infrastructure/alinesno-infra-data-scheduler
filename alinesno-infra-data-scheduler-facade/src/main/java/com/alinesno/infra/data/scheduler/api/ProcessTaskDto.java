@@ -12,6 +12,9 @@ import lombok.ToString;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ProcessTaskDto {
 
+    // 流程数据库标识
+    private long taskId;
+
     // 流程定义的唯一标识
     private String id;
 
