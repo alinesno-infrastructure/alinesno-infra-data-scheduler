@@ -13,7 +13,7 @@ var prefix = '/api/infra/data/scheduler/project/' ;
 var managerUrl = {
     datatables : prefix +"datatables" ,
     createUrl: prefix + 'add' ,
-    saveUrl: prefix + 'save' ,
+    saveUrl: prefix + 'saveProject' ,
     updateUrl: prefix +"modify" ,
     statusUrl: prefix +"changeStatus" ,
     cleanUrl: prefix + "clean",
