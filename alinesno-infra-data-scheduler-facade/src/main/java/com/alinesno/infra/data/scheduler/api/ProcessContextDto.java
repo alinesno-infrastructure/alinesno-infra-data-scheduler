@@ -15,23 +15,29 @@ import java.util.Map;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ProcessContextDto {
 
+    // 任务ID，用于标识任务
+    private long id;
+
     // 任务名称，用于标识任务
     private String taskName;
 
     // 任务描述，用于描述任务的功能和用途
-    private String taskDesc ;
+    private String taskDesc;
+
+    // 任务模板
+    private String dataCollectionTemplate ;
 
     // 上下文信息，可用于存储任务执行的额外信息
-    private Map<String,String> globalParams;
+    private Map<String, String> globalParams;
 
     // 项目代码
-    private long projectCode ;
+    private long projectCode;
 
     // 环境ID
-    private long envId ;
+    private long envId;
 
     // 超时时间
-    private int timeout ;
+    private int timeout;
 
     // 是否启用警报，用于控制任务执行异常时是否发送警报
     private boolean isAlertEnabled;
