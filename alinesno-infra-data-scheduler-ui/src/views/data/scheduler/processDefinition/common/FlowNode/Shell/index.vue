@@ -61,6 +61,9 @@ function open(selectNode) {
 
   //  打开配置
   selectNode = flowNodeStore().getNodeById(selectNode.id) ; 
+  
+  console.log('selectNode = ' + JSON.stringify(selectNode))
+
   flowShellSetting.value.showDrawer(selectNode);
 }
 
