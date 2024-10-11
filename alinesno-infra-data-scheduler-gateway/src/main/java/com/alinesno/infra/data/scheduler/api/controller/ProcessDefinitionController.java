@@ -3,13 +3,16 @@ package com.alinesno.infra.data.scheduler.api.controller;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.alinesno.infra.common.core.constants.SpringInstanceScope;
+import com.alinesno.infra.common.core.utils.DateUtils;
 import com.alinesno.infra.common.facade.pageable.DatatablesPageBean;
 import com.alinesno.infra.common.facade.pageable.TableDataInfo;
 import com.alinesno.infra.common.facade.response.AjaxResult;
 import com.alinesno.infra.common.web.adapter.rest.BaseController;
+import com.alinesno.infra.data.scheduler.api.ProcessContextDto;
 import com.alinesno.infra.data.scheduler.api.ProcessDefinitionDto;
 import com.alinesno.infra.data.scheduler.api.ProcessTaskDto;
 import com.alinesno.infra.data.scheduler.api.ProcessTaskValidateDto;
+import com.alinesno.infra.data.scheduler.api.session.CurrentProjectSession;
 import com.alinesno.infra.data.scheduler.constants.PipeConstants;
 import com.alinesno.infra.data.scheduler.entity.ProcessDefinitionEntity;
 import com.alinesno.infra.data.scheduler.service.ICategoryService;
@@ -69,6 +72,41 @@ public class ProcessDefinitionController extends BaseController<ProcessDefinitio
         return this.toPage(model, this.getFeign(), page);
     }
 
+    /**
+     * 查询详情getProcessDefinitionByDto
+     */
+    @GetMapping("/getProcessDefinitionByDto")
+    public AjaxResult getProcessDefinitionByDto(long id){
+
+        ProcessDefinitionEntity entity = service.getById(id) ;
+
+        ProcessContextDto dto = new ProcessContextDto() ;
+
+        dto.setId(entity.getId());
+        dto.setDataCollectionTemplate(entity.getDataCollectionTemplate());
+        dto.setTaskName(entity.getName());
+        dto.setTaskDesc(entity.getDescription());
+        dto.setGlobalParams(entity.getGlobalParamMap());
+        dto.setProjectCode(entity.getProjectId());
+        dto.setEnvId(entity.getEnvId());
+        dto.setTimeout(entity.getTimeout());
+        dto.setMonitorEmail(entity.getMonitorEmail());
+        dto.setCronExpression(entity.getScheduleCron());
+
+        if(entity.getStartTime() != null){
+            dto.setStartTime(DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS , entity.getStartTime()));
+        }
+        if(entity.getEndTime() != null){
+            dto.setEndTime(DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS , entity.getEndTime()));
+        }
+
+        return AjaxResult.success("success" , dto) ;
+    }
+
+    /**
+     * 获取目录树
+     * @return
+     */
     @GetMapping("/catalogTreeSelect")
     public AjaxResult catalogTreeSelect(){
         return AjaxResult.success("success" , catalogService.selectCatalogTreeList()) ;
@@ -91,6 +129,22 @@ public class ProcessDefinitionController extends BaseController<ProcessDefinitio
     }
 
     /**
+     * 更新流程定义信息
+     */
+    @PostMapping("/updateProcessDefinition")
+    public AjaxResult updateProcessDefinition(@RequestBody ProcessDefinitionDto dto){
+        log.debug("dto = {}", dto);
+
+        List<ProcessTaskDto> taskFlow = dto.getTaskFlow() ;
+        Assert.isTrue(taskFlow.size() > 1 , "流程定义为空,请定义流程.");
+
+        dto.setProjectId(CurrentProjectSession.get().getId());
+
+        service.updateProcessDefinition(dto) ;
+        return AjaxResult.success() ;
+    }
+
+    /**
      * 保存流程定义信息
      * @return
      */
@@ -100,6 +154,8 @@ public class ProcessDefinitionController extends BaseController<ProcessDefinitio
 
         List<ProcessTaskDto> taskFlow = dto.getTaskFlow() ;
         Assert.isTrue(taskFlow.size() > 1 , "流程定义为空,请定义流程.");
+
+        dto.setProjectId(CurrentProjectSession.get().getId());
 
         long processId = service.commitProcessDefinition(dto) ;
         return AjaxResult.success("success" , processId) ;
