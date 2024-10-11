@@ -444,12 +444,16 @@ function handleAdd() {
 /** 修改按钮操作 */
 function handleUpdate(row) {
    reset();
-   const ProcessDefinitionId = row.id || ids.value;
-   getProcessDefinition(ProcessDefinitionId).then(response => {
-      form.value = response.data;
-      open.value = true;
-      title.value = "修改任务";
-   });
+
+   let path = '/data/scheduler/processDefinition/addDefinition';
+   router.push({ path: path , query: { 'processDefinitionId' : row.id} });
+   
+   // getProcessDefinition(ProcessDefinitionId).then(response => {
+   //    form.value = response.data;
+   //    open.value = true;
+   //    title.value = "修改任务";
+   // });
+
 };
 
 /** 查看项目告警空间 */
