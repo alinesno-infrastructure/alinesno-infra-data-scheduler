@@ -13,6 +13,7 @@ import com.alinesno.infra.data.scheduler.enums.ExecutorTypeEnums;
 import com.alinesno.infra.data.scheduler.enums.ProcessStatusEnums;
 import org.apache.commons.lang3.StringUtils;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -85,7 +86,13 @@ public class ProcessUtils {
         entity.setProjectId(context.getProjectCode());
         entity.setGlobalParams(context.getGlobalParams()!= null? JSONObject.toJSONString(context.getGlobalParams()):null);
         entity.setTimeout(context.getTimeout());
+        entity.setDataCollectionTemplate(context.getDataCollectionTemplate());
         entity.setScheduleCron(context.getCronExpression());
+        entity.setMonitorEmail(context.getMonitorEmail());
+        entity.setEnvId(context.getEnvId());
+
+        entity.setStartTime(Date.from(Instant.parse(context.getStartTime())));
+        entity.setEndTime(Date.from(Instant.parse(context.getEndTime())));
 
         return entity ;
 
@@ -108,6 +115,10 @@ public class ProcessUtils {
 
             TaskDefinitionEntity entity = new TaskDefinitionEntity();
             ParamsDto params = task.getParams();
+
+            if(task.getTaskId() != 0){
+                entity.setId(task.getTaskId());
+            }
 
             String name = task.getName() ;
             String desc = task.getDescription() ;
