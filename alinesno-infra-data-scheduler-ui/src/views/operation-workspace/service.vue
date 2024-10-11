@@ -4,7 +4,7 @@
       <el-col class="panel-col" :span="19">
         <div class="grid-content">
           <div class="panel-header">
-            <div class="header-title"><i class="fa-solid fa-file-waveform"></i> 快速常用项目列表</div>
+            <div class="header-title"><i class="fa-solid fa-file-waveform"></i> 最近运行编排任务</div>
           </div>
           <div class="panel-body acp-height-auto" style="padding: 0;padding-bottom: 10px;">
             <div class="acp-app-list">
