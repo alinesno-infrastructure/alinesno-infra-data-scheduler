@@ -8,6 +8,7 @@ RUN sed -i 's/security.debian.org/mirrors.ustc.edu.cn/g' /etc/apt/sources.list
 RUN apt-get update && \
     apt-get install -y python3 python3-pip && \
     apt-get install -y ansible && \
+    apt-get install -y python3-apt && \
     # 清理缓存
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
