@@ -1,6 +1,7 @@
 package com.alinesno.infra.data.scheduler.service;
 
 import com.alinesno.infra.common.facade.services.IBaseService;
+import com.alinesno.infra.data.scheduler.api.ProjectDto;
 import com.alinesno.infra.data.scheduler.entity.ProjectEntity;
 
 import java.util.List;
@@ -45,4 +46,17 @@ public interface IProjectService extends IBaseService<ProjectEntity> {
      */
     boolean isOpen(String projectCode);
 
+    /**
+     * 保存项目
+     *
+     * @param dto
+     */
+    void saveProject(ProjectDto dto);
+
+    /**
+     * 根据账号获取应用
+     * @param userId
+     * @return
+     */
+    ProjectEntity getProjectByAccountId(long userId);
 }
