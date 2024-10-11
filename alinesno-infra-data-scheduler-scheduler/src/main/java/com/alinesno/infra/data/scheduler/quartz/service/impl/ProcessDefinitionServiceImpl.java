@@ -5,9 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.alinesno.infra.common.core.service.impl.IBaseServiceImpl;
 import com.alinesno.infra.common.web.log.utils.SpringUtils;
 import com.alinesno.infra.data.scheduler.adapter.CloudStorageConsumer;
-import com.alinesno.infra.data.scheduler.api.ParamsDto;
-import com.alinesno.infra.data.scheduler.api.ProcessDefinitionDto;
-import com.alinesno.infra.data.scheduler.api.ProcessTaskValidateDto;
+import com.alinesno.infra.data.scheduler.api.*;
 import com.alinesno.infra.data.scheduler.entity.*;
 import com.alinesno.infra.data.scheduler.enums.ExecutorTypeEnums;
 import com.alinesno.infra.data.scheduler.enums.ProcessStatusEnums;
@@ -27,6 +25,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -316,4 +315,71 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
         return this.list(queryWrapper);
     }
 
+    /**
+     * 更新流程定义信息
+     *
+     * 此方法用于根据传入的流程定义DTO更新流程定义的信息它允许修改流程定义的各种属性，
+     * 比如流程名称、描述等这个方法不对更新操作的成功与否进行返回，因此不包含返回值说明
+     *
+     * @param dto 包含要更新的流程定义信息的DTO（数据传输对象）不能为空这个DTO包含了所有
+     *            需要更新的流程定义的信息，如流程定义ID、新流程名称、新描述等
+     */
+    @Override
+    public void updateProcessDefinition(ProcessDefinitionDto dto) {
+
+        ProcessContextDto context = dto.getContext() ;
+        Assert.notNull(context, "流程定义上下文不能为空");
+
+        long processId = context.getId();
+        ProcessDefinitionEntity processDefinition = ProcessUtils.fromDtoToEntity(dto);
+        processDefinition.setOnline(false);
+        processDefinition.setId(processId);
+
+        this.updateById(processDefinition);
+
+        List<ProcessTaskDto> taskFlow = dto.getTaskFlow() ;
+        Assert.isTrue(taskFlow.size() > 1 , "流程定义为空,请定义流程.");
+
+        long projectId = dto.getProjectId();
+
+        List<TaskDefinitionEntity> taskDefinitionList = ProcessUtils.fromDtoToTaskInstance(dto, processId, projectId);
+        taskDefinitionList.forEach(t -> t.setProcessId(processId));
+
+        taskDefinitionService.updateBatchById(taskDefinitionList);
+
+    }
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
