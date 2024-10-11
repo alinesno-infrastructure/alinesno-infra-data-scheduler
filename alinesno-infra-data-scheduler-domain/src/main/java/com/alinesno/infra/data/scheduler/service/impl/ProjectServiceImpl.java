@@ -150,7 +150,7 @@ public ProjectEntity getProjectByAccountId(long userId) {
 
     List<ProjectAccountEntity> es = projectAccountService.list(lambdaQueryWrapper) ;
 
-    return CollectionUtils.isEmpty(es) ? null : getById(es.get(0).getApplicationId());
+    return CollectionUtils.isEmpty(es) ? getDefaultProject(userId) : getById(es.get(0).getApplicationId());
 }
 
 
