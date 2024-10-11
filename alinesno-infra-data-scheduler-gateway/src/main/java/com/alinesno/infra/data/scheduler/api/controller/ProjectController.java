@@ -6,6 +6,8 @@ import com.alinesno.infra.common.facade.pageable.TableDataInfo;
 import com.alinesno.infra.common.facade.response.AjaxResult;
 import com.alinesno.infra.common.web.adapter.login.account.CurrentAccountJwt;
 import com.alinesno.infra.common.web.adapter.rest.BaseController;
+import com.alinesno.infra.data.scheduler.api.ProjectDto;
+import com.alinesno.infra.data.scheduler.api.session.CurrentProjectSession;
 import com.alinesno.infra.data.scheduler.entity.ProjectEntity;
 import com.alinesno.infra.data.scheduler.service.IProjectService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -36,6 +38,9 @@ public class ProjectController extends BaseController<ProjectEntity, IProjectSer
     @Autowired
     private IProjectService service;
 
+    @Autowired
+    private CurrentProjectSession currentProjectSession ;
+
     /**
      * 获取ApplicationEntity的DataTables数据。
      *
@@ -60,18 +65,46 @@ public class ProjectController extends BaseController<ProjectEntity, IProjectSer
         return this.toPage(model, this.getFeign(), page);
     }
 
+
     /**
-     * 保存文件类型
-     * @param projectId
-     * @param documentStr
+     * 获取当前应用
+     * @return
      */
-    @PostMapping("/saveDocumentType")
-    public void saveDocumentType(@Validated @RequestParam String projectId,
-                                 @Validated @RequestBody String documentStr) {
-        // 在这里调用您的 saveDocumentType 方法，传入 projectId 和 documentStr
-        service.saveDocumentType(projectId, documentStr);
+    @GetMapping("/currentProject")
+    public AjaxResult currentApplication() {
+
+        long userId = 1L ; // CurrentAccountJwt.getUserId() ;
+        long orgId = 1L ;
+
+        service.initDefaultApp(userId) ; // , orgId) ;
+
+        ProjectEntity e =  currentProjectSession.get() ;
+
+        String defaultIcon = "fa-solid fa-file-shield" ;
+        e.setProjectIcons(defaultIcon);
+
+        return AjaxResult.success(e);
     }
 
+    /**
+     * 保存项目 projectDesc
+     */
+    @PostMapping("/saveProject")
+    public AjaxResult saveProject(@RequestBody @Validated ProjectDto dto){
+        log.info("saveProject projectEntity = {}" ,  dto) ;
+        service.saveProject(dto) ;
+        return AjaxResult.success("操作成功.") ;
+    }
+
+    /**
+     * 选择应用
+     * @return
+     */
+    @GetMapping("/choiceProject")
+    public AjaxResult choiceProject(Long projectId) {
+        currentProjectSession.set(projectId);
+        return ok() ;
+    }
 
     /**
      * 获取默认应用地址
