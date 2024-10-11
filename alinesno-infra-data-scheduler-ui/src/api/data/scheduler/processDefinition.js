@@ -30,13 +30,31 @@ var managerUrl = {
     commitProcessDefinition: prefix + "commitProcessDefinition", // 保存任务
     catalogTreeSelect: prefix + "catalogTreeSelect",
     validateTask: prefix + "validateTask",
+    getProcessDefinitionByDto: prefix + "getProcessDefinitionByDto",
     downloadfile: prefix + "downloadfile"
+}
+
+// 查询任务详细
+export function getProcessDefinitionByDto(id){
+  return request({
+    url: managerUrl.getProcessDefinitionByDto + '?id=' + parseStrEmpty(id) ,
+    method: 'get'
+  })
 }
 
 // 校验任务
 export function validateTask(data){
   return request({
     url: managerUrl.validateTask ,
+    method: 'post',
+    data: data
+  })
+}
+
+// 更新任务
+export function updateProcessDefinition(data){
+  return request({
+    url: managerUrl.updateProcessDefinition,
     method: 'post',
     data: data
   })
@@ -144,13 +162,13 @@ export function addProcessDefinition(data) {
 }
 
 // 修改数据库
-export function updateProcessDefinition(data) {
-  return request({
-    url: managerUrl.updateUrl ,
-    method: 'put',
-    data: data
-  })
-}
+// export function updateProcessDefinition(data) {
+//   return request({
+//     url: managerUrl.updateUrl ,
+//     method: 'put',
+//     data: data
+//   })
+// }
 
 // 删除数据库
 export function delProcessDefinition(databaseId) {
