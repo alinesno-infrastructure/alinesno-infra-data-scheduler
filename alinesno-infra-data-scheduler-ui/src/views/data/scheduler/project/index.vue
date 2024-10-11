@@ -101,6 +101,7 @@
   
        <!-- 添加或修改应用配置对话框 -->
        <el-dialog :title="title" v-model="open" width="900px" append-to-body>
+
           <el-form :model="form" :rules="rules" ref="databaseRef" label-width="100px">
              <el-row>
                 <el-col :span="24">
@@ -112,18 +113,19 @@
              <el-row>
                 <el-col :span="24">
                    <el-form-item label="应用介绍" prop="projectDesc">
-                      <el-input v-model="form.projectDesc" type="textarea" placeholder="请输入应用描述" maxlength="255" />
+                      <el-input v-model="form.projectDesc" placeholder="请输入应用描述" maxlength="255" />
                    </el-form-item>
                 </el-col>
              </el-row>
-  
           </el-form>
+
           <template #footer>
              <div class="dialog-footer">
                 <el-button type="primary" @click="submitForm">确 定</el-button>
                 <el-button @click="cancel">取 消</el-button>
              </div>
           </template>
+
        </el-dialog>
   
   
