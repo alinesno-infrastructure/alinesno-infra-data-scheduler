@@ -1,14 +1,19 @@
 package com.alinesno.infra.data.scheduler.service.impl;
 
+import cn.hutool.core.util.IdUtil;
 import com.alinesno.infra.common.core.service.impl.IBaseServiceImpl;
 import com.alinesno.infra.common.facade.enums.HasStatusEnums;
+import com.alinesno.infra.data.scheduler.api.ProjectDto;
+import com.alinesno.infra.data.scheduler.entity.ProjectAccountEntity;
 import com.alinesno.infra.data.scheduler.entity.ProjectEntity;
 import com.alinesno.infra.data.scheduler.mapper.ProjectMapper;
+import com.alinesno.infra.data.scheduler.service.IProjectAccountService;
 import com.alinesno.infra.data.scheduler.service.IProjectService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.sqids.Sqids;
+import org.springframework.util.CollectionUtils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -18,6 +23,9 @@ import java.util.List;
 public class ProjectServiceImpl extends IBaseServiceImpl<ProjectEntity, ProjectMapper> implements IProjectService {
 
     private static final String DEFAULT_PROJECT_FIELD = "default" ;
+
+    @Autowired
+    private IProjectAccountService projectAccountService;
 
     /**
      * 获取支持的类型
@@ -49,8 +57,16 @@ public class ProjectServiceImpl extends IBaseServiceImpl<ProjectEntity, ProjectM
     @Override
     public void initDefaultApp(long userId) {
 
-        Sqids sqids=Sqids.builder().build();
-        String code = sqids.encode(Arrays.asList(1L,2L,3L)); // "86Rf07"
+        LambdaQueryWrapper<ProjectEntity> wrapper = new LambdaQueryWrapper<>() ;
+        wrapper.eq(ProjectEntity::getOperatorId , userId)
+                .eq(ProjectEntity::getFieldProp, DEFAULT_PROJECT_FIELD);
+
+        long count = count(wrapper) ;
+        if(count > 0){
+            return ;
+        }
+
+        String code = IdUtil.getSnowflakeNextIdStr() ;
 
         ProjectEntity project = new ProjectEntity() ;
 
@@ -60,7 +76,6 @@ public class ProjectServiceImpl extends IBaseServiceImpl<ProjectEntity, ProjectM
         project.setProjectName("默认数据编排应用");
         project.setProjectDesc("包含所有的数据编排渠道查看权限，用于开发和验证场景");
         project.setProjectCode(code);
-//        project.setDocumentType(PluginEnum.getAllNameStr());
 
         save(project) ;
     }
@@ -99,5 +114,44 @@ public class ProjectServiceImpl extends IBaseServiceImpl<ProjectEntity, ProjectM
         // 判断项目的状态是否为合法状态，返回相应的布尔值
         return project.getHasStatus() == HasStatusEnums.LEGAL.value;
     }
+
+    @Override
+public void saveProject(ProjectDto dto) {
+    ProjectEntity project = new ProjectEntity();
+
+    // 设置项目名称
+    project.setProjectName(dto.getProjectName());
+    // 设置项目描述
+    project.setProjectDesc(dto.getProjectDesc());
+    // 设置项目代码
+    project.setProjectCode(IdUtil.getSnowflakeNextIdStr());
+
+    try {
+        boolean result = save(project);
+        if (result) {
+            // 记录日志，保存成功
+            log.info("项目保存成功，项目代码：{}", project.getProjectCode());
+        } else {
+            // 记录日志，保存失败
+            log.error("项目保存失败，项目代码：{}", project.getProjectCode());
+        }
+    } catch (Exception e) {
+        // 记录异常日志
+        log.error("保存项目时发生异常", e);
+    }
+}
+
+@Override
+public ProjectEntity getProjectByAccountId(long userId) {
+    LambdaQueryWrapper<ProjectAccountEntity> lambdaQueryWrapper = new LambdaQueryWrapper<>() ;
+
+    lambdaQueryWrapper.eq(ProjectAccountEntity::getAccountId , userId)
+            .orderByDesc(ProjectAccountEntity::getAppOrder) ;
+
+    List<ProjectAccountEntity> es = projectAccountService.list(lambdaQueryWrapper) ;
+
+    return CollectionUtils.isEmpty(es) ? null : getById(es.get(0).getApplicationId());
+}
+
 
 }
