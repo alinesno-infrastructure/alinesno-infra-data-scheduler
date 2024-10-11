@@ -46,14 +46,8 @@
                     </el-form-item>
                     <el-form-item label="资源" prop="resourceId">
                         <!-- <el-input v-model="form.resourceId" placeholder="请选择资源" /> -->
-                        <el-tree-select
-                            v-model="form.resourceId"
-                            :data="resourceData"
-                            multiple
-                            placeholder="请选择资源"
-                            :render-after-expand="false"
-                            style="width: 500px"
-                        />
+                        <el-tree-select v-model="form.resourceId" :data="resourceData" multiple placeholder="请选择资源"
+                            :render-after-expand="false" style="width: 500px" />
                     </el-form-item>
                     <el-form-item label="自定义参数">
                         <el-button type="primary" bg text @click="paramsDialog = true">
@@ -63,8 +57,9 @@
                 </el-form>
 
                 <div class="flow-setting-footer">
-                    <el-button type="primary" text bg @click="handleValidateTask()"><i class="fa-solid fa-truck-fast"></i>&nbsp;验证任务</el-button>
-                    <el-button type="primary" bg  @click="submitForm('ruleForm')">确认保存</el-button>
+                    <el-button type="primary" text bg @click="handleValidateTask()"><i
+                            class="fa-solid fa-truck-fast"></i>&nbsp;验证任务</el-button>
+                    <el-button type="primary" bg @click="submitForm('ruleForm')">确认保存</el-button>
                     <el-button @click="onClose" size="large" text bg>取消</el-button>
                 </div>
             </div>
@@ -73,12 +68,12 @@
         <el-dialog title="任务环境变量" v-model="paramsDialog" append-to-body destroy-on-close class="scrollbar">
             <ContextParam ref="taskParamRef" :context="form.context" />
             <template #footer>
-            <div class="dialog-footer">
-                <el-button @click="paramsDialog = false">取消</el-button>
-                <el-button type="primary" @click="callTaskParamRef()">
-                确认 
-                </el-button>
-            </div>
+                <div class="dialog-footer">
+                    <el-button @click="paramsDialog = false">取消</el-button>
+                    <el-button type="primary" @click="callTaskParamRef()">
+                        确认
+                    </el-button>
+                </div>
             </template>
         </el-dialog>
 
@@ -99,7 +94,7 @@ import CodeEditor from '../../CodeEditor.vue';
 
 const { proxy } = getCurrentInstance();
 
-const paramsDialog = ref(false) 
+const paramsDialog = ref(false)
 const taskParamRef = ref(null)
 // const envData = ref([])
 
@@ -120,9 +115,9 @@ const data = reactive({
         delivery: false,
         retryCount: 0,
         env: 'shabox',
-        rawScript: '' ,
+        rawScript: '',
         resourceId: [],
-        customParams: {} 
+        customParams: {}
     },
     rules: {
         desc: [
@@ -158,7 +153,7 @@ const submitForm = (formName) => {
     formInstance.validate((valid) => {
         if (valid) {
 
-            form.value.rawScript = codeEditorRef.value.getRawScript() 
+            form.value.rawScript = codeEditorRef.value.getRawScript()
 
             // 更新节点信息
             node.value.params = form.value;
@@ -174,12 +169,12 @@ const submitForm = (formName) => {
 /** 
  * 获取到环境变量值  
  */
-function callTaskParamRef(){
- let contextParam = taskParamRef.value.getEnvVarsAsJson() ; 
- form.value.customParams = contextParam ;
- paramsDialog.value = false ;
+function callTaskParamRef() {
+    let contextParam = taskParamRef.value.getEnvVarsAsJson();
+    form.value.customParams = contextParam;
+    paramsDialog.value = false;
 
- console.log(JSON.stringify(contextParam, null, 2));
+    console.log(JSON.stringify(contextParam, null, 2));
 }
 
 /** 验证脚本任务 */
@@ -216,20 +211,17 @@ function handleValidateTask() {
  * @param {*} routeNode 
  */
 function showDrawer(_node) {
-    console.log('node = ' + _node.name)
+    console.log('-->>> node = ' + _node.name)
+    console.log('-->>> node.params = ' + JSON.stringify(_node.params))
 
     visible.value = true;
     node.value = _node;
+    form.value = _node.params;
+
     form.value.name = _node.name;
-    
+
     nextTick(() => {
-        // 获取所有环境
-        // getAllEnvironment().then(res => {
-        //     envData.value = res.data
-        //     // nextTick(() => {
-        //     //     form.value.env = res.defaultEnvId
-        //     // })
-        // })
+        codeEditorRef.value.setRawScript(form.value.rawScript) 
         getAllResource().then(res => {
             resourceData.value = res.data
         })
