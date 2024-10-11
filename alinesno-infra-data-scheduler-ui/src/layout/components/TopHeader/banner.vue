@@ -85,7 +85,7 @@ function handleCurrentProject(){
   })
 }
 
-// handleCurrentProject() ; 
+handleCurrentProject() ; 
 
 </script>
 
