@@ -38,8 +38,8 @@ public class ProjectController extends BaseController<ProjectEntity, IProjectSer
     @Autowired
     private IProjectService service;
 
-    @Autowired
-    private CurrentProjectSession currentProjectSession ;
+//    @Autowired
+//    private CurrentProjectSession currentProjectSession ;
 
     /**
      * 获取ApplicationEntity的DataTables数据。
@@ -78,7 +78,7 @@ public class ProjectController extends BaseController<ProjectEntity, IProjectSer
 
         service.initDefaultApp(userId) ; // , orgId) ;
 
-        ProjectEntity e =  currentProjectSession.get() ;
+        ProjectEntity e =  CurrentProjectSession.get() ;
 
         String defaultIcon = "fa-solid fa-file-shield" ;
         e.setProjectIcons(defaultIcon);
@@ -102,7 +102,7 @@ public class ProjectController extends BaseController<ProjectEntity, IProjectSer
      */
     @GetMapping("/choiceProject")
     public AjaxResult choiceProject(Long projectId) {
-        currentProjectSession.set(projectId);
+        CurrentProjectSession.set(projectId);
         return ok() ;
     }
 
