@@ -8,7 +8,7 @@
     <FlowSqlNode v-if="node && node.type == 4" :node="node" :readable="readable" />
     <FlowMavenNode v-if="node && node.type == 5" :node="node" :readable="readable" />
     <FlowAnsibleNode v-if="node && node.type == 6" :node="node" :readable="readable" />
-    <FlowK8SNode v-if="node && node.type == 7" :node="node" :readable="readable" />
+    <FlowGroovyNode v-if="node && node.type == 7" :node="node" :readable="readable" />
     <FlowCheckout v-if="node && node.type == 8" :node="node" :readable="readable" />
     <FlowNotice v-if="node && node.type == 9" :node="node" :readable="readable" />
     
@@ -26,7 +26,7 @@ import FlowPythonNode from './Python/index'   // 引入PYTHON组件(3)
 import FlowSqlNode from './Sql/index'  // 引入SQL组件(4)
 import FlowMavenNode from './Maven/index' // 引入MAVEN组件(5)
 import FlowAnsibleNode from './Ansible/index' // 引入JAR组件(6)
-import FlowK8SNode from './K8S/index' // 引入K8S组件(7)
+import FlowGroovyNode from './Groovy/index' // 引入Groovy组件(7)
 import FlowCheckout from './Checkout/index' // 引入代码下载组件(8)
 import FlowNotice from './Notice/index'
 
