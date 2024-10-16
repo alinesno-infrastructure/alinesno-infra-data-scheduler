@@ -172,7 +172,7 @@ const data = reactive({
     id: 0,
     taskName: "", // 任务名称
     envId: "", // 环境ID
-    globalParams: "", // 上下文内容
+    globalParams: {} , // 上下文内容
     dataCollectionTemplate: "", // 数据采集模板
     dataQuality: "", // 数据质量
     isAlertEnabled: false, // 是否告警
@@ -317,7 +317,9 @@ getAllEnvironment().then(res => {
         currentLoginStyle.value = form.value.dataCollectionTemplate;
       })
     } else {
-      loadFormDataFromStorage();
+      // loadFormDataFromStorage();
+      // 清空本地缓存 
+      localStorage.setItem('processDefinitionFormData', JSON.stringify(form.value));
     }
   })
 })
