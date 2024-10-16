@@ -15,7 +15,7 @@ public enum ExecutorTypeEnums {
     SQL_SCRIPT(4, "SQL脚本", "sql"),
     MAVEN_COMMAND(5, "MAVEN命令", "maven"),
     JAR_EXECUTION(6, "ANSIBLE执行", "ansible"),
-    K8S_OPERATION(7, "K8S操作", "k8s"),
+    K8S_OPERATION(7, "Groovy操作", "groovy"),
     GIT_CHECKOUT(8, "Checkout操作", "checkout"),
     NOTICE(9, "发送通知", "notice")
     ;
