@@ -11,6 +11,7 @@ import com.alinesno.infra.data.scheduler.service.IProjectAccountService;
 import com.alinesno.infra.data.scheduler.service.IProjectService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -118,13 +119,8 @@ public class ProjectServiceImpl extends IBaseServiceImpl<ProjectEntity, ProjectM
     @Override
 public void saveProject(ProjectDto dto) {
     ProjectEntity project = new ProjectEntity();
-
-    // 设置项目名称
-    project.setProjectName(dto.getProjectName());
-    // 设置项目描述
-    project.setProjectDesc(dto.getProjectDesc());
-    // 设置项目代码
-    project.setProjectCode(IdUtil.getSnowflakeNextIdStr());
+    BeanUtils.copyProperties(dto, project);
+    project.setProjectCode(IdUtil.getSnowflakeNextIdStr()); // 设置项目代码
 
     try {
         boolean result = save(project);
