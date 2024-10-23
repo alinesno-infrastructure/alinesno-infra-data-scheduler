@@ -2,6 +2,8 @@ package com.alinesno.infra.data.scheduler.api.controller;
 
 import cn.hutool.core.util.IdUtil;
 import com.alinesno.infra.common.core.constants.SpringInstanceScope;
+import com.alinesno.infra.common.extend.datasource.annotation.DataPermissionSave;
+import com.alinesno.infra.common.extend.datasource.annotation.DataPermissionScope;
 import com.alinesno.infra.common.facade.pageable.DatatablesPageBean;
 import com.alinesno.infra.common.facade.pageable.TableDataInfo;
 import com.alinesno.infra.common.facade.response.AjaxResult;
@@ -64,6 +66,7 @@ public class ResourceController extends BaseController<ResourceEntity, IResource
      * @param page DatatablesPageBean对象。
      * @return 包含DataTables数据的TableDataInfo对象。
      */
+    @DataPermissionScope
     @ResponseBody
     @PostMapping("/datatables")
     public TableDataInfo datatables(HttpServletRequest request, Model model, DatatablesPageBean page) {
@@ -75,11 +78,10 @@ public class ResourceController extends BaseController<ResourceEntity, IResource
      * 文件上传
      * @return
      */
+    @DataPermissionSave
     @SneakyThrows
     @PostMapping("/importData")
-    public AjaxResult importData(@RequestPart("file") MultipartFile file){
-
-        ResourceEntity resourceEntity = new ResourceEntity() ;
+    public AjaxResult importData(@RequestPart("file") MultipartFile file , ResourceEntity resourceEntity){
 
         // 新生成的文件名称
         String fileSuffix = Objects.requireNonNull(file.getOriginalFilename()).substring(file.getOriginalFilename().lastIndexOf(".")+1);
