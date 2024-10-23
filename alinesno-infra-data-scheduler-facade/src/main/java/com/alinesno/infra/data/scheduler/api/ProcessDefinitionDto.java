@@ -1,10 +1,10 @@
 package com.alinesno.infra.data.scheduler.api;
 
+import com.alinesno.infra.common.facade.base.BaseDto;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import lombok.ToString;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -14,7 +14,7 @@ import java.util.List;
 @ToString
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ProcessDefinitionDto implements Serializable {
+public class ProcessDefinitionDto extends BaseDto {
 
     /**
      * 项目ID
