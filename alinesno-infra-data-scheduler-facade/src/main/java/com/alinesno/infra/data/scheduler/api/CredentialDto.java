@@ -1,18 +1,18 @@
 package com.alinesno.infra.data.scheduler.api;
 
+import com.alinesno.infra.common.facade.base.BaseDto;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
-
-import java.io.Serializable;
 
 /**
  * CredentialEntity凭据实体信息
  */
 @Data
-public class CredentialDto implements Serializable {
+public class CredentialDto extends BaseDto {
 
     @NotBlank(message = "标识不能为空")
     private String credentialId;
+
     private long projectId ; // 所属项目
 
     @NotBlank(message = "用户名不能为空")
