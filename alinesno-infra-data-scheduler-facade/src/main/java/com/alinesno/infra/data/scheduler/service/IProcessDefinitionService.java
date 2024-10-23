@@ -1,5 +1,6 @@
 package com.alinesno.infra.data.scheduler.service;
 
+import com.alinesno.infra.common.facade.datascope.PermissionQuery;
 import com.alinesno.infra.common.facade.services.IBaseService;
 import com.alinesno.infra.data.scheduler.api.ProcessDefinitionDto;
 import com.alinesno.infra.data.scheduler.api.ProcessTaskValidateDto;
@@ -34,10 +35,12 @@ public interface IProcessDefinitionService extends IBaseService<ProcessDefinitio
 
     /**
      * 查询最近count条流程定义
+     *
      * @param count
+     * @param query
      * @return
      */
-    List<ProcessDefinitionEntity> queryRecentlyProcess(int count);
+    List<ProcessDefinitionEntity> queryRecentlyProcess(int count, PermissionQuery query);
 
     /**
      * 更新流程定义
