@@ -91,6 +91,11 @@ public class ProcessUtils {
         entity.setMonitorEmail(context.getMonitorEmail());
         entity.setEnvId(context.getEnvId());
 
+        entity.setOrgId(dto.getOrgId());
+        entity.setOperatorId(dto.getOperatorId());
+        entity.setDepartmentId(dto.getDepartmentId());
+        entity.setApplicationId(dto.getApplicationId());
+
         entity.setStartTime(Date.from(Instant.parse(context.getStartTime())));
         entity.setEndTime(Date.from(Instant.parse(context.getEndTime())));
 
@@ -148,6 +153,11 @@ public class ProcessUtils {
             entity.setResourceId(resourceId) ;
             entity.setOrderNum(orderNum);
             entity.setAttr(JSONObject.toJSONString(task.getAttr()));
+
+            entity.setOrgId(dto.getOrgId());
+            entity.setOperatorId(dto.getOperatorId());
+            entity.setDepartmentId(dto.getDepartmentId());
+            entity.setApplicationId(dto.getApplicationId());
 
             taskDefinitionList.add(entity);
             orderNum ++ ;
