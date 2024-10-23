@@ -89,7 +89,7 @@
             <el-row>
                <el-col :span="24">
                   <el-form-item label="密钥标识" prop="secName">
-                     <el-input v-model="form.secName" :disabled="form.id != null?'':'disabled'" placeholder="请输入应用名称" maxlength="50" />
+                     <el-input v-model="form.secName" placeholder="请输入密钥标识" maxlength="50" />
                   </el-form-item>
                </el-col>
             </el-row>
