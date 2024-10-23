@@ -1,6 +1,8 @@
 package com.alinesno.infra.data.scheduler.api.controller;
 
 import com.alinesno.infra.common.core.constants.SpringInstanceScope;
+import com.alinesno.infra.common.extend.datasource.annotation.DataPermissionQuery;
+import com.alinesno.infra.common.facade.datascope.PermissionQuery;
 import com.alinesno.infra.common.facade.response.AjaxResult;
 import com.alinesno.infra.common.web.adapter.rest.SuperController;
 import com.alinesno.infra.data.scheduler.entity.ProcessDefinitionEntity;
@@ -31,10 +33,11 @@ public class DashboardController extends SuperController {
     /**
      * 查询出最近的8条自定义流程
      */
+    @DataPermissionQuery
     @GetMapping(value = "/recentlyProcess")
-    public AjaxResult recentlyProcess() {
+    public AjaxResult recentlyProcess(PermissionQuery query) {
 
-        List<ProcessDefinitionEntity> list = processDefinitionService.queryRecentlyProcess(8) ;
+        List<ProcessDefinitionEntity> list = processDefinitionService.queryRecentlyProcess(8 , query) ;
 
         return AjaxResult.success(list) ;
     }
