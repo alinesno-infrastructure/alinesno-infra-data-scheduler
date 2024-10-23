@@ -3,6 +3,7 @@ package com.alinesno.infra.data.scheduler.quartz.service.impl;
 import cn.hutool.core.util.IdUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.alinesno.infra.common.core.service.impl.IBaseServiceImpl;
+import com.alinesno.infra.common.facade.datascope.PermissionQuery;
 import com.alinesno.infra.common.web.log.utils.SpringUtils;
 import com.alinesno.infra.data.scheduler.adapter.CloudStorageConsumer;
 import com.alinesno.infra.data.scheduler.api.*;
@@ -305,9 +306,12 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
     }
 
     @Override
-    public List<ProcessDefinitionEntity> queryRecentlyProcess(int count) {
+    public List<ProcessDefinitionEntity> queryRecentlyProcess(int count, PermissionQuery query) {
 
         LambdaQueryWrapper<ProcessDefinitionEntity> queryWrapper = Wrappers.lambdaQuery();
+        queryWrapper.setEntityClass(ProcessDefinitionEntity.class);
+        query.toWrapper(queryWrapper);
+
         queryWrapper
                 .orderByDesc(ProcessDefinitionEntity::getAddTime)
                 .last("limit " + count);
