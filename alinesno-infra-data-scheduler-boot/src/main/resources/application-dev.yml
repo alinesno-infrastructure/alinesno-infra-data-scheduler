@@ -11,6 +11,7 @@ spring:
       file-size-threshold: 0
   application:
     name: alinesno-infra-data-scheduler-boot
+    id: 1849085034695233536
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/dev_alinesno_infra_data_scheduler_v100?serverTimezone=GMT%2B8&zeroDateTimeBehavior=CONVERT_TO_NULL
@@ -65,13 +66,6 @@ spring:
     restart:
       enabled: true
 
-alinesno:
-  infra:
-   gateway.host: http://alinesno-infra-base-gateway-proxy-application.beta.base.infra.linesno.com
-  data:
-    scheduler:
-      workspacePath: ${user.home}/.infra-data-scheduler
-
 # actable配置
 actable:
   table:
@@ -85,9 +79,22 @@ actable:
   unique:
     prefix: alinesno_data_scheduler_uni_
 
+# wechat token
+alinesno:
+  security:
+    # 排除路径
+    excludes:
+      - /sso/**
+  infra:
+    gateway:
+      host: http://alinesno-infra-base-gateway-proxy-application.beta.base.infra.linesno.com
+  data:
+    scheduler:
+      workspacePath: ${user.home}/.infra-data-scheduler
+
 # sa-token配置
 sa-token:
-  token-name: satoken
+  token-name: Authorization
   host-path: http://alinesno-infra-base-identity-auth-application.beta.base.infra.linesno.com
   sso:
     auth-url: ${sa-token.host-path}/login
@@ -96,33 +103,5 @@ sa-token:
     slo-url: ${sa-token.host-path}/sso/signout
     get-data-url: ${sa-token.host-path}/sso/getData
   sign:
-    secret-key:
+    secret-key: kQwIOrYvnXmSDkwEiFngrKidMcdrgKor
 
-#org:
-#  quartz:
-#    jobStore:
-#      class: org.quartz.impl.jdbcjobstore.JobStoreTX
-#      clusterCheckinInterval: 5000
-#      driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
-#      isClustered: true
-#      misfireThreshold: 60000
-#      tablePrefix: QRTZ_
-#      txIsolationLevelReadCommitted: true
-#      useProperties: false
-#    scheduler:
-#      instanceId: AUTO
-#      instanceName: ClusterQuartz
-#      rmi:
-#        export: false
-#        proxy: false
-#      wrapJobExecutionInUserTransaction: false
-
-## 定时任务
-#db-scheduler:
-#  immediate-execution-enabled: true
-#  threads: 5
-#  polling-interval: 5
-#  polling-strategy: fetch
-#  polling-strategy-lower-limit-fraction-of-threads: 0.5
-#  polling-strategy-upper-limit-fraction-of-threads: 3.0
-#  shutdown-max-wait: 30m
