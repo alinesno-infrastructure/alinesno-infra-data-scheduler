@@ -60,8 +60,12 @@ import {
 } from '@/utils/flowMixin';
 
 import { v4 as uuidv4 } from 'uuid';
+// import nodeSessionStore from '@/utils/nodeUtils'
 
-import flowNodeStore from '@/store/modules/flowNode'
+import { useNodeStore } from '@/store/modules/flowNode'; // 根据实际情况调整路径
+const flowNodeStore = useNodeStore();
+
+import emitter from '@/utils/emitter' 
 
 const props = defineProps({
   node: {
@@ -96,7 +100,9 @@ function addType(type) {
   const currNode = props.node;
   const id = props.id;
 
-  flowNodeStore().addNode({addNode, currNode, nodeType, id});
+  // nodeSessionStore.addNode({addNode, currNode, nodeType, id});
+  flowNodeStore.addNode({addNode, currNode});
+
 }
 
 /**
