@@ -42,7 +42,12 @@ const route = useRoute();
 const { proxy } = getCurrentInstance();
 
 import { ElLoading } from 'element-plus'
-import flowNodeStore from '@/store/modules/flowNode'
+
+// import nodeSessionStore from '@/utils/nodeUtils'
+// import nodeSessionStore from '@/utils/nodeUtils';
+
+import { useNodeStore } from '@/store/modules/flowNode'; // 根据实际情况调整路径
+const flowNodeStore = useNodeStore();
 
 import { getTaskDefinition } from '@/api/data/scheduler/taskDefinition'
 import { commitProcessDefinition , updateProcessDefinition } from '@/api/data/scheduler/processDefinition'
@@ -53,8 +58,12 @@ import FlowNode from './common/FlowNode/index';
 import FlowStartNode from './common/FlowNode/Start';
 import FlowEndNode from './common/FlowNode/End';
 
+import emitter from '@/utils/emitter' 
+import { nextTick } from 'vue';
+
 const processDefinitionId = route.query.processDefinitionId
-const nodeDataArr = ref(flowNodeStore().nodes);
+const nodeDataArr = ref(flowNodeStore.getNodes);
+
 
 /** 返回 */
 function goBack() {
@@ -72,7 +81,9 @@ function goBack() {
  * 提交流程流程定义
  */
 function submitProcessDefinition() {
-  let nodes = flowNodeStore().getAllNodes();
+  // let nodes = nodeSessionStore.getAllNodes();
+
+  let nodes = nodeDataArr.value // nodeSessionStore.getAllNodes();
   console.log('submitProcessDefinition:' + JSON.stringify(nodes))
 
   const loading = ElLoading.service({
@@ -94,11 +105,15 @@ function submitProcessDefinition() {
       console.log(response);
       proxy.$modal.msgSuccess("流程更新成功");
       loading.close();
+    }).catch(error => {
+      loading.close();
     })
   }else{ // 新增流程
     commitProcessDefinition(data).then(response => {
       console.log(response);
       proxy.$modal.msgSuccess("流程提交成功");
+      loading.close();
+    }).catch(error => {
       loading.close();
     })
   }
@@ -108,21 +123,46 @@ function submitProcessDefinition() {
 /** 初始化数据 */
 onMounted(() => {
   console.log('onMounted');
-  // flowNodeStore().initNodes();
-  if(processDefinitionId){
-    getTaskDefinition(processDefinitionId).then(res => {
-      // res.data.each(item => {
-      //   flowNodeStore().addNode(item);
-      // }); 
 
+  flowNodeStore.resetNodes()
+
+  // if(processDefinitionId){
+
+  //   getTaskDefinition(processDefinitionId).then(res => {
+  //     // 使用 forEach 循环遍历 data 数组
+  //     res.data.forEach(item => {
+  //       if(item.type != 0){
+  //         // nodeSessionStore.setNode(item);
+  //         flowNodeStore.setNode(item);
+  //       }
+  //     });
+
+  //     nodeDataArr.value = flowNodeStore.getNodes
+      
+  //   })
+  // }else{
+  //     nodeDataArr.value = flowNodeStore.getNodes
+  // }
+})
+
+nextTick(() => {
+
+  if(processDefinitionId){
+
+    getTaskDefinition(processDefinitionId).then(res => {
       // 使用 forEach 循环遍历 data 数组
       res.data.forEach(item => {
         if(item.type != 0){
-          flowNodeStore().setNode(item);
+          // nodeSessionStore.setNode(item);
+          flowNodeStore.setNode(item);
         }
       });
+
+      nodeDataArr.value = flowNodeStore.getNodes
       
     })
+  }else{
+      nodeDataArr.value = flowNodeStore.getNodes
   }
 })
 
