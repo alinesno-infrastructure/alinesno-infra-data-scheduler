@@ -6,7 +6,12 @@
 </template>
 
 <script setup>
-import flowNodeStore from '@/store/modules/flowNode'
+// import nodeSessionStore from '@/utils/nodeUtils'
+
+import nodeSessionStore from '@/utils/nodeUtils';
+
+import { useNodeStore } from '@/store/modules/flowNode'; // 根据实际情况调整路径
+const flowNodeStore = useNodeStore();
 
 // 定义 props
 const props = defineProps({
@@ -39,6 +44,9 @@ const clickEvent = () => {
 const blurEvent = () => {
   isInput.value = false;
   console.log('editValue:' + editValue.value);
-  flowNodeStore().updateNodeName(props.nodeId,editValue.value);
+  // nodeSessionStore.updateNodeName(props.nodeId,editValue.value);
+
+  // nodeSessionStore.updateNodeName(props.nodeId,editValue.value);
+  flowNodeStore.updateNodeName(props.nodeId,editValue.value);
 };
 </script>
