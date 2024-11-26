@@ -58,7 +58,11 @@
 
 <script setup>
 
-import flowNodeStore from '@/store/modules/flowNode'
+// import nodeSessionStore from '@/utils/nodeUtils'
+
+import { useNodeStore } from '@/store/modules/flowNode'; // 根据实际情况调整路径
+const flowNodeStore = useNodeStore();
+
 import { branchIcon2 } from '@/utils/flowMixin';
 import { ElLoading } from 'element-plus'
 import { validateTask } from '@/api/data/scheduler/processDefinition'
@@ -104,7 +108,8 @@ const submitForm = (formName) => {
         if (valid) {
             // 更新节点信息
             node.value.params = form.value;
-            flowNodeStore().setNode(node.value);
+            // nodeSessionStore.setNode(node.value);
+            flowNodeStore.setNode(node.value);
             onClose();
         } else {
             console.log('验证失败!');
@@ -124,7 +129,9 @@ function showDrawer(_node) {
 
     visible.value = true;
     node.value = _node;
-    form.value = _node.params ;
+    if(_node.params){
+        form.value = _node.params ;
+    }
 }
 
 /** 验证脚本任务 */
