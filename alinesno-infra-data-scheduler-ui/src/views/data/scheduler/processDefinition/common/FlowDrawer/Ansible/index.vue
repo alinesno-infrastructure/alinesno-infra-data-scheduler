@@ -93,7 +93,10 @@
 
 <script setup>
 
-import flowNodeStore from '@/store/modules/flowNode'
+// import nodeSessionStore from '@/utils/nodeUtils'
+
+import { useNodeStore } from '@/store/modules/flowNode'; // 根据实际情况调整路径
+const flowNodeStore = useNodeStore();
 
 import { getAllResource } from '@/api/data/scheduler/resource'
 import { branchIcon2 } from '@/utils/flowMixin';
@@ -146,7 +149,7 @@ const submitForm = (formName) => {
 
             // 更新节点信息
             node.value.params = form.value;
-            flowNodeStore().setNode(node.value);
+            flowNodeStore.setNode(node.value);
             onClose();
         } else {
             console.log('验证失败!');
@@ -167,8 +170,13 @@ function showDrawer(_node) {
     visible.value = true;
     node.value = _node;
     form.value.name = _node.name;
+
+    if(_node.params){
+        form.value = _node.params ;
+    }
     
     nextTick(() => {
+        codeEditorRef.value.setRawScript(form.value.rawScript) 
         getAllResource().then(res => {
             resourceData.value = res.data
         })
