@@ -17,6 +17,7 @@ import com.alinesno.infra.data.scheduler.quartz.utils.ProcessUtils;
 import com.alinesno.infra.data.scheduler.scheduler.IQuartzSchedulerService;
 import com.alinesno.infra.data.scheduler.service.*;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -346,10 +347,16 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
 
         long projectId = dto.getProjectId();
 
+        // 删除流程关联的所有任务
+        LambdaUpdateWrapper<TaskDefinitionEntity>  updateWrapper = new LambdaUpdateWrapper<>() ;
+        updateWrapper.eq(TaskDefinitionEntity::getProcessId , processId) ;
+        taskDefinitionService.remove(updateWrapper);
+
+        // 重新添加关联任务
         List<TaskDefinitionEntity> taskDefinitionList = ProcessUtils.fromDtoToTaskInstance(dto, processId, projectId);
         taskDefinitionList.forEach(t -> t.setProcessId(processId));
 
-        taskDefinitionService.updateBatchById(taskDefinitionList);
+        taskDefinitionService.saveBatch(taskDefinitionList);
 
     }
 
