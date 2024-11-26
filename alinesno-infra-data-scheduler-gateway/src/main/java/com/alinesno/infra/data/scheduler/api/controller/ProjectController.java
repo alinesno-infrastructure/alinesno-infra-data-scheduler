@@ -6,7 +6,9 @@ import com.alinesno.infra.common.extend.datasource.annotation.DataPermissionScop
 import com.alinesno.infra.common.facade.pageable.DatatablesPageBean;
 import com.alinesno.infra.common.facade.pageable.TableDataInfo;
 import com.alinesno.infra.common.facade.response.AjaxResult;
+import com.alinesno.infra.common.web.adapter.login.account.CurrentAccountBean;
 import com.alinesno.infra.common.web.adapter.login.account.CurrentAccountJwt;
+import com.alinesno.infra.common.web.adapter.login.annotation.CurrentAccount;
 import com.alinesno.infra.common.web.adapter.rest.BaseController;
 import com.alinesno.infra.data.scheduler.api.ProjectDto;
 import com.alinesno.infra.data.scheduler.api.session.CurrentProjectSession;
@@ -54,15 +56,19 @@ public class ProjectController extends BaseController<ProjectEntity, IProjectSer
     @DataPermissionScope
     @ResponseBody
     @PostMapping("/datatables")
-    public TableDataInfo datatables(HttpServletRequest request, Model model, DatatablesPageBean page) {
+    public TableDataInfo datatables(HttpServletRequest request,
+                                    @CurrentAccount CurrentAccountBean currentAccount ,
+                                    Model model,
+                                    DatatablesPageBean page) {
         log.debug("page = {}", ToStringBuilder.reflectionToString(page));
 
-        long userId = 1L ; // CurrentAccountJwt.getUserId();
-        long count = service.count(new LambdaQueryWrapper<ProjectEntity>().eq(ProjectEntity::getOperatorId , userId));
+        long userId = currentAccount.getId() ;
+        long count = service.count(new LambdaQueryWrapper<ProjectEntity>()
+                        .eq(ProjectEntity::getOrgId, currentAccount.getOrgId()));
 
         // 初始化默认应用
         if (count == 0) {
-            service.initDefaultApp(userId) ;
+            service.initDefaultApp(userId, currentAccount.getOrgId()) ;
         }
 
         return this.toPage(model, this.getFeign(), page);
@@ -74,12 +80,9 @@ public class ProjectController extends BaseController<ProjectEntity, IProjectSer
      * @return
      */
     @GetMapping("/currentProject")
-    public AjaxResult currentApplication() {
+    public AjaxResult currentApplication(@CurrentAccount CurrentAccountBean currentAccount) {
 
-        long userId = 1L ; // CurrentAccountJwt.getUserId() ;
-        long orgId = 1L ;
-
-        service.initDefaultApp(userId) ; // , orgId) ;
+        service.initDefaultApp(currentAccount.getId(), currentAccount.getOrgId()) ;
 
         ProjectEntity e =  CurrentProjectSession.get() ;
 
