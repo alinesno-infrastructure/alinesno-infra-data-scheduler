@@ -485,8 +485,8 @@ function submitForm() {
 
 /** 配置文档类型 */
 function handleConfigType(id, documentType) {
-   let path = '/task/data/pipeline/task/createDatasource';
-   router.push({ path: path });
+   let path = '/data/scheduler/processDefinition/createDefinition' ;
+   router.push({ path: path , query:{processDefinitionId:id} });
 }
 
 /** 修改状态 */
