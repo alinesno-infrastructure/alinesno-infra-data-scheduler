@@ -134,6 +134,7 @@ public class ProcessDefinitionController extends BaseController<ProcessDefinitio
     /**
      * 更新流程定义信息
      */
+    @DataPermissionSave
     @PostMapping("/updateProcessDefinition")
     public AjaxResult updateProcessDefinition(@RequestBody ProcessDefinitionDto dto){
         log.debug("dto = {}", dto);
