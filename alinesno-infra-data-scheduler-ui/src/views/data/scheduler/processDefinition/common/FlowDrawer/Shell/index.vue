@@ -84,7 +84,11 @@
 <script setup>
 
 import { ElLoading } from 'element-plus'
-import flowNodeStore from '@/store/modules/flowNode'
+import nodeSessionStore from '@/utils/nodeUtils'
+
+import { useNodeStore } from '@/store/modules/flowNode'; // 根据实际情况调整路径
+const flowNodeStore = useNodeStore();
+
 import { getAllResource } from '@/api/data/scheduler/resource'
 import { validateTask } from '@/api/data/scheduler/processDefinition'
 // import { getAllEnvironment } from '@/api/data/scheduler/environment'
@@ -157,7 +161,11 @@ const submitForm = (formName) => {
 
             // 更新节点信息
             node.value.params = form.value;
-            flowNodeStore().setNode(node.value);
+            
+            // nodeSessionStore.setNode(node.value);
+
+            flowNodeStore.setNode(node.value);
+
             onClose();
         } else {
             console.log('验证失败!');
@@ -216,7 +224,10 @@ function showDrawer(_node) {
 
     visible.value = true;
     node.value = _node;
-    form.value = _node.params;
+    
+    if(_node.params){
+        form.value = _node.params 
+    }
 
     form.value.name = _node.name;
 
