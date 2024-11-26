@@ -1,6 +1,7 @@
 package com.alinesno.infra.data.scheduler.quartz.utils;
 
 import com.alibaba.fastjson.JSONObject;
+import com.alinesno.infra.common.core.utils.DateUtils;
 import com.alinesno.infra.data.scheduler.api.ParamsDto;
 import com.alinesno.infra.data.scheduler.api.ProcessContextDto;
 import com.alinesno.infra.data.scheduler.api.ProcessDefinitionDto;
@@ -96,8 +97,8 @@ public class ProcessUtils {
         entity.setDepartmentId(dto.getDepartmentId());
         entity.setApplicationId(dto.getApplicationId());
 
-        entity.setStartTime(Date.from(Instant.parse(context.getStartTime())));
-        entity.setEndTime(Date.from(Instant.parse(context.getEndTime())));
+        entity.setStartTime(DateUtils.parseDate(context.getStartTime()));
+        entity.setEndTime(DateUtils.parseDate(context.getEndTime()));
 
         return entity ;
 
