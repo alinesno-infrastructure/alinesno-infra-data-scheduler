@@ -63,7 +63,6 @@ app.config.globalProperties.addDateRange = addDateRange
 app.config.globalProperties.selectDictLabel = selectDictLabel
 app.config.globalProperties.selectDictLabels = selectDictLabels
 
-
 // 全局组件挂载
 app.component('DictTag', DictTag)
 app.component('Pagination', Pagination)
