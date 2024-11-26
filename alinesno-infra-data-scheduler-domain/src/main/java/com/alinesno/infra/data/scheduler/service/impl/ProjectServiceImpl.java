@@ -56,10 +56,10 @@ public class ProjectServiceImpl extends IBaseServiceImpl<ProjectEntity, ProjectM
     }
 
     @Override
-    public void initDefaultApp(long userId) {
+    public void initDefaultApp(long userId, long orgId) {
 
         LambdaQueryWrapper<ProjectEntity> wrapper = new LambdaQueryWrapper<>() ;
-        wrapper.eq(ProjectEntity::getOperatorId , userId)
+        wrapper.eq(ProjectEntity::getOrgId, orgId)
                 .eq(ProjectEntity::getFieldProp, DEFAULT_PROJECT_FIELD);
 
         long count = count(wrapper) ;
@@ -72,6 +72,7 @@ public class ProjectServiceImpl extends IBaseServiceImpl<ProjectEntity, ProjectM
         ProjectEntity project = new ProjectEntity() ;
 
         project.setOperatorId(userId);
+        project.setOrgId(orgId);
         project.setFieldProp(DEFAULT_PROJECT_FIELD);
 
         project.setProjectName("默认数据编排应用");
