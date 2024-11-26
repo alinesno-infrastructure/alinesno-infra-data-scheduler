@@ -44,12 +44,6 @@
           </el-button>
         </el-form-item>
 
-        <!-- 数据质量 
-        <el-form-item label="数据质量" prop="dataQuality">
-          <el-switch v-model="form.dataQuality" active-value="1" inactive-value="0"></el-switch>
-        </el-form-item>
-        -->
-
         <!-- CRON表达式 -->
         <el-form-item label="CRON表达式" prop="cronExpression">
           <el-input disabled="true" v-model="form.cronExpression" placeholder="请输入CRON表达式">
@@ -62,14 +56,26 @@
         <!-- 是否告警 -->
         <el-form-item label="起止时间" prop="startTime">
           <el-col :span="11">
-            <el-date-picker v-model="form.startTime" type="datetime" placeholder="开始日期" :shortcuts="shortcuts"
+            <el-date-picker 
+              v-model="form.startTime" 
+              format="YYYY-MM-DD HH:mm:ss"
+              value-format="YYYY-MM-DD HH:mm:ss"
+              type="datetime" 
+              placeholder="开始日期" 
+              :shortcuts="shortcuts"
               style="width: 100%" />
           </el-col>
           <el-col :span="2" class="text-center">
             <span class="text-gray-500">-</span>
           </el-col>
           <el-col :span="11">
-            <el-date-picker type="datetime" v-model="form.endTime" :shortcuts="shortcuts" placeholder="结束时间"
+            <el-date-picker 
+              type="datetime" 
+              v-model="form.endTime" 
+              format="YYYY-MM-DD HH:mm:ss"
+              value-format="YYYY-MM-DD HH:mm:ss"
+              :shortcuts="shortcuts" 
+              placeholder="结束时间"
               style="width: 100%" />
           </el-col>
         </el-form-item>
@@ -234,7 +240,7 @@ function createDatasource() {
 
   proxy.$refs["databaseRef"].validate(valid => {
     if (valid) {
-      console.log('task form data = {}', form.value)
+      console.log('task form data = {}', form.value.startTime)
 
       // 将form数据转换为JSON字符串并存储到localStorage
       localStorage.setItem('processDefinitionFormData', JSON.stringify(form.value));
