@@ -92,7 +92,7 @@
 
 <script setup>
 
-import flowNodeStore from '@/store/modules/flowNode'
+import nodeSessionStore from '@/utils/nodeUtils'
 
 import { getAllResource } from '@/api/data/scheduler/resource'
 import { branchIcon2 } from '@/utils/flowMixin';
@@ -168,7 +168,7 @@ const submitForm = (formName) => {
 
             // 更新节点信息
             node.value.params = form.value;
-            flowNodeStore().setNode(node.value);
+            nodeSessionStore.setNode(node.value);
             onClose();
         } else {
             console.log('验证失败!');
