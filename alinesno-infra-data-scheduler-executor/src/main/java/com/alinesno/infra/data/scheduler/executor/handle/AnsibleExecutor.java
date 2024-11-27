@@ -22,6 +22,7 @@ public class AnsibleExecutor extends AbstractExecutorService {
     @SneakyThrows
     @Override
     public void execute(TaskInfoBean taskInfo) {
+        configTaskParams(taskInfo, this);
         log.debug("AnsibleExecutor execute");
 
         ParamsDto params = getParamsDto() ;
