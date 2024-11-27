@@ -38,9 +38,10 @@ public interface IProcessDefinitionService extends IBaseService<ProcessDefinitio
      *
      * @param count
      * @param query
+     * @param projectId
      * @return
      */
-    List<ProcessDefinitionEntity> queryRecentlyProcess(int count, PermissionQuery query);
+    List<ProcessDefinitionEntity> queryRecentlyProcess(int count, PermissionQuery query, long projectId);
 
     /**
      * 更新流程定义
