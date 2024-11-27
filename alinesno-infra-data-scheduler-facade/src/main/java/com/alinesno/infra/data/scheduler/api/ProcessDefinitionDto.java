@@ -21,6 +21,13 @@ public class ProcessDefinitionDto extends BaseDto {
      */
     private long projectId ;
 
+    private long processId ; // 流程ID
+
+    /**
+     * 只是更新节点(node)否则为更新整个流程信息
+     */
+    private String type ; // 更新类型(node|context)
+
     /**
      * 流程上下文信息
      * 包含了流程执行时的环境和配置信息
