@@ -7,7 +7,10 @@ import com.alinesno.infra.common.facade.datascope.PermissionQuery;
 import com.alinesno.infra.common.web.log.utils.SpringUtils;
 import com.alinesno.infra.data.scheduler.adapter.CloudStorageConsumer;
 import com.alinesno.infra.data.scheduler.api.*;
-import com.alinesno.infra.data.scheduler.entity.*;
+import com.alinesno.infra.data.scheduler.entity.ProcessDefinitionEntity;
+import com.alinesno.infra.data.scheduler.entity.ProcessInstanceEntity;
+import com.alinesno.infra.data.scheduler.entity.TaskDefinitionEntity;
+import com.alinesno.infra.data.scheduler.entity.TaskInstanceEntity;
 import com.alinesno.infra.data.scheduler.enums.ExecutorTypeEnums;
 import com.alinesno.infra.data.scheduler.enums.ProcessStatusEnums;
 import com.alinesno.infra.data.scheduler.executor.IExecutorService;
@@ -22,6 +25,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -30,10 +34,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 @Component
@@ -101,6 +104,7 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
         // 记录任务流程实例开始
         long count = processInstanceService.count(new LambdaQueryWrapper<ProcessInstanceEntity>().eq(ProcessInstanceEntity::getProcessId, process.getId())) + 1;
         ProcessInstanceEntity processInstance = ProcessUtils.fromTaskToProcessInstance(process, count);
+
         processInstance.setProcessId(process.getId());
         processInstance.setState(ProcessStatusEnums.RUNNING.getCode());
 
@@ -110,7 +114,9 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
         processInstance.setWorkspace(instanceWorkspace);
 
         processInstanceService.save(processInstance);
+
         task.setWorkspace(instanceWorkspace);
+        task.setWorkspacePath(workspacePath);
 
         boolean isFailTask = false;
 
@@ -122,6 +128,12 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
             TaskInstanceEntity taskInstance = ProcessUtils.fromTaskToTaskInstance(process, t, processInstance.getId());
             taskInstance.setState(ProcessStatusEnums.RUNNING.getCode());
             taskInstance.setStartTime(new Date());
+
+            // 设置权限角色
+            taskInstance.setOrgId(processInstance.getOrgId());
+            taskInstance.setDepartmentId(process.getDepartmentId());
+            taskInstance.setOperatorId(processInstance.getOperatorId());
+
             taskInstanceService.save(taskInstance);
 
             String beanName = t.getTaskType() + "Executor";
@@ -130,8 +142,7 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
             executorService = SpringUtils.getBean(beanName);
             try {
                 // 配置任务参数
-                configTaskParams(task, executorService);
-
+                // configTaskParams(task, executorService);
                 executorService.execute(task);
 
                 // 更新任务实例结束
@@ -168,84 +179,6 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
         processInstanceService.update(processInstance);
     }
 
-    /**
-     * 配置任务参数
-     *
-     * @param task
-     * @param executorService
-     */
-    private void configTaskParams(TaskInfoBean task, IExecutorService executorService) {
-
-        // 配置参数
-        ParamsDto paramsDto = JSONObject.parseObject(task.getTask().getTaskParams(), ParamsDto.class);
-        if(paramsDto == null){
-            paramsDto = new ParamsDto();
-        }
-        executorService.setParams(paramsDto);
-
-        // 配置空间
-        String workspace = new File(workspacePath, task.getWorkspace()).getAbsolutePath();
-        executorService.setWorkspace(workspace);
-
-        // 配置数据库源
-        try{
-            IDataSourceService dataSourceService = SpringUtils.getBean(IDataSourceService.class);
-            executorService.setDataSource(dataSourceService.getDataSource(paramsDto.getDataSourceId()));
-        }catch (Exception e){
-            log.warn("没有配置数据源：{}",e.getMessage());
-        }
-
-        EnvironmentEntity environment = environmentService.getById(task.getProcess().getEnvId());
-        if(environment == null){
-            environment = environmentService.getDefaultEnv() ;
-        }
-        executorService.setEnvironment(environment);
-
-        // 配置资源
-        List<String> resources = downloadResource(paramsDto.getResourceId(), workspace);
-        executorService.setResource(resources);
-
-        // 配置任务环境
-        executorService.setTaskInfoBean(task);
-
-        // 添加自定义密钥值
-        Map<String , String> secretsMap = secretsService.secretMap() ;
-        executorService.setSecretMap(secretsMap);
-
-        // 替换环境变量
-        executorService.replaceGlobalParams(environment ,
-                task.getProcess().getGlobalParams() ,
-                paramsDto.getCustomParams());
-    }
-
-    /**
-     * 下载文件资源并返回文件名称
-     *
-     * @param resourceIds
-     * @return
-     */
-    @SneakyThrows
-    protected List<String> downloadResource(List<String> resourceIds, String workspace) {
-
-
-        List<String> fileNameList = new ArrayList<>();
-        if(resourceIds == null || resourceIds.isEmpty()){
-            return fileNameList ;
-        }
-
-        List<ResourceEntity> resourceEntities = resourceService.listByIds(resourceIds);
-
-        for (ResourceEntity resource : resourceEntities) {
-            byte[] bytes = storageConsumer.download(String.valueOf(resource.getStorageId()), progress -> log.debug("下载进度：" + progress.getRate()));
-
-            File targetFile = new File(workspace, resource.getFileName());
-            FileUtils.writeByteArrayToFile(targetFile, bytes);
-
-            fileNameList.add(targetFile.getAbsolutePath());
-        }
-
-        return fileNameList;
-    }
 
 
     @Override
@@ -258,6 +191,13 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
 
         long processId = processDefinition.getId();
         List<TaskDefinitionEntity> taskDefinitionList = ProcessUtils.fromDtoToTaskInstance(dto, processId, projectId);
+
+        taskDefinitionList.forEach(t -> {
+                t.setProcessId(processId);
+                t.setId(IdUtil.getSnowflakeNextId());
+            }
+        );
+
         taskDefinitionService.saveBatch(taskDefinitionList);
 
         log.debug("saveProcessDefinition:{}", processId);
@@ -298,7 +238,7 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
         task.setProcess(process) ;
 
         // 配置任务参数
-        configTaskParams(task, executorService);
+        // configTaskParams(task, executorService);
 
         // 执行任务
         executorService.execute(task);
@@ -307,13 +247,14 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
     }
 
     @Override
-    public List<ProcessDefinitionEntity> queryRecentlyProcess(int count, PermissionQuery query) {
+    public List<ProcessDefinitionEntity> queryRecentlyProcess(int count, PermissionQuery query, long projectId) {
 
         LambdaQueryWrapper<ProcessDefinitionEntity> queryWrapper = Wrappers.lambdaQuery();
         queryWrapper.setEntityClass(ProcessDefinitionEntity.class);
         query.toWrapper(queryWrapper);
 
         queryWrapper
+                .eq(ProcessDefinitionEntity::getProjectId, projectId)
                 .orderByDesc(ProcessDefinitionEntity::getAddTime)
                 .last("limit " + count);
 
@@ -332,15 +273,19 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
     @Override
     public void updateProcessDefinition(ProcessDefinitionDto dto) {
 
-        ProcessContextDto context = dto.getContext() ;
-        Assert.notNull(context, "流程定义上下文不能为空");
+        long processId = dto.getProcessId() ; // context.getId();
 
-        long processId = context.getId();
-        ProcessDefinitionEntity processDefinition = ProcessUtils.fromDtoToEntity(dto);
-        processDefinition.setOnline(false);
-        processDefinition.setId(processId);
+        if(dto.getContext() != null){
+            ProcessContextDto context = dto.getContext() ;
+            Assert.notNull(context, "流程定义上下文不能为空");
 
-        this.updateById(processDefinition);
+            ProcessDefinitionEntity oldProcessDefinition = this.getById(processId) ;
+
+            ProcessDefinitionEntity processDefinition = ProcessUtils.fromDtoToEntity(dto);
+            BeanUtils.copyProperties(processDefinition, oldProcessDefinition);
+
+            this.updateById(oldProcessDefinition);
+        }
 
         List<ProcessTaskDto> taskFlow = dto.getTaskFlow() ;
         Assert.isTrue(taskFlow.size() > 1 , "流程定义为空,请定义流程.");
@@ -354,9 +299,14 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
 
         // 重新添加关联任务
         List<TaskDefinitionEntity> taskDefinitionList = ProcessUtils.fromDtoToTaskInstance(dto, processId, projectId);
-        taskDefinitionList.forEach(t -> t.setProcessId(processId));
 
-        taskDefinitionService.saveBatch(taskDefinitionList);
+        AtomicInteger orderNum = new AtomicInteger(1);
+        taskDefinitionList.forEach(t -> {
+            t.setOrderNum(orderNum.getAndIncrement());
+            t.setProcessId(processId);
+        });
+
+        taskDefinitionService.saveOrUpdateBatch(taskDefinitionList);
 
     }
 
