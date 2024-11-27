@@ -1,5 +1,7 @@
 package com.alinesno.infra.data.scheduler.api.session;
 
+import com.alinesno.infra.common.facade.pageable.ConditionDto;
+import com.alinesno.infra.common.facade.pageable.DatatablesPageBean;
 import com.alinesno.infra.common.web.log.utils.SpringUtils;
 import com.alinesno.infra.data.scheduler.entity.ProjectAccountEntity;
 import com.alinesno.infra.data.scheduler.entity.ProjectEntity;
@@ -7,6 +9,8 @@ import com.alinesno.infra.data.scheduler.service.IProjectAccountService;
 import com.alinesno.infra.data.scheduler.service.IProjectService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.List;
 
 /**
  * 获取当前应用
@@ -17,12 +21,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 //@Component
 public class CurrentProjectSession {
-
-//	@Autowired
-//	private IProjectAccountService projectAccountService;  ;
-//
-//	@Autowired
-//	private IProjectService managerProjectService ;
 
 	public static ProjectEntity get() {
 		// TODO 待处理账号获取异常的问题
@@ -54,4 +52,17 @@ public class CurrentProjectSession {
 		projectAccountService.save(e);
 	}
 
+	public static void filterProject(DatatablesPageBean page) {
+		// 过滤项目
+		List<ConditionDto> condition = page.getConditionList() ;
+
+		ConditionDto conditionDto = new ConditionDto()  ;
+		conditionDto.setValue(CurrentProjectSession.get().getId()+"") ;
+		conditionDto.setColumn("projectId");
+		conditionDto.setType("eq");
+
+		condition.add(conditionDto) ;
+
+		page.setConditionList(condition);
+	}
 }
