@@ -18,6 +18,7 @@ public class MavenExecutor extends AbstractExecutorService {
     @SneakyThrows
     @Override
     public void execute(TaskInfoBean task) {
+        configTaskParams(task, this);
         log.debug("maven executor");
 
         ParamsDto params = getParamsDto() ;
