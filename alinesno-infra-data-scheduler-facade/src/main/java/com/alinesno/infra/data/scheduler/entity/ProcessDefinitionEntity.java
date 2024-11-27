@@ -42,7 +42,7 @@ public class ProcessDefinitionEntity extends InfraBaseEntity {
     private String dataCollectionTemplate ;
 
     @TableField
-    @ColumnType(value = MySqlTypeConstant.VARCHAR, length = 128)
+    @ColumnType(value = MySqlTypeConstant.VARCHAR, length = 32)
     @ColumnComment("项目编码")
     private long projectId;
 
