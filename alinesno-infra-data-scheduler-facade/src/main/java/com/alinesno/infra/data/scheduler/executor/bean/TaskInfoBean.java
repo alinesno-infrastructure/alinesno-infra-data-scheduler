@@ -20,6 +20,9 @@ public class TaskInfoBean implements Serializable {
     // 运行的工作空间
     private String workspace ;
 
+    // 本地工程目录
+    private String workspacePath ;
+
     // 环境定义
     private EnvironmentEntity environment ;
 
