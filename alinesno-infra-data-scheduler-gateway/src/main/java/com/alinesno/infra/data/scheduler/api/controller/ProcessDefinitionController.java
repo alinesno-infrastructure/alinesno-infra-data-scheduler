@@ -72,8 +72,13 @@ public class ProcessDefinitionController extends BaseController<ProcessDefinitio
     @PostMapping("/datatables")
     public TableDataInfo datatables(HttpServletRequest request, Model model, DatatablesPageBean page) {
         log.debug("page = {}", ToStringBuilder.reflectionToString(page));
+
+        CurrentProjectSession.filterProject(page);
+
         return this.toPage(model, this.getFeign(), page);
     }
+
+
 
     /**
      * 查询详情getProcessDefinitionByDto
@@ -138,6 +143,10 @@ public class ProcessDefinitionController extends BaseController<ProcessDefinitio
     @PostMapping("/updateProcessDefinition")
     public AjaxResult updateProcessDefinition(@RequestBody ProcessDefinitionDto dto){
         log.debug("dto = {}", dto);
+
+        if("node".equals(dto.getType())){
+            dto.setContext(null); // 清空上下文信息，只更新节点
+        }
 
         List<ProcessTaskDto> taskFlow = dto.getTaskFlow() ;
         Assert.isTrue(taskFlow.size() > 1 , "流程定义为空,请定义流程.");
