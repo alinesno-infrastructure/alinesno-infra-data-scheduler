@@ -1,0 +1,32 @@
+version: '3.3'
+
+services:
+  alinesno-infra-data-scheduler-boot:
+    image: ${ALIYUN_CR_REGISTORY}/${ALIYUN_CR_NAMESPACE}/${PROJECT_NAME_BOOT}:${VERSION}
+    environment:
+      - JAVA_TOOL_OPTIONS=-Dspring.data.redis.host=redis -Dspring.data.redis.password=${REDIS_KEY} -Dspring.datasource.url=jdbc:mysql://${DB_MYSQL_URL}/dev_alinesno_infra_data_scheduler_v100?serverTimezone=GMT%2B8&zeroDateTimeBehavior=CONVERT_TO_NULL -Dspring.datasource.username=${DB_MYSQL_USRENAME} -Dspring.datasource.password=${DB_MYSQL_PASSWORD} -Dserver.port=${SERVER_PORT}
+    ports:
+      - "18080:8080"
+    restart: always
+    networks:
+      - scheduler-net
+    depends_on:
+      - redis
+
+  alinesno-infra-data-scheduler-ui:
+    image: ${ALIYUN_CR_REGISTORY}/${ALIYUN_CR_NAMESPACE}/${PROJECT_NAME_UI}:${VERSION}
+    ports:
+      - "80:80"
+    depends_on:
+      - alinesno-infra-data-scheduler-boot
+    networks:
+      - scheduler-net
+
+  redis:
+    image: registry.openanolis.cn/openanolis/redis:5.0.3-8.6
+    command: ["redis-server", "--requirepass", "${REDIS_KEY}"]
+    networks:
+      - scheduler-net
+
+networks:
+  scheduler-net:
