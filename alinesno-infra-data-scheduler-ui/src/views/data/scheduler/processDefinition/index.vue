@@ -110,14 +110,16 @@
                   </template>
                </el-table-column>
 
+               <!-- 
                <el-table-column label="任务上线" align="center" width="150" key="documentType" prop="documentType"
                   v-if="columns[1].visible" :show-overflow-tooltip="true">
                   <template #default="scope">
-                     <el-button type="primary" bg text @click="handleConfigType(scope.row.id, scope.row.documentType)">
+                     <el-button type="primary" bg text @click="handleOnline(scope.row.id, scope.row.documentType)">
                         <i class="fa-solid fa-upload"></i>&nbsp;上线
                      </el-button>
                   </template>
                </el-table-column>
+               -->
 
                <el-table-column label="迁移配置" align="center" width="150" key="documentType" prop="documentType"
                   v-if="columns[1].visible" :show-overflow-tooltip="true">
@@ -126,9 +128,9 @@
                         <i class="fa-solid fa-screwdriver-wrench"></i>&nbsp;任务参数
                      </el-button>
                   </template>
-               </el-table-column>
+               </el-table-column> 
 
-               <el-table-column label="开启" align="center" width="80" key="hasStatus" prop="hasStatus"
+               <el-table-column label="开启" align="center" width="120" key="hasStatus" prop="hasStatus"
                   v-if="columns[1].visible" :show-overflow-tooltip="true">
                   <template #default="scope">
                      <el-switch v-model="scope.row.hasStatus" :active-value="0" :inactive-value="1"
@@ -486,7 +488,7 @@ function submitForm() {
 /** 配置文档类型 */
 function handleConfigType(id, documentType) {
    let path = '/data/scheduler/processDefinition/createDefinition' ;
-   router.push({ path: path , query:{processDefinitionId:id} });
+   router.push({ path: path , query:{processDefinitionId:id,node:'node'} });
 }
 
 /** 修改状态 */
