@@ -21,6 +21,7 @@ public class SQLExecutor extends AbstractExecutorService {
 
     @Override
     public void execute(TaskInfoBean task) {
+        configTaskParams(task, this);
 
         ParamsDto paramsDto = getParamsDto() ;
         String rawScript = paramsDto.getRawScript();
