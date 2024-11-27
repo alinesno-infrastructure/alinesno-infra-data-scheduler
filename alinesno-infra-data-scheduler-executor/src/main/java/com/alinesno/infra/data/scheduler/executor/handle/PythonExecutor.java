@@ -18,6 +18,8 @@ public class PythonExecutor extends AbstractExecutorService {
     @SneakyThrows
     @Override
     public void execute(TaskInfoBean taskInfo) {
+        configTaskParams(taskInfo, this);
+
         log.debug("PythonExecutor execute");
 
         String rawScript = readerRawScript() ;
