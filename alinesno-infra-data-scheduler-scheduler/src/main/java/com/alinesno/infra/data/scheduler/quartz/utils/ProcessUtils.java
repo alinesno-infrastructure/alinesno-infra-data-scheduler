@@ -14,7 +14,6 @@ import com.alinesno.infra.data.scheduler.enums.ExecutorTypeEnums;
 import com.alinesno.infra.data.scheduler.enums.ProcessStatusEnums;
 import org.apache.commons.lang3.StringUtils;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -42,6 +41,12 @@ public class ProcessUtils {
         processInstance.setGlobalParams(process.getGlobalParams());
         processInstance.setRecovery(0);
         processInstance.setStartTime(new Date());
+
+        // 权限权限
+        processInstance.setOperatorId(process.getOperatorId());
+        processInstance.setDepartmentId(process.getDepartmentId());
+        processInstance.setOrgId(process.getOrgId());
+        processInstance.setProcessId(process.getProjectId());
 
         return processInstance ;
     }
@@ -92,6 +97,7 @@ public class ProcessUtils {
         entity.setMonitorEmail(context.getMonitorEmail());
         entity.setEnvId(context.getEnvId());
 
+        entity.setProjectId(dto.getProjectId());
         entity.setOrgId(dto.getOrgId());
         entity.setOperatorId(dto.getOperatorId());
         entity.setDepartmentId(dto.getDepartmentId());
