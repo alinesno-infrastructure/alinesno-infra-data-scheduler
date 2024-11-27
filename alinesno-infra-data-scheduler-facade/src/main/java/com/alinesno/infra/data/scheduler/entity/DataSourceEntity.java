@@ -6,6 +6,8 @@ import com.alinesno.infra.common.security.mapper.AESEncryptHandler;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.gitee.sunchenbin.mybatis.actable.annotation.ColumnComment;
+import com.gitee.sunchenbin.mybatis.actable.annotation.ColumnType;
+import com.gitee.sunchenbin.mybatis.actable.constants.MySqlTypeConstant;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -27,6 +29,12 @@ public class DataSourceEntity extends InfraBaseEntity {
   @Excel(name = "读取源名称")
   @TableField("reader_name")
   private String readerName;
+
+  @TableField
+  @ColumnType(value = MySqlTypeConstant.VARCHAR, length = 32)
+  @ColumnComment("项目编码")
+  private long projectId;
+
   /**
    * 读取源连接
    */
