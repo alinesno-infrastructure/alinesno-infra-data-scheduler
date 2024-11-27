@@ -14,6 +14,8 @@ public class ShellExecutor extends AbstractExecutorService {
     @Override
     public void execute(TaskInfoBean taskInfo) {
 
+        configTaskParams(taskInfo, this);
+        log.debug("taskInfo = {}" , taskInfo.getTask());
         String rawScript = readerRawScript() ;
 
         log.debug("Shell Executor rawScript: {}", rawScript) ;
@@ -24,7 +26,7 @@ public class ShellExecutor extends AbstractExecutorService {
                 %s
                 """.formatted(getWorkspace() , rawScript);
 
-        writeLog("执行SQL:" +command);
+        writeLog("执行Shell:" +command);
         runCommand(command);
     }
 
