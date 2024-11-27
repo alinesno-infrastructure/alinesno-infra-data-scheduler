@@ -66,6 +66,7 @@ public class TaskDefinitionController extends BaseController<TaskDefinitionEntit
 
         LambdaQueryWrapper<TaskDefinitionEntity> query = new LambdaQueryWrapper<>();
         query.eq(TaskDefinitionEntity::getProcessId , processDefinitionId);
+        query.orderByAsc(TaskDefinitionEntity::getOrderNum);
 
         List<TaskDefinitionEntity> list = service.list(query);
 
