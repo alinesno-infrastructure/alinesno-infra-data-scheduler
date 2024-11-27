@@ -27,7 +27,10 @@
 <script setup>
 
 import { approverIcon } from '@/utils/flowMixin';
-import nodeSessionStore from '@/utils/nodeUtils'
+// import nodeSessionStore from '@/utils/nodeUtils'
+
+import { useNodeStore } from '@/store/modules/flowNode'; // 根据实际情况调整路径
+const flowNodeStore = useNodeStore();
 
 import EditName from '../../EditName.vue';
 import FlowAddNode from '../Add/index.vue';
@@ -60,7 +63,7 @@ function open(selectNode) {
   isActive.value = true; // 高亮
 
   //  打开配置
-  selectNode = nodeSessionStore.getNodeById(selectNode.id) ; 
+  selectNode = flowNodeStore.getNodeById(selectNode.id) ; 
   flowNoticeSetting.value.showDrawer(selectNode);
 }
 
@@ -69,7 +72,7 @@ function open(selectNode) {
  * @param {*} node
  */
 function removeNode(node) {
-  nodeSessionStore.removeNode(node.id);
+  flowNodeStore.removeNode(node.id);
 }
 
 </script>
