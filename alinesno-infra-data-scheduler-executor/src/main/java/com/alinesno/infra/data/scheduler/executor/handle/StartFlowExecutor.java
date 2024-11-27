@@ -15,6 +15,8 @@ public class StartFlowExecutor extends AbstractExecutorService {
     public void execute(TaskInfoBean taskInfo) {
         log.debug("StartFlowExecutor execute");
 
+        configTaskParams(taskInfo, this);
+
         Map<String , String> globalMap = this.getGlobalEnv() ;
 
         // 打印全局变量
