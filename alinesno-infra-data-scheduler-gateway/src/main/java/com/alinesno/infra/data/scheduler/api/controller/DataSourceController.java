@@ -1,16 +1,21 @@
 package com.alinesno.infra.data.scheduler.api.controller;
 
 import com.alinesno.infra.common.core.constants.SpringInstanceScope;
+import com.alinesno.infra.common.extend.datasource.annotation.DataPermissionQuery;
+import com.alinesno.infra.common.extend.datasource.annotation.DataPermissionSave;
 import com.alinesno.infra.common.extend.datasource.annotation.DataPermissionScope;
+import com.alinesno.infra.common.facade.datascope.PermissionQuery;
 import com.alinesno.infra.common.facade.pageable.DatatablesPageBean;
 import com.alinesno.infra.common.facade.pageable.TableDataInfo;
 import com.alinesno.infra.common.facade.response.AjaxResult;
 import com.alinesno.infra.common.web.adapter.rest.BaseController;
 import com.alinesno.infra.data.scheduler.api.CheckDbConnectResult;
 import com.alinesno.infra.data.scheduler.api.DataSourceDto;
+import com.alinesno.infra.data.scheduler.api.session.CurrentProjectSession;
 import com.alinesno.infra.data.scheduler.entity.DataSourceEntity;
 import com.alinesno.infra.data.scheduler.enums.SinkReaderEnums;
 import com.alinesno.infra.data.scheduler.service.IDataSourceService;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.builder.ToStringBuilder;
@@ -55,6 +60,9 @@ public class DataSourceController extends BaseController<DataSourceEntity, IData
     @PostMapping("/datatables")
     public TableDataInfo datatables(HttpServletRequest request, Model model, DatatablesPageBean page) {
         log.debug("page = {}", ToStringBuilder.reflectionToString(page));
+
+        CurrentProjectSession.filterProject(page);
+
         return this.toPage(model, this.getFeign(), page);
     }
 
@@ -94,10 +102,16 @@ public class DataSourceController extends BaseController<DataSourceEntity, IData
      * 获取到所有数据库源
      * @return
      */
+    @DataPermissionQuery
     @GetMapping("/listAllDataSource")
-    public AjaxResult listAllDataSource(){
+    public AjaxResult listAllDataSource(PermissionQuery query){
 
-        List<DataSourceEntity> list = service.list() ;
+        LambdaQueryWrapper<DataSourceEntity> wrapper = new LambdaQueryWrapper<>() ;
+        wrapper.setEntityClass(DataSourceEntity.class) ;
+        query.toWrapper(wrapper);
+        wrapper.eq(DataSourceEntity::getProjectId , CurrentProjectSession.get().getId()) ;
+
+        List<DataSourceEntity> list = service.list(wrapper) ;
 
         List<Map<String, Object>> result = list.stream().map(item -> {
 
@@ -111,6 +125,7 @@ public class DataSourceController extends BaseController<DataSourceEntity, IData
         return AjaxResult.success("success" , result) ;
     }
 
+    @DataPermissionSave
     @PostMapping("/saveDb")
     public AjaxResult saveDb(@Validated @RequestBody DataSourceDto dto ) {
 
@@ -119,6 +134,8 @@ public class DataSourceController extends BaseController<DataSourceEntity, IData
         BeanUtils.copyProperties(dto, dbEntity) ;
         dbEntity.setReaderName(dto.getReaderType().toUpperCase());
         dbEntity.setOperationType("source");
+
+        dbEntity.setProjectId(CurrentProjectSession.get().getId());
 
         try {
             return super.save(null, dbEntity) ;
@@ -132,7 +149,7 @@ public class DataSourceController extends BaseController<DataSourceEntity, IData
      * @return
      */
     @GetMapping("/allDataSource")
-    public AjaxResult allDataSource(){
+    public AjaxResult allDataSource(PermissionQuery query){
 
         SinkReaderEnums[] sinkArr = SinkReaderEnums.values() ;
 
