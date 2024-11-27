@@ -5,6 +5,7 @@ import com.alinesno.infra.common.extend.datasource.annotation.DataPermissionQuer
 import com.alinesno.infra.common.facade.datascope.PermissionQuery;
 import com.alinesno.infra.common.facade.response.AjaxResult;
 import com.alinesno.infra.common.web.adapter.rest.SuperController;
+import com.alinesno.infra.data.scheduler.api.session.CurrentProjectSession;
 import com.alinesno.infra.data.scheduler.entity.ProcessDefinitionEntity;
 import com.alinesno.infra.data.scheduler.service.IProcessDefinitionService;
 import io.swagger.annotations.Api;
@@ -36,9 +37,8 @@ public class DashboardController extends SuperController {
     @DataPermissionQuery
     @GetMapping(value = "/recentlyProcess")
     public AjaxResult recentlyProcess(PermissionQuery query) {
-
-        List<ProcessDefinitionEntity> list = processDefinitionService.queryRecentlyProcess(8 , query) ;
-
+        long projectId = CurrentProjectSession.get().getId() ;
+        List<ProcessDefinitionEntity> list = processDefinitionService.queryRecentlyProcess(8 , query , projectId) ;
         return AjaxResult.success(list) ;
     }
 
