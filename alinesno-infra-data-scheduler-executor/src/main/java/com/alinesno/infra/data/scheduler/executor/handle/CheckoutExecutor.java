@@ -27,6 +27,7 @@ public class CheckoutExecutor extends AbstractExecutorService {
 
     @Override
     public void execute(TaskInfoBean task) {
+        configTaskParams(task, this);
         log.debug("checkout executor");
 
         ParamsDto paramsDto = getParamsDto() ;
