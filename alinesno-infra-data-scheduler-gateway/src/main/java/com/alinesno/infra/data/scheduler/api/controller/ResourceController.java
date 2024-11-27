@@ -2,18 +2,22 @@ package com.alinesno.infra.data.scheduler.api.controller;
 
 import cn.hutool.core.util.IdUtil;
 import com.alinesno.infra.common.core.constants.SpringInstanceScope;
+import com.alinesno.infra.common.extend.datasource.annotation.DataPermissionQuery;
 import com.alinesno.infra.common.extend.datasource.annotation.DataPermissionSave;
 import com.alinesno.infra.common.extend.datasource.annotation.DataPermissionScope;
+import com.alinesno.infra.common.facade.datascope.PermissionQuery;
 import com.alinesno.infra.common.facade.pageable.DatatablesPageBean;
 import com.alinesno.infra.common.facade.pageable.TableDataInfo;
 import com.alinesno.infra.common.facade.response.AjaxResult;
 import com.alinesno.infra.common.facade.response.R;
 import com.alinesno.infra.common.web.adapter.rest.BaseController;
 import com.alinesno.infra.data.scheduler.adapter.CloudStorageConsumer;
+import com.alinesno.infra.data.scheduler.api.session.CurrentProjectSession;
 import com.alinesno.infra.data.scheduler.entity.ResourceEntity;
 import com.alinesno.infra.data.scheduler.enums.ResourceTypeEnums;
 import com.alinesno.infra.data.scheduler.service.ICategoryService;
 import com.alinesno.infra.data.scheduler.service.IResourceService;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import io.swagger.annotations.Api;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.SneakyThrows;
@@ -71,6 +75,9 @@ public class ResourceController extends BaseController<ResourceEntity, IResource
     @PostMapping("/datatables")
     public TableDataInfo datatables(HttpServletRequest request, Model model, DatatablesPageBean page) {
         log.debug("page = {}", ToStringBuilder.reflectionToString(page));
+
+        CurrentProjectSession.filterProject(page);
+
         return this.toPage(model, this.getFeign(), page);
     }
 
@@ -112,6 +119,8 @@ public class ResourceController extends BaseController<ResourceEntity, IResource
         resourceEntity.setSize(targetFile.length());
         resourceEntity.setStorageId(Long.parseLong(ajaxResult.getData()));
 
+        resourceEntity.setProjectId(CurrentProjectSession.get().getId());
+
         service.save(resourceEntity) ;
 
         return AjaxResult.success("上传成功." , resourceEntity.getId()) ;
@@ -121,9 +130,16 @@ public class ResourceController extends BaseController<ResourceEntity, IResource
      * 获取到所有的资源列表，并返回如下格式:
      * [{key:xxx,value:xxx}]
      */
+    @DataPermissionQuery
     @GetMapping("/getAllResource")
-    public AjaxResult getAllResource(){
-        List<ResourceEntity> list = service.list() ;
+    public AjaxResult getAllResource(PermissionQuery query){
+
+        LambdaQueryWrapper<ResourceEntity> wrapper = new LambdaQueryWrapper<>() ;
+        wrapper.setEntityClass(ResourceEntity.class) ;
+        query.toWrapper(wrapper);
+        wrapper.eq(ResourceEntity::getProjectId , CurrentProjectSession.get().getId()) ;
+
+        List<ResourceEntity> list = service.list(wrapper) ;
 
         List<Map<String, Object>> result = list.stream().map(item -> {
 
