@@ -4,8 +4,10 @@ import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.alinesno.infra.common.core.constants.SpringInstanceScope;
+import com.alinesno.infra.common.extend.datasource.annotation.DataPermissionQuery;
 import com.alinesno.infra.common.extend.datasource.annotation.DataPermissionSave;
 import com.alinesno.infra.common.extend.datasource.annotation.DataPermissionScope;
+import com.alinesno.infra.common.facade.datascope.PermissionQuery;
 import com.alinesno.infra.common.facade.pageable.DatatablesPageBean;
 import com.alinesno.infra.common.facade.pageable.TableDataInfo;
 import com.alinesno.infra.common.facade.response.AjaxResult;
@@ -13,6 +15,7 @@ import com.alinesno.infra.common.web.adapter.rest.BaseController;
 import com.alinesno.infra.data.scheduler.api.EnvironmentDto;
 import com.alinesno.infra.data.scheduler.entity.EnvironmentEntity;
 import com.alinesno.infra.data.scheduler.service.IEnvironmentService;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import io.swagger.annotations.Api;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -75,9 +78,15 @@ public class EnvironmentController extends BaseController<EnvironmentEntity, IEn
      * 获取到所有的资源列表，并返回如下格式:
      * [{key:xxx,value:xxx}]
      */
+    @DataPermissionQuery
     @GetMapping("/getAllEnvironment")
-    public AjaxResult getAllEnvironment(){
-        List<EnvironmentEntity> list = service.list() ;
+    public AjaxResult getAllEnvironment(PermissionQuery query){
+
+        LambdaQueryWrapper<EnvironmentEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.setEntityClass(EnvironmentEntity.class) ;
+        query.toWrapper(wrapper);
+
+        List<EnvironmentEntity> list = service.list(wrapper) ;
         AjaxResult result = AjaxResult.success(list) ;
 
         long defaultId = list.stream().filter(EnvironmentEntity::isDefaultEnv).findFirst().map(EnvironmentEntity::getId).orElse(0L);
