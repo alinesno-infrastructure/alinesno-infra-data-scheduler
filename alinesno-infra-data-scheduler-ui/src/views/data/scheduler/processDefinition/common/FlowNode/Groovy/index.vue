@@ -3,7 +3,7 @@
     <div class="flow-box">
       <div class="flow-item" :class="{ 'flow-item-active': isActive }">
         <div class="flow-node-box" :class="{ 'has-error': node.error }">
-          <div class="node-name node-status-current">
+          <div class="node-name node-py">
             <EditName :value="node.name" :nodeId="node.id" />
             <img :src="approverIcon" style="margin-left: 10px;" />
           </div>
