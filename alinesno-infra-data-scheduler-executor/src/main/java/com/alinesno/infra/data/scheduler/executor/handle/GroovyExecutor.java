@@ -19,6 +19,9 @@ public class GroovyExecutor extends AbstractExecutorService {
 
     @Override
     public void execute(TaskInfoBean task) {
+
+        configTaskParams(task, this);
+
         log.debug("groovyExecutor execute");
 
         PrintStream oldPrintStream = System.out; //将原来的System.out交给printStream 对象保存
