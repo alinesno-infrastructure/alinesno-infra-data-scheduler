@@ -100,6 +100,8 @@ function addType(type) {
   const currNode = props.node;
   const id = props.id;
 
+  console.log('currNode= ' + JSON.stringify(currNode));
+
   // nodeSessionStore.addNode({addNode, currNode, nodeType, id});
   flowNodeStore.addNode({addNode, currNode});
 
