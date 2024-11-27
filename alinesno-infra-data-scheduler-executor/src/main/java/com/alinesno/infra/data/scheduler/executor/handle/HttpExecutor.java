@@ -22,6 +22,7 @@ public class HttpExecutor extends AbstractExecutorService {
 
     @Override
     public void execute(TaskInfoBean taskInfo) {
+        configTaskParams(taskInfo, this);
         log.debug("HttpExecutor execute");
 
         ParamsDto params = getParamsDto();
