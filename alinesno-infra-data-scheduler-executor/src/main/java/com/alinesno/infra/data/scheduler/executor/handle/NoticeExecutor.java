@@ -28,6 +28,8 @@ public class NoticeExecutor extends AbstractExecutorService {
     private static final int MAX_LENGTH = 1024;
 
     public void execute(TaskInfoBean task){
+        configTaskParams(task, this);
+
         // 发送企业微信通知
         log.info("noticeExecutor execute");
 
