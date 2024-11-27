@@ -62,6 +62,7 @@ import emitter from '@/utils/emitter'
 import { nextTick } from 'vue';
 
 const processDefinitionId = route.query.processDefinitionId
+const updateNode = ref(route.query.node)
 const nodeDataArr = ref(flowNodeStore.getNodes);
 
 
@@ -97,10 +98,13 @@ function submitProcessDefinition() {
 
   let data = {
     taskFlow: nodes,
-    context: formData
+    context: formData,
+    type: updateNode.value ,
+    processId: processDefinitionId 
   }
 
-  if(formData.id){ // 更新流程
+  if(processDefinitionId){ // 更新流程
+
     updateProcessDefinition(data).then(response => {
       console.log(response);
       proxy.$modal.msgSuccess("流程更新成功");
@@ -113,6 +117,10 @@ function submitProcessDefinition() {
       console.log(response);
       proxy.$modal.msgSuccess("流程提交成功");
       loading.close();
+
+      // 返回管理界面
+      router.push({ path: '/data/scheduler/processDefinition/index', query: {} });
+
     }).catch(error => {
       loading.close();
     })
@@ -120,11 +128,30 @@ function submitProcessDefinition() {
 
 }
 
-/** 初始化数据 */
-onMounted(() => {
-  console.log('onMounted');
+flowNodeStore.resetNodes()
+if(processDefinitionId){
 
-  flowNodeStore.resetNodes()
+  getTaskDefinition(processDefinitionId).then(res => {
+    // 使用 forEach 循环遍历 data 数组
+    res.data.forEach(item => {
+      if(item.type != 0){
+        // nodeSessionStore.setNode(item);
+        flowNodeStore.setNode(item);
+      }
+    });
+
+    nodeDataArr.value = flowNodeStore.getNodes
+    
+  })
+}else{
+    nodeDataArr.value = flowNodeStore.getNodes
+}
+
+/** 初始化数据 */
+// onMounted(() => {
+//   console.log('onMounted');
+
+  // flowNodeStore.resetNodes()
 
   // if(processDefinitionId){
 
@@ -143,27 +170,28 @@ onMounted(() => {
   // }else{
   //     nodeDataArr.value = flowNodeStore.getNodes
   // }
-})
+// })
 
-nextTick(() => {
+// nextTick(() => {
 
-  if(processDefinitionId){
+//   if(processDefinitionId){
 
-    getTaskDefinition(processDefinitionId).then(res => {
-      // 使用 forEach 循环遍历 data 数组
-      res.data.forEach(item => {
-        if(item.type != 0){
-          // nodeSessionStore.setNode(item);
-          flowNodeStore.setNode(item);
-        }
-      });
+//     getTaskDefinition(processDefinitionId).then(res => {
+//       // 使用 forEach 循环遍历 data 数组
+//       res.data.forEach(item => {
+//         if(item.type != 0){
+//           // nodeSessionStore.setNode(item);
+//           flowNodeStore.setNode(item);
+//         }
+//       });
 
-      nodeDataArr.value = flowNodeStore.getNodes
+//       nodeDataArr.value = flowNodeStore.getNodes
       
-    })
-  }else{
-      nodeDataArr.value = flowNodeStore.getNodes
-  }
-})
+//     })
+//   }else{
+//       nodeDataArr.value = flowNodeStore.getNodes
+//   }
+// })
+
 
 </script>
