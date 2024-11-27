@@ -3,18 +3,26 @@ package com.alinesno.infra.data.scheduler.executor;
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
+import com.alinesno.infra.common.web.log.utils.SpringUtils;
+import com.alinesno.infra.data.scheduler.adapter.CloudStorageConsumer;
 import com.alinesno.infra.data.scheduler.api.ParamsDto;
 import com.alinesno.infra.data.scheduler.constants.PipeConstants;
 import com.alinesno.infra.data.scheduler.entity.EnvironmentEntity;
+import com.alinesno.infra.data.scheduler.entity.ResourceEntity;
 import com.alinesno.infra.data.scheduler.executor.bean.TaskInfoBean;
 import com.alinesno.infra.data.scheduler.executor.shell.ShellHandle;
-import com.alinesno.infra.data.scheduler.executor.utils.FreeMarkerStringRenderer;
 import com.alinesno.infra.data.scheduler.executor.utils.OSUtils;
+import com.alinesno.infra.data.scheduler.executor.utils.StringTemplateUtils;
+import com.alinesno.infra.data.scheduler.service.IDataSourceService;
+import com.alinesno.infra.data.scheduler.service.IEnvironmentService;
+import com.alinesno.infra.data.scheduler.service.IResourceService;
+import com.alinesno.infra.data.scheduler.service.ISecretsService;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 
 import java.io.File;
@@ -22,10 +30,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.StringTokenizer;
+import java.util.*;
 
 /**
  * BaseExecutorService
@@ -33,6 +38,18 @@ import java.util.StringTokenizer;
 @Getter
 @Slf4j
 public abstract class AbstractExecutorService extends BaseResourceService implements IExecutorService {
+
+    @Autowired
+    private IResourceService resourceService ;
+
+    @Autowired
+    private IEnvironmentService environmentService ;
+
+    @Autowired
+    private ISecretsService secretsService ;
+
+    @Autowired
+    protected CloudStorageConsumer storageConsumer;
 
     /**
      * 定义一个用于存储参数的DTO（数据传输对象）
@@ -121,6 +138,7 @@ public abstract class AbstractExecutorService extends BaseResourceService implem
     protected String getJavaHome(EnvironmentEntity environment) {
         return getHomeFromConfig(environment, "JAVA_HOME");
     }
+
 
     /**
      * 写入项目空间的日志文件中，每个任务开始的时候都会调用这个方法
@@ -224,6 +242,88 @@ public abstract class AbstractExecutorService extends BaseResourceService implem
         this.secretMap = secretMap ;
     }
 
+
+    /**
+     * TODO 处理多线程参数异常的问题
+     * 配置任务参数
+     *
+     * @param task
+     * @param executorService
+     */
+    protected void configTaskParams(TaskInfoBean task, IExecutorService executorService) {
+
+        // 配置参数
+        ParamsDto paramsDto = JSONObject.parseObject(task.getTask().getTaskParams(), ParamsDto.class);
+        if(paramsDto == null){
+            paramsDto = new ParamsDto();
+        }
+        executorService.setParams(paramsDto);
+
+        // 配置空间
+        String workspace = new File(task.getWorkspacePath(), task.getWorkspace()).getAbsolutePath();
+        executorService.setWorkspace(workspace);
+
+        // 配置数据库源
+        try{
+            IDataSourceService dataSourceService = SpringUtils.getBean(IDataSourceService.class);
+            executorService.setDataSource(dataSourceService.getDataSource(paramsDto.getDataSourceId()));
+        }catch (Exception e){
+            log.warn("没有配置数据源：{}",e.getMessage());
+        }
+
+        EnvironmentEntity environment = environmentService.getById(task.getProcess().getEnvId());
+        if(environment == null){
+            environment = environmentService.getDefaultEnv() ;
+        }
+        executorService.setEnvironment(environment);
+
+        // 配置资源
+        List<String> resources = downloadResource(paramsDto.getResourceId(), workspace);
+        executorService.setResource(resources);
+
+        // 配置任务环境
+        executorService.setTaskInfoBean(task);
+
+        // 添加自定义密钥值
+        Map<String , String> secretsMap = secretsService.secretMap() ;
+        executorService.setSecretMap(secretsMap);
+
+        // 替换环境变量
+        executorService.replaceGlobalParams(environment ,
+                task.getProcess().getGlobalParams() ,
+                paramsDto.getCustomParams());
+    }
+
+    /**
+     * 下载文件资源并返回文件名称
+     *
+     * @param resourceIds
+     * @return
+     */
+    @SneakyThrows
+    protected List<String> downloadResource(List<String> resourceIds, String workspace) {
+
+
+        List<String> fileNameList = new ArrayList<>();
+        if(resourceIds == null || resourceIds.isEmpty()){
+            return fileNameList ;
+        }
+
+        List<ResourceEntity> resourceEntities = resourceService.listByIds(resourceIds);
+
+        for (ResourceEntity resource : resourceEntities) {
+            byte[] bytes = storageConsumer.download(String.valueOf(resource.getStorageId()), progress -> log.debug("下载进度：" + progress.getRate()));
+
+            File targetFile = new File(workspace, resource.getFileName());
+            FileUtils.writeByteArrayToFile(targetFile, bytes);
+
+            fileNameList.add(targetFile.getAbsolutePath());
+        }
+
+        return fileNameList;
+    }
+
+
     /**
      * 替换全局参数
      *
@@ -288,7 +388,18 @@ public abstract class AbstractExecutorService extends BaseResourceService implem
         root.put("env", getGlobalEnv());
         root.put("secrets", secretMap);
 
-        return FreeMarkerStringRenderer.getInstance().render("example", templateContent, root);
+        return StringTemplateUtils.render(templateContent, root);
+    }
+
+    @SneakyThrows
+    public String readerRawScript(String templateContent){
+
+        // 准备数据模型
+        Map<String, Object> root = new HashMap<>();
+        root.put("env", getGlobalEnv());
+        root.put("secrets", secretMap);
+
+        return StringTemplateUtils.render(templateContent, root);
     }
 
     /**
@@ -303,7 +414,7 @@ public abstract class AbstractExecutorService extends BaseResourceService implem
         root.put("env", getGlobalEnv());
         root.put("secrets", secretMap);
 
-        return FreeMarkerStringRenderer.getInstance().render("example", templateContent, root);
+        return StringTemplateUtils.render(templateContent, root);
     }
 
     /**
