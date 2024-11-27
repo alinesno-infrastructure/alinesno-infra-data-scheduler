@@ -38,6 +38,11 @@ public class ResourceEntity extends InfraBaseEntity {
     private String fileName;
 
     @TableField
+    @ColumnType(value = MySqlTypeConstant.VARCHAR, length = 32)
+    @ColumnComment("项目编码")
+    private long projectId;
+
+    @TableField
     @ColumnComment("是否为目录")
     private boolean isDirectory = false;
 
