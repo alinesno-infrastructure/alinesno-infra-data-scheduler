@@ -188,6 +188,11 @@ function showDrawer(_node) {
 
     visible.value = true;
     node.value = _node;
+
+    if(_node.params){
+        form.value = _node.params
+    }
+
     form.value.name = _node.name;
     
     nextTick(() => {
