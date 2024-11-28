@@ -96,6 +96,7 @@ public class ProcessUtils {
         entity.setScheduleCron(context.getCronExpression());
         entity.setMonitorEmail(context.getMonitorEmail());
         entity.setEnvId(context.getEnvId());
+        entity.setCategoryId(context.getCategoryId());
 
         entity.setProjectId(dto.getProjectId());
         entity.setOrgId(dto.getOrgId());
