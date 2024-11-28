@@ -113,6 +113,13 @@ export const constantRoutes = [
         meta: { title: '流程实例', icon: 'fa-brands fa-wordpress', affix: false }
       },
       {
+        path: '/data/scheduler/catelog/index',
+        name: 'data.scheduler.catelog.index',
+        hidden: false,
+        component: () => import('@/views/data/scheduler/catelog/index'),
+        meta: { title: '流程分类', icon: 'fa-solid fa-file-pdf', affix: false }
+      },
+      {
         path: '/data/scheduler/resources/index',
         name: 'data.scheduler.resources.index',
         hidden: false,
