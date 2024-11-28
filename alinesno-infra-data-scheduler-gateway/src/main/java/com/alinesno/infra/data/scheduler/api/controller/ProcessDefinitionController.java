@@ -4,8 +4,10 @@ import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.alinesno.infra.common.core.constants.SpringInstanceScope;
 import com.alinesno.infra.common.core.utils.DateUtils;
+import com.alinesno.infra.common.extend.datasource.annotation.DataPermissionQuery;
 import com.alinesno.infra.common.extend.datasource.annotation.DataPermissionSave;
 import com.alinesno.infra.common.extend.datasource.annotation.DataPermissionScope;
+import com.alinesno.infra.common.facade.datascope.PermissionQuery;
 import com.alinesno.infra.common.facade.pageable.DatatablesPageBean;
 import com.alinesno.infra.common.facade.pageable.TableDataInfo;
 import com.alinesno.infra.common.facade.response.AjaxResult;
@@ -100,6 +102,7 @@ public class ProcessDefinitionController extends BaseController<ProcessDefinitio
         dto.setTimeout(entity.getTimeout());
         dto.setMonitorEmail(entity.getMonitorEmail());
         dto.setCronExpression(entity.getScheduleCron());
+        dto.setCategoryId(entity.getCategoryId());
 
         if(entity.getStartTime() != null){
             dto.setStartTime(DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS , entity.getStartTime()));
@@ -115,9 +118,11 @@ public class ProcessDefinitionController extends BaseController<ProcessDefinitio
      * 获取目录树
      * @return
      */
+    @DataPermissionQuery
     @GetMapping("/catalogTreeSelect")
-    public AjaxResult catalogTreeSelect(){
-        return AjaxResult.success("success" , catalogService.selectCatalogTreeList()) ;
+    public AjaxResult catalogTreeSelect(PermissionQuery query){
+        long currentProject = CurrentProjectSession.get().getId() ;
+        return AjaxResult.success("success" , catalogService.selectCatalogTreeList(query , currentProject)) ;
     }
 
     /**
@@ -232,7 +237,6 @@ public class ProcessDefinitionController extends BaseController<ProcessDefinitio
         scheduler.resumeTrigger(TriggerKey.triggerKey(jobId , PipeConstants.TRIGGER_GROUP_NAME)) ;
         return AjaxResult.success();
     }
-
 
     @Override
     public IProcessDefinitionService getFeign() {
