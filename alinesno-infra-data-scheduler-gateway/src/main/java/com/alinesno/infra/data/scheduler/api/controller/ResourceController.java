@@ -153,10 +153,10 @@ public class ResourceController extends BaseController<ResourceEntity, IResource
         return AjaxResult.success("success" , result) ;
     }
 
-    @GetMapping("/catalogTreeSelect")
-    public AjaxResult catalogTreeSelect(){
-        return AjaxResult.success("success" , catalogService.selectCatalogTreeList()) ;
-    }
+//    @GetMapping("/catalogTreeSelect")
+//    public AjaxResult catalogTreeSelect(){
+//        return AjaxResult.success("success" , catalogService.selectCatalogTreeList(query)) ;
+//    }
 
     @Override
     public IResourceService getFeign() {
