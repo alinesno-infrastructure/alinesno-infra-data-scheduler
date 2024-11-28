@@ -33,6 +33,15 @@
                         <el-tree-select v-model="form.resourceId" :data="resourceData" multiple placeholder="请选择资源"
                             :render-after-expand="false" style="width: 500px" />
                     </el-form-item>
+                    <el-form-item label="数据源" prop="dataSourceId">
+                        <el-tree-select
+                            v-model="form.dataSourceId"
+                            :data="dataSourceData"
+                            placeholder="请选择数据源"
+                            :render-after-expand="false"
+                            style="width: 500px"
+                        />
+                    </el-form-item>
                     <el-form-item label="自定义参数">
                         <el-button type="primary" bg text @click="paramsDialog = true">
                             <i class="fa-solid fa-screwdriver-wrench"></i>&nbsp;配置任务参数
@@ -72,8 +81,11 @@ import { ElLoading } from 'element-plus'
 import { useNodeStore } from '@/store/modules/flowNode'; // 根据实际情况调整路径
 const flowNodeStore = useNodeStore();
 
+import { listAllDataSource } from '@/api/data/scheduler/datasources'
 import { getAllResource } from '@/api/data/scheduler/resource'
+
 import { validateTask } from '@/api/data/scheduler/processDefinition'
+
 import { branchIcon2 } from '@/utils/flowMixin';
 import CodeEditor from '../../CodeEditor.vue';
 import ContextParam from "../../../params/contextParam.vue";
@@ -81,6 +93,8 @@ import ContextParam from "../../../params/contextParam.vue";
 const { proxy } = getCurrentInstance();
 
 const codeEditorRef = ref(null)
+const dataSourceData = ref([])
+
 const node = ref({})
 const visible = ref(false)
 const headerStyle = ref({
@@ -216,6 +230,10 @@ function showDrawer(_node) {
         // 获取所有资源
         getAllResource().then(res => {
             resourceData.value = res.data
+        })
+
+        listAllDataSource().then(res => {
+            dataSourceData.value = res.data
         })
     })
 }
