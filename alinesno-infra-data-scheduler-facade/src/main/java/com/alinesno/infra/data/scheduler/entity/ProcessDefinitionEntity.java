@@ -37,6 +37,11 @@ public class ProcessDefinitionEntity extends InfraBaseEntity {
     private long envId ;
 
     @TableField
+    @ColumnType(value = MySqlTypeConstant.BIGINT, length = 32)
+    @ColumnComment("流程分类ID")
+    private long categoryId;
+
+    @TableField
     @ColumnType(value = MySqlTypeConstant.VARCHAR, length = 2)
     @ColumnComment("数据采集模板")
     private String dataCollectionTemplate ;
