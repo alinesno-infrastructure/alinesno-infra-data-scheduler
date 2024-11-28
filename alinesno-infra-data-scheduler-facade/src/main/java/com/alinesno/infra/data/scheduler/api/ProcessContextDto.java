@@ -33,6 +33,9 @@ public class ProcessContextDto {
     // 项目代码
     private long projectCode;
 
+    // 分类ID
+    private long categoryId;
+
     // 环境ID
     private long envId;
 
