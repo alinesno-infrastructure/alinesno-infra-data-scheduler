@@ -284,6 +284,8 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
             ProcessDefinitionEntity processDefinition = ProcessUtils.fromDtoToEntity(dto);
             BeanUtils.copyProperties(processDefinition, oldProcessDefinition);
 
+            oldProcessDefinition.setId(processId);
+
             this.updateById(oldProcessDefinition);
         }
 
