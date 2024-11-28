@@ -3,7 +3,6 @@
 
       <el-row :gutter="20">
          <!--类型数据-->
-         <!-- 
            <el-col :span="4" :xs="24">
               <div class="head-container">
                  <el-input
@@ -27,10 +26,9 @@
                  />
               </div>
            </el-col> 
-           -->
 
          <!--任务数据-->
-         <el-col :span="24" :xs="24">
+         <el-col :span="20" :xs="24">
             <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="100px">
                <el-form-item label="任务名称" prop="name">
                   <el-input v-model="queryParams.name" placeholder="请输入任务名称" clearable style="width: 240px"
@@ -387,6 +385,13 @@ function getDeptTree() {
       deptOptions.value = response.data;
    });
 };
+
+// 节点单击事件
+function handleNodeClick(data) {
+  queryParams.value.categoryId = data.id;
+  console.log('data.id = ' + data.id)
+  getList();
+}
 
 /** 重置按钮操作 */
 function resetQuery() {
