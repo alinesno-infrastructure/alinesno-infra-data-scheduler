@@ -66,7 +66,7 @@ public class DataSourceController extends BaseController<DataSourceEntity, IData
         return this.toPage(model, this.getFeign(), page);
     }
 
-    @PostMapping("/checkDB")
+    @PostMapping("/checkConnectionByObj")
     public AjaxResult checkDBConnect(@Validated @RequestBody DataSourceDto dto ) {
 
         DataSourceEntity dbListEntity = new DataSourceEntity() ;
@@ -82,14 +82,15 @@ public class DataSourceController extends BaseController<DataSourceEntity, IData
         }
     }
 
+    @DataPermissionSave
     @PutMapping("/modifyDb")
-    public AjaxResult modifyDb(@Validated @RequestBody DataSourceDto dto ) {
+    public AjaxResult modifyDb(@Validated @RequestBody DataSourceDto dto) {
 
         DataSourceEntity dbEntity = new DataSourceEntity() ;
         BeanUtils.copyProperties(dto, dbEntity) ;
 
         dbEntity.setReaderName(dto.getReaderType().toUpperCase());
-//        DbParserUtils.parserJdbcUrl(dbEntity , dto.getJdbcUrl()) ;
+        dbEntity.setProjectId(CurrentProjectSession.get().getId());
 
         try {
             return super.update(null, dbEntity) ;
