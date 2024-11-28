@@ -451,7 +451,7 @@ function submitForm() {
    });
 };
 
-getDeptTree();
+// getDeptTree();
 getList();
 
 </script>
