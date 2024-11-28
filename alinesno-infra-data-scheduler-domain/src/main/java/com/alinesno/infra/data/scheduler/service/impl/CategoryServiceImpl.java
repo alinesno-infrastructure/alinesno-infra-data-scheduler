@@ -2,10 +2,12 @@ package com.alinesno.infra.data.scheduler.service.impl;
 
 import com.alinesno.infra.common.core.service.impl.IBaseServiceImpl;
 import com.alinesno.infra.common.core.utils.StringUtils;
+import com.alinesno.infra.common.facade.datascope.PermissionQuery;
 import com.alinesno.infra.data.scheduler.api.TreeSelectDto;
 import com.alinesno.infra.data.scheduler.entity.CategoryEntity;
 import com.alinesno.infra.data.scheduler.mapper.CategoryMapper;
 import com.alinesno.infra.data.scheduler.service.ICategoryService;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -24,9 +26,14 @@ import java.util.stream.Collectors;
 public class CategoryServiceImpl extends IBaseServiceImpl<CategoryEntity, CategoryMapper> implements ICategoryService {
 
     @Override
-    public List<CategoryEntity> selectCatalogList(CategoryEntity promptCatalog) {
+    public List<CategoryEntity> selectCatalogList(CategoryEntity promptCatalog, PermissionQuery query, long currentProject) {
 
-        List<CategoryEntity> list = list() ;
+        LambdaQueryWrapper<CategoryEntity> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.setEntityClass(CategoryEntity.class) ;
+        query.toWrapper(queryWrapper);
+        queryWrapper.eq(CategoryEntity::getProjectId, currentProject);
+
+        List<CategoryEntity> list = list(queryWrapper);
 
         if(list == null || list.isEmpty()){
 
@@ -56,9 +63,14 @@ public class CategoryServiceImpl extends IBaseServiceImpl<CategoryEntity, Catego
     }
 
     @Override
-    public List<TreeSelectDto> selectCatalogTreeList() {
+    public List<TreeSelectDto> selectCatalogTreeList(PermissionQuery query, long currentProject) {
 
-        List<CategoryEntity> deptTrees = buildDeptTree(list());
+        LambdaQueryWrapper<CategoryEntity> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.setEntityClass(CategoryEntity.class) ;
+        query.toWrapper(queryWrapper);
+        queryWrapper.eq(CategoryEntity::getProjectId, currentProject);
+
+        List<CategoryEntity> deptTrees = buildDeptTree(list(queryWrapper));
         return deptTrees.stream().map(TreeSelectDto::new).collect(Collectors.toList());
     }
 
