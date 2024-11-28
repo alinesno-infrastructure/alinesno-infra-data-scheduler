@@ -388,7 +388,8 @@ public abstract class AbstractExecutorService extends BaseResourceService implem
         root.put("env", getGlobalEnv());
         root.put("secrets", secretMap);
 
-        return StringTemplateUtils.render(templateContent, root);
+//        return StringTemplateUtils.render(templateContent, root);
+        return templateContent ;
     }
 
     @SneakyThrows
