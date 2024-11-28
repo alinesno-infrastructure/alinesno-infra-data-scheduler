@@ -49,6 +49,11 @@ public class CategoryEntity extends InfraBaseEntity {
     @ColumnComment("显示排序")
     private int orderNum ;
 
+    @Excel(name="项目ID")
+    @TableField("project_id")
+    @ColumnType(length=32 , value = MySqlTypeConstant.BIGINT)
+    private long projectId ;
+
     @Excel(name="类型描述")
     @TableField("description")
     @ColumnType(length=128)
