@@ -13,6 +13,17 @@
           <el-input v-model="form.taskName" placeholder="请输入任务名称"></el-input>
         </el-form-item>
 
+        <el-form-item style="width: 100%;" label="类型" prop="categoryId">
+          <el-tree-select
+              v-model="form.categoryId"
+              :data="deptOptions"
+              :props="{ value: 'id', label: 'label', children: 'children' }"
+              value-key="id"
+              placeholder="请选择归属类型"
+              check-strictly
+          />
+        </el-form-item>
+
         <!-- 数据采集模板 -->
         <el-form-item label="数据采集模板" prop="dataCollectionTemplate">
           <el-row>
@@ -122,7 +133,7 @@
 import ContextParam from "./params/contextParam.vue";
 import Crontab from '@/components/Crontab'
 import { getAllEnvironment } from '@/api/data/scheduler/environment'
-import { getProcessDefinitionByDto } from '@/api/data/scheduler/processDefinition'
+import { getProcessDefinitionByDto , catalogTreeSelect } from '@/api/data/scheduler/processDefinition'
 import { nextTick } from "vue";
 
 const { proxy } = getCurrentInstance();
@@ -135,7 +146,7 @@ const loginStyleArr = ref([
   { id: '3', icon: 'http://data.linesno.com/icons/flow/style-06.png', desc: '数据采集,Agent智能体数据资产分析及更新' }
 ]);
 const currentLoginStyle = ref('0')
-
+const deptOptions = ref(undefined);
 const processDefinitionId = route.query.processDefinitionId
 const envData = ref([])
 const contextParamRef = ref(null)
@@ -310,6 +321,13 @@ function resetForm() {
   localStorage.removeItem('processDefinitionFormData');
 }
 
+/** 查询类型下拉树结构 */
+function getDeptTree() {
+  catalogTreeSelect().then(response => {
+    deptOptions.value = response.data;
+  });
+};
+
 // 调用此方法以加载数据
 getAllEnvironment().then(res => {
   envData.value = res.data
@@ -330,6 +348,8 @@ getAllEnvironment().then(res => {
   })
 })
 
+
+getDeptTree();
 </script>
 
 
