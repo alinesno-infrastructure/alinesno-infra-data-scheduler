@@ -11,7 +11,7 @@ spring:
       file-size-threshold: 0
   application:
     name: alinesno-infra-data-scheduler-boot
-    id: 1849085034695233536
+    id: 1865936259484930048
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3309/dev_alinesno_infra_data_scheduler_v100?serverTimezone=GMT%2B8&zeroDateTimeBehavior=CONVERT_TO_NULL
