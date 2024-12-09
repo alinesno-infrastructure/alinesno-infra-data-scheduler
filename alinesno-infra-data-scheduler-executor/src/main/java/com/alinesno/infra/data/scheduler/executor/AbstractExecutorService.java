@@ -7,6 +7,7 @@ import com.alinesno.infra.common.web.log.utils.SpringUtils;
 import com.alinesno.infra.data.scheduler.adapter.CloudStorageConsumer;
 import com.alinesno.infra.data.scheduler.api.ParamsDto;
 import com.alinesno.infra.data.scheduler.constants.PipeConstants;
+import com.alinesno.infra.data.scheduler.entity.DataSourceEntity;
 import com.alinesno.infra.data.scheduler.entity.EnvironmentEntity;
 import com.alinesno.infra.data.scheduler.entity.ResourceEntity;
 import com.alinesno.infra.data.scheduler.executor.bean.TaskInfoBean;
@@ -17,7 +18,9 @@ import com.alinesno.infra.data.scheduler.service.IDataSourceService;
 import com.alinesno.infra.data.scheduler.service.IEnvironmentService;
 import com.alinesno.infra.data.scheduler.service.IResourceService;
 import com.alinesno.infra.data.scheduler.service.ISecretsService;
+import lombok.Data;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -65,6 +68,18 @@ public abstract class AbstractExecutorService extends BaseResourceService implem
      * 数据源对象，用于连接数据库
      */
     private DruidDataSource dataSource;
+
+    /**
+     * 读取器URL
+     */
+    @Setter
+    private String readerUrl ;
+
+    @Setter
+    private String readerKey ;
+
+    @Setter
+    private String readerSecret ;
 
     /**
      * 环境实体对象，用于存储运行环境相关信息
@@ -144,7 +159,7 @@ public abstract class AbstractExecutorService extends BaseResourceService implem
      * 写入项目空间的日志文件中，每个任务开始的时候都会调用这个方法
      */
     @SneakyThrows
-    protected void writeLog(String logText) {
+    public void writeLog(String logText) {
 
         String workspace = getWorkspace();
         File logFile = new File(workspace, PipeConstants.RUNNING_LOGGER);
@@ -171,7 +186,7 @@ public abstract class AbstractExecutorService extends BaseResourceService implem
      * 写入项目空间的日志文件中，每个任务开始的时候都会调用这个方法
      */
     @SneakyThrows
-    protected void writeLog(Exception e) {
+    public void writeLog(Exception e) {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
 
@@ -264,11 +279,37 @@ public abstract class AbstractExecutorService extends BaseResourceService implem
         executorService.setWorkspace(workspace);
 
         // 配置数据库源
-        try{
-            IDataSourceService dataSourceService = SpringUtils.getBean(IDataSourceService.class);
-            executorService.setDataSource(dataSourceService.getDataSource(paramsDto.getDataSourceId()));
-        }catch (Exception e){
-            log.warn("没有配置数据源：{}",e.getMessage());
+        IDataSourceService dataSourceService = SpringUtils.getBean(IDataSourceService.class);
+        DataSourceEntity readerDataSourceEntity = dataSourceService.getById(paramsDto.getDataSourceId()) ;
+
+        // 数据库源密钥(用于在流程中获取到信息)
+        if(readerDataSourceEntity != null){
+            if(readerDataSourceEntity.getReaderType().equals("minio") ||
+                    readerDataSourceEntity.getReaderType().equals("qiniu") ||
+                    readerDataSourceEntity.getReaderType().equals("s3")){
+
+                this.setReaderUrl(readerDataSourceEntity.getReaderUrl());
+                this.setReaderKey(readerDataSourceEntity.getAccessKey());
+                this.setReaderSecret(readerDataSourceEntity.getSecretKey());
+
+            }else if(readerDataSourceEntity.getReaderType().equals("elasticsearch")||
+                    readerDataSourceEntity.getReaderType().equals("hive") ||
+                    readerDataSourceEntity.getReaderType().equals("mysql") ||
+                    readerDataSourceEntity.getReaderType().equals("clickhouse") ||
+                    readerDataSourceEntity.getReaderType().equals("postgresql") ||
+                    readerDataSourceEntity.getReaderType().equals("redis")
+            ){
+
+                this.setReaderUrl(readerDataSourceEntity.getReaderUrl());
+                this.setReaderKey(readerDataSourceEntity.getReaderUsername());
+                this.setReaderSecret(readerDataSourceEntity.getReaderPasswd());
+
+                try{
+                    executorService.setDataSource(dataSourceService.getDataSource(paramsDto.getDataSourceId()));
+                }catch (Exception e){
+                    log.warn("没有配置数据源：{}",e.getMessage());
+                }
+            }
         }
 
         EnvironmentEntity environment = environmentService.getById(task.getProcess().getEnvId());
