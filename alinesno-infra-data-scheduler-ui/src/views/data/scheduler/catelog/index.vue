@@ -59,7 +59,7 @@
           {{ scope.row.name }}
         </template>
       </el-table-column>
-      <el-table-column prop="remark" label="类型描述" ></el-table-column>
+      <el-table-column prop="description" label="类型描述" ></el-table-column>
       <el-table-column align="center" prop="orderNum" label="排序" width="100"></el-table-column>
       <el-table-column align="center" prop="level" label="数据级别" width="100">
         <template #default="scope">
