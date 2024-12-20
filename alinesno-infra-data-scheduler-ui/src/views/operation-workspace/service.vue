@@ -12,7 +12,7 @@
                 <li class="app-items" v-for="(item , index) in apps" :key="index" style="width:calc(25% - 10px)">
                   <div class="app-icon">
                     <!-- <img :src="item.icon" :alt="item.name" /> -->
-                    <img :src="'http://data.linesno.com/icons/dashboard/'+(index+1)+'.svg'" :alt="item.name" />
+                    <i :class="item.icon" style="font-size: 20px" />
                   </div>
                   <div class="app-info">
                     <div class="app-item-title">{{ item.name }}</div>
