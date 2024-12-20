@@ -24,7 +24,7 @@
           />
         </el-form-item>
 
-        <!-- 数据采集模板 -->
+        <!-- 数据采集模板
         <el-form-item label="数据采集模板" prop="dataCollectionTemplate">
           <el-row>
             <el-col :span="7" v-for="(o, index) in loginStyleArr" :key="index" :offset="index > 0 ? 1 : 0">
@@ -41,6 +41,7 @@
             </el-col>
           </el-row>
         </el-form-item>
+        -->
 
         <el-form-item label="环境名称" prop="envId">
           <el-select v-model="form.envId" placeholder="选择执行环境" style="width:100%">
