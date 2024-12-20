@@ -35,10 +35,10 @@
              <el-table v-loading="loading" :data="ProjectList" @selection-change="handleSelectionChange">
                 <el-table-column type="selection" width="50" align="center" />
 
-                  <el-table-column label="图标" align="center" width="70" key="icon" >
+                  <el-table-column label="图标" align="center" width="60" key="icon" >
                      <template #default="scope">
                         <div class="role-icon">
-                           <img style="width:40px;height:40px;border-radius:5px;" :src="'http://data.linesno.com/icons/sepcialist/dataset_' + ((scope.$index + 1)%10 + 5) + '.png'" />
+                           <img style="width:40px;height:40px;border-radius:50%;" :src="'http://data.linesno.com/icons/sepcialist/dataset_' + ((scope.$index + 1)%10 + 5) + '.png'" />
                         </div>
                      </template>
                   </el-table-column>
