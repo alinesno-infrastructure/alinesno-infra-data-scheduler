@@ -14,14 +14,14 @@ spring:
     id: 1865936259484930048
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3309/dev_alinesno_infra_data_scheduler_v100?serverTimezone=GMT%2B8&zeroDateTimeBehavior=CONVERT_TO_NULL
+    url: jdbc:mysql://localhost:3306/dev_alinesno_infra_data_scheduler_v100?serverTimezone=GMT%2B8&zeroDateTimeBehavior=CONVERT_TO_NULL
     username: root
     password: adminer
   data:
     redis:
       host: 127.0.0.1
       port: 6379
-      # password: aip@local
+      password: aip@local
   quartz:
     #是否自动启动
     autoStartup: false
@@ -86,6 +86,7 @@ alinesno:
     excludes:
       - /sso/**
       - /logout
+      - /api/infra/data/scheduler/fileStore/displayImage/*
   infra:
     gateway:
       host: http://alinesno-infra-base-gateway-proxy-application.beta.base.infra.linesno.com
