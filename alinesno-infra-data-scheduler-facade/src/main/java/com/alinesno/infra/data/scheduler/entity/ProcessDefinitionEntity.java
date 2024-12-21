@@ -21,6 +21,12 @@ import java.util.Map;
 @TableComment(value = "流程定义表")
 public class ProcessDefinitionEntity extends InfraBaseEntity {
 
+    // icon图标
+    @TableField
+    @ColumnType(value = MySqlTypeConstant.VARCHAR, length = 64)
+    @ColumnComment("icon图标")
+    private String icon ;
+
     @TableField
     @ColumnType(value = MySqlTypeConstant.VARCHAR, length = 128)
     @ColumnComment("流程名称")
