@@ -8,6 +8,18 @@
     <div class="form-container">
       <el-form :model="form" :rules="rules" ref="databaseRef" label-width="180px">
 
+        <el-form-item label="图标" prop="icon">
+            <el-radio-group v-model="form.icon">
+              <el-radio v-for="item in icons"
+                :value="item.icon"
+                :key="item.icon"
+                :label="item.icon"
+                >
+                <i :class="item.icon"></i>
+              </el-radio>
+            </el-radio-group>
+          </el-form-item>
+
         <!-- 任务名称 -->
         <el-form-item label="任务名称" prop="taskName">
           <el-input v-model="form.taskName" placeholder="请输入任务名称"></el-input>
@@ -103,6 +115,9 @@
           <el-button icon="Right" type="primary" @click="createDatasource">
             下一步
           </el-button>
+          <el-button icon="UploadFilled" type="danger" @click="saveDefinition">
+            保存 
+          </el-button>
           <el-button @click="resetForm">
             重置
           </el-button>
@@ -141,11 +156,24 @@ const { proxy } = getCurrentInstance();
 const route = useRoute()
 const router = useRouter();
 
-const loginStyleArr = ref([
-  { id: '1', icon: 'http://data.linesno.com/icons/flow/style-04.png', desc: '数据分析处理,从数据库中读取数据进行解析和加载' },
-  { id: '2', icon: 'http://data.linesno.com/icons/flow/style-05.png', desc: '运维自动化任务,运维自动化管理和处理结果' },
-  { id: '3', icon: 'http://data.linesno.com/icons/flow/style-06.png', desc: '数据采集,Agent智能体数据资产分析及更新' }
+// const loginStyleArr = ref([
+//   { id: '1', icon: 'http://data.linesno.com/icons/flow/style-04.png', desc: '数据分析处理,从数据库中读取数据进行解析和加载' },
+//   { id: '2', icon: 'http://data.linesno.com/icons/flow/style-05.png', desc: '运维自动化任务,运维自动化管理和处理结果' },
+//   { id: '3', icon: 'http://data.linesno.com/icons/flow/style-06.png', desc: '数据采集,Agent智能体数据资产分析及更新' }
+// ]);
+
+const icons = ref([
+  { id: 1, icon: 'fa-solid fa-charging-station'} ,
+  { id: 1, icon: 'fa-solid fa-truck'} ,
+  { id: 2, icon: 'fa-solid fa-paper-plane'} ,
+  { id: 2, icon: 'fa-solid fa-ship'} ,
+  { id: 3, icon: 'fa-solid fa-chart-column'},
+  { id: 4, icon: 'fa-solid fa-server'}, 
+  { id: 5, icon: 'fa-solid fa-box-open'}, 
+  { id: 8, icon: 'fa-solid fa-file-invoice-dollar'}, 
+  { id: 9, icon: 'fa-solid fa-user-tie'},
 ]);
+
 const currentLoginStyle = ref('0')
 const deptOptions = ref(undefined);
 const processDefinitionId = route.query.processDefinitionId
@@ -212,7 +240,7 @@ const data = reactive({
     envId: [
       { required: true, message: "请选择环境ID", trigger: "blur" }
     ],
-    dataCollectionTemplate: [
+    icon: [
       { required: true, message: "请输入数据采集模板", trigger: "blur" }
     ],
     dataQuality: [
@@ -258,10 +286,17 @@ function createDatasource() {
       localStorage.setItem('processDefinitionFormData', JSON.stringify(form.value));
 
       let path = '/data/scheduler/processDefinition/createDefinition';
-      router.push({ path: path , query:{'processDefinitionId': processDefinitionId } });
+      router.push({ path: path , query:{'processDefinitionId': processDefinitionId } }).then(() => {
+        window.location.reload(); 
+      });
     }
   });
 
+}
+
+/** 保存更新流程 */
+function saveDefinition(){
+  proxy.$modal.msgSuccess("功能模块开发中.");
 }
 
 /** cron表达式按钮操作 */
