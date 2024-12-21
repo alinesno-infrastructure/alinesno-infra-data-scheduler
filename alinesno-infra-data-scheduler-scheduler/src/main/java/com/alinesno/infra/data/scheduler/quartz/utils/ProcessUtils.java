@@ -88,6 +88,7 @@ public class ProcessUtils {
         ProcessDefinitionEntity entity = new ProcessDefinitionEntity();
         ProcessContextDto context = dto.getContext();
 
+        entity.setIcon(context.getIcon());
         entity.setName(context.getTaskName());
         entity.setProjectId(context.getProjectCode());
         entity.setGlobalParams(context.getGlobalParams()!= null? JSONObject.toJSONString(context.getGlobalParams()):null);
