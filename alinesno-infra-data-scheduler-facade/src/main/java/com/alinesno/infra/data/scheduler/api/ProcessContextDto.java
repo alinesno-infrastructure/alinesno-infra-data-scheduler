@@ -18,6 +18,9 @@ public class ProcessContextDto {
     // 任务ID，用于标识任务
     private long id;
 
+    // 图标
+    private String icon;
+
     // 任务名称，用于标识任务
     private String taskName;
 
