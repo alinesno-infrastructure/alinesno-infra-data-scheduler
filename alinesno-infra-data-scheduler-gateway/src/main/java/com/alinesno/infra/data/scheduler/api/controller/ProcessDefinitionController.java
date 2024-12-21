@@ -93,6 +93,7 @@ public class ProcessDefinitionController extends BaseController<ProcessDefinitio
         ProcessContextDto dto = new ProcessContextDto() ;
 
         dto.setId(entity.getId());
+        dto.setIcon(entity.getIcon());
         dto.setDataCollectionTemplate(entity.getDataCollectionTemplate());
         dto.setTaskName(entity.getName());
         dto.setTaskDesc(entity.getDescription());
