@@ -275,3 +275,9 @@
 .top-right-btn {
 	margin-left: auto;
 }
+
+
+.el-upload-list--picture-card, .el-upload--picture-card{
+	--el-upload-picture-card-size: 80px !important;
+	--el-upload-list-picture-card-size: 80px !important;
+}
