@@ -64,14 +64,8 @@
 
                <el-table-column align="center" width="40" key="icon">
                   <template #default="scope">
-                     <div style="font-size:25px;color:#409EFF" v-if="scope.$index % 3 == 2">
-                        <i class="fa-solid fa-sun"></i>
-                     </div>
-                     <div style="font-size:25px;color:#409EFF" v-if="scope.$index % 3 == 1">
-                        <i class="fa-solid fa-cloud-bolt"></i>
-                     </div>
-                     <div style="font-size:25px;color:#409EFF" v-if="scope.$index % 3 == 0">
-                        <i class="fa-solid fa-cloud-moon-rain"></i>
+                     <div style="font-size:25px;color:#3b5998">
+                        <i :class="scope.row.icon"></i>
                      </div>
                   </template>
                </el-table-column>
@@ -493,7 +487,10 @@ function submitForm() {
 /** 配置文档类型 */
 function handleConfigType(id, documentType) {
    let path = '/data/scheduler/processDefinition/createDefinition' ;
-   router.push({ path: path , query:{processDefinitionId:id,node:'node'} });
+   router.push({ path: path , query:{processDefinitionId:id,node:'node'} }).then(() => {
+      window.location.reload();
+   }) ;
+   
 }
 
 /** 修改状态 */
