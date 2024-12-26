@@ -40,9 +40,7 @@
                <el-table-column label="图标" align="center" width="60" key="icon">
                   <template #default="scope">
                      <div class="role-icon">
-                        <img style="width:40px;height:40px;border-radius:50%;" :src="displayProjectIcon(scope.row)" />
-                        <!-- <img v-else style="width:40px;height:40px;border-radius:50%;" 
-                              :src="'http://data.linesno.com/icons/sepcialist/dataset_' + ((scope.$index + 1) % 10 + 5) + '.png'" /> -->
+                        <i :class="scope.row.projectIcons" />
                      </div>
                   </template>
                </el-table-column>
@@ -113,6 +111,19 @@
          <el-form :model="form" :rules="rules" ref="databaseRef" label-width="100px">
             <el-row>
                <el-col :span="24" class="editor-after-div">
+                    <el-form-item label="图标" prop="projectIcons">
+                      <el-radio-group v-model="form.projectIcons">
+                        <el-radio v-for="item in icons"
+                          :value="item.icon"
+                          :key="item.icon"
+                          :label="item.icon"
+                          >
+                          <i :class="item.icon"></i>
+                        </el-radio>
+                      </el-radio-group>
+                    </el-form-item>
+
+                  <!--
                   <el-form-item label="封面" prop="projectIcons">
                      <el-upload :file-list="imageUrl"
                         :action="upload.url + '?type=img&updateSupport=' + upload.updateSupport"
@@ -124,6 +135,7 @@
                         </el-icon>
                      </el-upload>
                   </el-form-item>
+                  -->
                </el-col>
             </el-row>
             <el-row>
@@ -228,6 +240,18 @@ const data = reactive({
 });
 
 const { queryParams, form, rules } = toRefs(data);
+
+const icons = ref([
+  { id: 1, icon: 'fa-solid fa-charging-station'} ,
+  { id: 1, icon: 'fa-solid fa-truck'} ,
+  { id: 2, icon: 'fa-solid fa-paper-plane'} ,
+  { id: 2, icon: 'fa-solid fa-ship'} ,
+  { id: 3, icon: 'fa-solid fa-chart-column'},
+  { id: 4, icon: 'fa-solid fa-server'},
+  { id: 5, icon: 'fa-solid fa-box-open'},
+  { id: 8, icon: 'fa-solid fa-file-invoice-dollar'},
+  { id: 9, icon: 'fa-solid fa-user-tie'},
+]);
 
 /*** 应用导入参数 */
 const upload = reactive({
