@@ -27,20 +27,17 @@
 
     <el-table ref="operlogRef" v-loading="loading" :data="operlogList" @selection-change="handleSelectionChange" :default-sort="defaultSort" @sort-change="handleSortChange">
       <el-table-column type="index" width="55" label="序号" align="center" />
-      <el-table-column label="图标" align="center" width="70" key="icon" >
+      <el-table-column label="图标" align="center" width="60" key="icon" >
           <template #default="scope">
-              <div class="role-icon">
-                <img style="width:40px;height:40px;border-radius:5px;" :src="'http://data.linesno.com/icons/sepcialist/dataset_' + ((scope.$index + 1)%10 + 5) + '.png'" />
-              </div>
+             <div class="role-icon">
+                <i :class="scope.row.projectIcons" />
+             </div>
           </template>
       </el-table-column>
       <el-table-column label="项目名称" width="250" align="left" prop="projectName">
         <template #default="scope">
           <div>
             {{ scope.row.projectName }}
-          </div>
-          <div style="font-size: 13px;color: #a5a5a5;cursor: pointer;" v-copyText="scope.row.projectCode">
-            调用码: {{ scope.row.projectCode }} <el-icon><CopyDocument /></el-icon>
           </div>
       </template>
       </el-table-column>
