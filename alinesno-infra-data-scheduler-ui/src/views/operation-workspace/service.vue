@@ -62,16 +62,18 @@
 
 <script setup>
 
-import { recentlyProcess } from '@/api/data/scheduler/dashboard'
+import { 
+  recentlyProcess , 
+  simpleStatistics 
+} from '@/api/data/scheduler/dashboard'
 
 const opertionAssets = ref([
-        { id: '6', title: '总项目数', count: 45 },
-        { id: '1', title: '总任务', count: 45 },
-        { id: '2', title: '运行中', count: 145 },
-        { id: '3', title: '异常任务', count: 65 },
-        { id: '4', title: '完成任务', count: 85 },
-        { id: '5', title: '中断任务', count: 45 },
-      ])
+  { id: '6', title: '总项目数', enTitle: 'projectCount', count: 0},
+  { id: '1', title: '总任务', enTitle: 'taskCount', count: 0},
+  { id: '2', title: '运行中', enTitle: 'runningTaskCount', count: 0},
+  { id: '3', title: '异常任务', enTitle: 'errorTaskCount', count: 0},
+  { id: '4', title: '完成任务', enTitle: 'completeTaskCount', count: 0}
+]);
 
 const apps = ref([])
 
@@ -83,7 +85,21 @@ function handleRecentlyProcess(){
   })
 }
 
+/** 查询出简单的统计信息 */
+function handleSimpleStatistics(){
+  simpleStatistics().then(res => {
+    const updatedAssets = opertionAssets.value.map(item => ({
+        ...item, // 复制原有的id, title 和 enTitle
+        count: res.data[item.enTitle] || item.count // 更新count值或保持不变
+      }));
+
+      // 更新opertionAssets为新的格式
+      opertionAssets.value = updatedAssets; 
+  })
+}
+
 handleRecentlyProcess()
+handleSimpleStatistics() 
 
 </script>
 
