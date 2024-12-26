@@ -87,7 +87,9 @@ public class ProjectController extends BaseController<ProjectEntity, IProjectSer
         ProjectEntity e =  CurrentProjectSession.get() ;
 
         String defaultIcon = "fa-solid fa-file-shield" ;
-        e.setProjectIcons(defaultIcon);
+        if(e.getProjectIcons() == null){
+            e.setProjectIcons(defaultIcon);
+        }
 
         return AjaxResult.success(e);
     }
