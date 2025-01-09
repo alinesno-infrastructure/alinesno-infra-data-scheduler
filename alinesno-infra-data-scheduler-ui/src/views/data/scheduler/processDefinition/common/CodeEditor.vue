@@ -17,6 +17,7 @@ import { oneDark } from '@codemirror/theme-one-dark'
 import { python } from '@codemirror/lang-python';
 
 import { json } from '@codemirror/lang-json';
+import { java } from '@codemirror/lang-java';
 import { sql } from '@codemirror/lang-sql';
 import { yaml } from '@codemirror/lang-yaml';
 import { markdown } from '@codemirror/lang-markdown';
@@ -26,10 +27,6 @@ const { proxy } = getCurrentInstance();
 
 const props = defineProps({
   lang: {
-    type: String,
-    default: 'python' , 
-  },
-  aa: {
     type: String,
     default: 'python' , 
   },
@@ -44,6 +41,7 @@ let codeVal = ref('');
 
 const lang = props.lang == 'python'? python(): 
   props.lang == 'json'?json():
+  props.lang == 'java'?java():
   props.lang == 'yaml'?yaml():
   props.lang == 'sql'?sql():
   props.lang == 'markdown'?markdown():
