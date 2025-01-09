@@ -165,6 +165,11 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
                 if (!t.isContinueIgnore()) {
                     break;
                 }
+            }finally {
+                // 关闭数据源连接
+                if(executorService != null){
+                    executorService.closeDataSource();
+                }
             }
         }
 
