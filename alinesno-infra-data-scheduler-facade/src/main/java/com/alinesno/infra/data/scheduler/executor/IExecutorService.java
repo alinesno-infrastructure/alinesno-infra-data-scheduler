@@ -35,9 +35,14 @@ public interface IExecutorService {
     void setWorkspace(String workspace) ;
 
     /**
-     * 配置数据库源
+     * 配置读取数据库源
      */
     void setDataSource(DruidDataSource source) ;
+
+    /**
+     * 配置写入数据库源
+     */
+    void setSinkDataSource(DruidDataSource source) ;
 
     /**
      * 配置环境
@@ -80,4 +85,9 @@ public interface IExecutorService {
     void replaceGlobalParams(EnvironmentEntity environment,
                              String globalParams,
                              Map<String, String> customParams);
+
+    /**
+     * 关闭数据源
+     */
+    void closeDataSource();
 }
