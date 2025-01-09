@@ -22,6 +22,7 @@ public class ParamsDto {
     private boolean delivery; // 注意布尔值在 JSON 中是 true/false，在 Java 中是 boolean
     private int retryCount; // 重试次数，整型数值
     private long dataSourceId ; // 数据源ID
+    private long sinkDataSourceId ; // 写入数据源ID
     private String rawScript; // 原始脚本
     private List<String> resourceId; // 资源名称
     private Map<String,String> customParams; // 自定义参数
