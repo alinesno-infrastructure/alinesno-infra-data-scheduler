@@ -1,6 +1,7 @@
 package com.alinesno.infra.data.scheduler.executor.handle;
 
 import cn.hutool.core.util.IdUtil;
+import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.fastjson.JSONObject;
 import com.alinesno.infra.data.scheduler.api.ParamsDto;
 import com.alinesno.infra.data.scheduler.executor.AbstractExecutorService;
@@ -18,6 +19,7 @@ import java.util.Map;
 @Slf4j
 @Service("ansibleExecutor")
 public class AnsibleExecutor extends AbstractExecutorService {
+
 
     @SneakyThrows
     @Override
@@ -53,5 +55,6 @@ public class AnsibleExecutor extends AbstractExecutorService {
         runCommand(commandBuilder) ;
 
     }
+
 
 }
