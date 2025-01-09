@@ -6,6 +6,7 @@ import com.alinesno.infra.data.scheduler.executor.bean.TaskInfoBean;
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Scope;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +17,7 @@ import java.io.PrintStream;
  * K8S操作执行器
  */
 @Slf4j
+@Scope("prototype")
 @Service("groovyExecutor")
 public class GroovyExecutor extends AbstractExecutorService {
 
@@ -37,7 +39,7 @@ public class GroovyExecutor extends AbstractExecutorService {
         // 创建 Binding 对象，用于绑定变量到 Groovy 脚本
         Binding binding = new Binding();
 
-        binding.setVariable("taskInfo", task);
+        binding.setVariable("taskInfo", task.getWorkspace());
         binding.setVariable("executorService", this);
         binding.setVariable("log", log);
 
@@ -47,6 +49,13 @@ public class GroovyExecutor extends AbstractExecutorService {
             JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
             binding.setVariable("dataSource", dataSource);
             binding.setVariable("jdbcTemplate", jdbcTemplate);
+        }
+
+        DruidDataSource sinkDataSource = getSinkDataSource() ;
+        if(sinkDataSource != null){
+            JdbcTemplate jdbcTemplate = new JdbcTemplate(sinkDataSource);
+            binding.setVariable("sinkDataSource", sinkDataSource);
+            binding.setVariable("sinkJdbcTemplate", jdbcTemplate);
         }
 
         // 创建 GroovyShell 实例
