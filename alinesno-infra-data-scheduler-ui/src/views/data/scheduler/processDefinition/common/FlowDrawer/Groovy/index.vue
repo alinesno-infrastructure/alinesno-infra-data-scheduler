@@ -26,16 +26,25 @@
                         </el-select>
                     </el-form-item> -->
                     <el-form-item label="脚本">
-                        <CodeEditor ref="codeEditorRef" :lang="python" />
+                        <CodeEditor ref="codeEditorRef" :lang="'java'" />
                     </el-form-item>
                     <el-form-item label="资源" prop="resourceId">
                         <!-- <el-input v-model="form.resourceId" placeholder="请选择资源" /> -->
                         <el-tree-select v-model="form.resourceId" :data="resourceData" multiple placeholder="请选择资源"
                             :render-after-expand="false" style="width: 500px" />
                     </el-form-item>
-                    <el-form-item label="数据源" prop="dataSourceId">
+                    <el-form-item label="读取数据源" prop="dataSourceId">
                         <el-tree-select
                             v-model="form.dataSourceId"
+                            :data="dataSourceData"
+                            placeholder="请选择数据源"
+                            :render-after-expand="false"
+                            style="width: 500px"
+                        />
+                    </el-form-item>
+                    <el-form-item label="写入数据源" prop="sinkDataSourceId">
+                        <el-tree-select
+                            v-model="form.sinkDataSourceId"
                             :data="dataSourceData"
                             placeholder="请选择数据源"
                             :render-after-expand="false"
