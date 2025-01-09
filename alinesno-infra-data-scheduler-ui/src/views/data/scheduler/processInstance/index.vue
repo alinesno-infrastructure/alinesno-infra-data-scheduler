@@ -150,6 +150,8 @@ import {
 
 import ListInstance from '@/views/data/scheduler/taskInstance/listInstance.vue'
 import ProcessInstanceLog from './processInstanceLog.vue'
+import { onMounted } from "vue";
+import { getParam } from "@/utils/ruoyi";
 
 const router = useRouter();
 const { proxy } = getCurrentInstance();
@@ -191,8 +193,7 @@ const data = reactive({
   queryParams: {
      pageNum: 1,
      pageSize: 10,
-     dbName: undefined,
-     dbDesc: undefined
+     processId: null 
   },
   rules: {
      dbName: [{ required: true, message: "名称不能为空", trigger: "blur" }] , 
@@ -357,9 +358,10 @@ const handleChangStatusField = async(field , value , id) => {
 }
 
 /** 提交配置文档类型 */
-function submitDocumentTypeForm(){
-  // TODO 待保存应用文档类型
-}
+// function submitDocumentTypeForm(){
+//   // TODO 待保存应用文档类型
+// }
+
 
 /** 计算两个时间间隔 */
 function getTimeDifference(startTime, endTime) {
@@ -381,6 +383,12 @@ function getTimeDifference(startTime, endTime) {
     };
 }
 
-getList();
+onMounted(() => {
+   const processId = getParam('processId')
+   if(processId){
+      queryParams.value.processId = processId
+   }
+   getList();
+});
 
 </script>
