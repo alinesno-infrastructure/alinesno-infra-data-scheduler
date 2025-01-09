@@ -70,6 +70,11 @@ public abstract class AbstractExecutorService extends BaseResourceService implem
     private DruidDataSource dataSource;
 
     /**
+     * 写入源对象，用于连接数据库
+     */
+    private DruidDataSource sinkDataSource;
+
+    /**
      * 读取器URL
      */
     @Setter
@@ -80,6 +85,18 @@ public abstract class AbstractExecutorService extends BaseResourceService implem
 
     @Setter
     private String readerSecret ;
+
+    /**
+     * 写入URL
+     */
+    @Setter
+    private String sinkUrl ;
+
+    @Setter
+    private String sinkKey ;
+
+    @Setter
+    private String sinkSecret ;
 
     /**
      * 环境实体对象，用于存储运行环境相关信息
@@ -216,6 +233,12 @@ public abstract class AbstractExecutorService extends BaseResourceService implem
         this.dataSource = source ;
     }
 
+
+    @Override
+    public void setSinkDataSource(DruidDataSource source) {
+        this.sinkDataSource = source ;
+    }
+
     @Override
     public void setEnvironment(EnvironmentEntity environment) {
         this.environment = environment ;
@@ -306,6 +329,37 @@ public abstract class AbstractExecutorService extends BaseResourceService implem
 
                 try{
                     executorService.setDataSource(dataSourceService.getDataSource(paramsDto.getDataSourceId()));
+                }catch (Exception e){
+                    log.warn("没有配置数据源：{}",e.getMessage());
+                }
+            }
+        }
+
+        // 写入数据源
+        DataSourceEntity sinkDataSourceEntity = dataSourceService.getById(paramsDto.getSinkDataSourceId()) ;
+        if(sinkDataSourceEntity != null){
+            if(sinkDataSourceEntity.getReaderType().equals("minio") ||
+                    sinkDataSourceEntity.getReaderType().equals("qiniu") ||
+                    sinkDataSourceEntity.getReaderType().equals("s3")){
+
+                this.setSinkUrl(sinkDataSourceEntity.getReaderUrl());
+                this.setSinkKey(sinkDataSourceEntity.getAccessKey());
+                this.setSinkSecret(sinkDataSourceEntity.getSecretKey());
+
+            }else if(sinkDataSourceEntity.getReaderType().equals("elasticsearch")||
+                    sinkDataSourceEntity.getReaderType().equals("hive") ||
+                    sinkDataSourceEntity.getReaderType().equals("mysql") ||
+                    sinkDataSourceEntity.getReaderType().equals("clickhouse") ||
+                    sinkDataSourceEntity.getReaderType().equals("postgresql") ||
+                    sinkDataSourceEntity.getReaderType().equals("redis")
+            ){
+
+                this.setSinkUrl(sinkDataSourceEntity.getReaderUrl());
+                this.setSinkKey(sinkDataSourceEntity.getReaderUsername());
+                this.setSinkSecret(sinkDataSourceEntity.getReaderPasswd());
+
+                try{
+                    executorService.setSinkDataSource(dataSourceService.getDataSource(paramsDto.getSinkDataSourceId()));
                 }catch (Exception e){
                     log.warn("没有配置数据源：{}",e.getMessage());
                 }
@@ -477,6 +531,17 @@ public abstract class AbstractExecutorService extends BaseResourceService implem
             }
         }
         return map;
+    }
+
+
+    @Override
+    public void closeDataSource() {
+        if(this.getDataSource() != null){
+            this.getDataSource().close();
+        }
+        if(this.getSinkDataSource() != null){
+            this.getSinkDataSource().close();
+        }
     }
 
 }
