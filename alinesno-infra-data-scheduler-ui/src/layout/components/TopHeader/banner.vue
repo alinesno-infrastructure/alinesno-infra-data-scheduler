@@ -33,22 +33,23 @@
 
 <script setup>
 
-const TopHeader = ref('') ;
-const saasTitle = 'AIP智能设施'
-const enableLogo = ref(true);
-const saasUrl = ref('http://alinesno-infra-plat-console-admin.beta.base.infra.linesno.com') ;
-    let saasLogoUrl = 'http://data.linesno.com/logo_2.png' ; 
-
 import { 
   getCurrentProject
 } from "@/api/data/scheduler/project";
 
 import choiceProject from '@/views/data/scheduler/project/choiceProject'
+import Logo from '@/assets/logo/logo.png'
 
 /** 参数管理 */
 const open = ref(false);
 const loading = ref(true);
 const title = ref("");
+
+const TopHeader = ref('') ;
+const saasTitle = 'AIP智能设施'
+const enableLogo = ref(true);
+const saasUrl = ref('http://alinesno-infra-plat-console-admin.beta.base.infra.linesno.com') ;
+let saasLogoUrl = ref(Logo) ; 
 
 const projectInfo = ref({
   id: 0 , 
