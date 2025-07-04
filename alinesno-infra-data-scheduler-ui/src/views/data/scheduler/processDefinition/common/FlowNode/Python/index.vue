@@ -13,7 +13,8 @@
           </div>
 
           <div class="close-icon" @click="removeNode(node)">
-            <a-icon type="closeCircle"  />
+            <!-- <a-icon type="closeCircle"  /> -->
+            <el-icon><Close /></el-icon>
           </div>
 
         </div>
