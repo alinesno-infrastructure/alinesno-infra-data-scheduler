@@ -108,34 +108,20 @@
       <!-- 添加或修改应用配置对话框 -->
       <el-dialog :title="title" v-model="open" width="900px" append-to-body>
 
-         <el-form :model="form" :rules="rules" ref="databaseRef" label-width="100px">
+         <el-form :model="form" :rules="rules" size="large" ref="databaseRef" label-width="100px">
             <el-row>
                <el-col :span="24" class="editor-after-div">
-                    <el-form-item label="图标" prop="projectIcons">
-                      <el-radio-group v-model="form.projectIcons">
-                        <el-radio v-for="item in icons"
-                          :value="item.icon"
-                          :key="item.icon"
-                          :label="item.icon"
-                          >
-                          <i :class="item.icon"></i>
+                  <el-form-item label="图标" prop="projectIcons">
+                     <el-radio-group v-model="form.projectIcons">
+                        <el-radio 
+                           v-for="item in icons" 
+                           :value="item.icon" 
+                           :key="item.icon" 
+                           :label="item.icon">
+                           <i :class="item.icon"></i>
                         </el-radio>
-                      </el-radio-group>
-                    </el-form-item>
-
-                  <!--
-                  <el-form-item label="封面" prop="projectIcons">
-                     <el-upload :file-list="imageUrl"
-                        :action="upload.url + '?type=img&updateSupport=' + upload.updateSupport"
-                        list-type="picture-card" :auto-upload="true" :on-success="handleAvatarSuccess"
-                        :before-upload="beforeAvatarUpload" :headers="upload.headers" :disabled="upload.isUploading"
-                        :on-progress="handleFileUploadProgress">
-                        <el-icon class="avatar-uploader-icon">
-                           <Plus />
-                        </el-icon>
-                     </el-upload>
+                     </el-radio-group>
                   </el-form-item>
-                  -->
                </el-col>
             </el-row>
             <el-row>
@@ -182,7 +168,7 @@
 
 <script setup name="Project">
 
-import {getToken} from "@/utils/auth";
+import { getToken } from "@/utils/auth";
 
 import {
    listProject,
@@ -234,6 +220,7 @@ const data = reactive({
       projectDesc: undefined
    },
    rules: {
+      projectIcons: [{ required: true, message: "图标不能为空", trigger: "blur" }],
       projectName: [{ required: true, message: "名称不能为空", trigger: "blur" }],
       projectDesc: [{ required: true, message: "描述不能为空", trigger: "blur" }],
    }
@@ -242,33 +229,33 @@ const data = reactive({
 const { queryParams, form, rules } = toRefs(data);
 
 const icons = ref([
-  { id: 1, icon: 'fa-solid fa-charging-station'} ,
-  { id: 1, icon: 'fa-solid fa-truck'} ,
-  { id: 2, icon: 'fa-solid fa-paper-plane'} ,
-  { id: 2, icon: 'fa-solid fa-ship'} ,
-  { id: 3, icon: 'fa-solid fa-chart-column'},
-  { id: 4, icon: 'fa-solid fa-server'},
-  { id: 5, icon: 'fa-solid fa-box-open'},
-  { id: 8, icon: 'fa-solid fa-file-invoice-dollar'},
-  { id: 9, icon: 'fa-solid fa-user-tie'},
+   { id: 1, icon: 'fa-solid fa-charging-station' },
+   { id: 1, icon: 'fa-solid fa-truck' },
+   { id: 2, icon: 'fa-solid fa-paper-plane' },
+   { id: 2, icon: 'fa-solid fa-ship' },
+   { id: 3, icon: 'fa-solid fa-chart-column' },
+   { id: 4, icon: 'fa-solid fa-server' },
+   { id: 5, icon: 'fa-solid fa-box-open' },
+   { id: 8, icon: 'fa-solid fa-file-invoice-dollar' },
+   { id: 9, icon: 'fa-solid fa-user-tie' },
 ]);
 
 /*** 应用导入参数 */
 const upload = reactive({
-  // 是否显示弹出层（应用导入）
-  open: false,
-  // 弹出层标题（应用导入）
-  title: "",
-  // 是否禁用上传
-  isUploading: false,
-  // 是否更新已经存在的应用数据
-  updateSupport: 0,
-  // 设置上传的请求头部
-  headers: {Authorization: "Bearer " + getToken()},
-  // 上传的地址
-  url: import.meta.env.VITE_APP_BASE_API + "/api/infra/data/scheduler/fileStore/importData", 
-  // 显示地址
-  display: import.meta.env.VITE_APP_BASE_API + "/api/infra/data/scheduler/fileStore/displayImage/" 
+   // 是否显示弹出层（应用导入）
+   open: false,
+   // 弹出层标题（应用导入）
+   title: "",
+   // 是否禁用上传
+   isUploading: false,
+   // 是否更新已经存在的应用数据
+   updateSupport: 0,
+   // 设置上传的请求头部
+   headers: { Authorization: "Bearer " + getToken() },
+   // 上传的地址
+   url: import.meta.env.VITE_APP_BASE_API + "/api/infra/data/scheduler/fileStore/importData",
+   // 显示地址
+   display: import.meta.env.VITE_APP_BASE_API + "/api/infra/data/scheduler/fileStore/displayImage/"
 });
 
 /** 查询应用列表 */
@@ -335,11 +322,11 @@ function cancel() {
 };
 
 /** 显示图标 */
-function displayProjectIcon(row){
-   if(row.projectIcons){
+function displayProjectIcon(row) {
+   if (row.projectIcons) {
       return import.meta.env.VITE_APP_BASE_API + "/api/infra/data/scheduler/fileStore/displayImage/" + row.projectIcons;
-   }else {
-      return 'http://data.linesno.com/icons/sepcialist/dataset_6.png' ; 
+   } else {
+      return 'http://data.linesno.com/icons/sepcialist/dataset_6.png';
    }
 }
 
@@ -393,19 +380,19 @@ function submitForm() {
 
 /** 图片上传成功 */
 const handleAvatarSuccess = (response, uploadFile) => {
-  // imageUrl.value = URL.createObjectURL(uploadFile.raw);
-  imageUrl.value = response.data ? response.data.split(',').map(url =>{return { url:upload.display + url }}):[];
-  form.value.projectIcons = response.data ;
-  console.log('form.icon = ' + form.value.projectIcons);
+   // imageUrl.value = URL.createObjectURL(uploadFile.raw);
+   imageUrl.value = response.data ? response.data.split(',').map(url => { return { url: upload.display + url } }) : [];
+   form.value.projectIcons = response.data;
+   console.log('form.icon = ' + form.value.projectIcons);
 };
 
 /** 图片上传之前 */
 const beforeAvatarUpload = (rawFile) => {
-  if (rawFile.size / 1024 / 1024 > 2) {
-    ElMessage.error('Avatar picture size can not exceed 2MB!');
-    return false;
-  }
-  return true;
+   if (rawFile.size / 1024 / 1024 > 2) {
+      ElMessage.error('Avatar picture size can not exceed 2MB!');
+      return false;
+   }
+   return true;
 };
 
 /** 配置文档类型 */
