@@ -96,7 +96,7 @@
 
       <!-- 添加或修改应用配置对话框 -->
       <el-dialog :title="title" v-model="open" width="900px" append-to-body>
-         <el-form :model="form" :rules="rules" ref="databaseRef" label-width="100px">
+         <el-form :model="form" :rules="rules" ref="databaseRef" label-width="100px" size="large">
             <el-row>
                <el-col :span="24">
                   <el-form-item label="描述" prop="description">
@@ -310,7 +310,7 @@ function cancel() {
 function handleAdd() {
    reset();
    open.value = true;
-   title.value = "添加应用";
+   title.value = "添加凭据";
 };
 
 /** 修改按钮操作 */
