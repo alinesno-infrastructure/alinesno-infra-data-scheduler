@@ -25,19 +25,37 @@ export const useNodeStore = defineStore('node', {
       }
       console.info('Updated nodes: ', JSON.stringify(this.nodes));
     },
+    // 修改 addNode 方法
     addNode({ addNode, currNode }) {
       if (currNode && currNode.id) {
         const currentIndex = this.nodes.findIndex(node => node.id === currNode.id);
         if (currentIndex !== -1) {
+          // 插入新节点
           this.nodes.splice(currentIndex + 1, 0, addNode);
+          
+          // 更新链表关系
+          addNode.childNode = this.nodes[currentIndex + 2] || null;
+          currNode.childNode = addNode;
         } else {
           this.nodes.push(addNode);
         }
       } else {
         this.nodes.push(addNode);
       }
-      console.info('Updated nodes: ', JSON.stringify(this.nodes));
     },
+    // addNode({ addNode, currNode }) {
+    //   if (currNode && currNode.id) {
+    //     const currentIndex = this.nodes.findIndex(node => node.id === currNode.id);
+    //     if (currentIndex !== -1) {
+    //       this.nodes.splice(currentIndex + 1, 0, addNode);
+    //     } else {
+    //       this.nodes.push(addNode);
+    //     }
+    //   } else {
+    //     this.nodes.push(addNode);
+    //   }
+    //   console.info('Updated nodes: ', JSON.stringify(this.nodes));
+    // },
     removeNode(id) {
       const index = this.nodes.findIndex(node => node.id === id);
       if (index !== -1) {
