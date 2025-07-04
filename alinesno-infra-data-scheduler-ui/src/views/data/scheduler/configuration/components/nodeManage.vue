@@ -1,243 +1,246 @@
 <template>
   <div class="app-container">
-   <div class="form-container" >
-     <el-form
-       :model="form"
-       :rules="rules"
-       v-loading="loading"
-       ref="form"
-       label-width="180px"
-       class="demo-form"
-     >
+    <div class="label-title">
+      <div class="tip">数据编排计算服务配置</div>
+      <div class="sub-tip">配置数据治理工作流程的编排能力，优化离线计算的数据处理效率</div>
+    </div>
 
-       <el-form-item label="品牌代码" prop="themeCode">
-         <el-input type="input" show-word-limit v-model="form.themeCode" readonly placeholder="请输入主题代码">
-           <el-button slot="append" @click="configTheme()" icon="el-icon-edit">配置品牌</el-button>
-         </el-input>
-       </el-form-item>
+    <div class="form-container">
+      <el-form
+        :model="form"
+        size="large"
+        :rules="rules"
+        v-loading="loading"
+        ref="form"
+        label-width="180px"
+        class="demo-form"
+      >
+        <el-form-item label="计算引擎类型" prop="computeEngine">
+          <el-select v-model="form.computeEngine" placeholder="请选择计算引擎">
+            <el-option
+              v-for="item in engineOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            ></el-option>
+          </el-select>
+        </el-form-item>
 
-       <el-form-item label="登录框版本选择" prop="loginStyle">
-         <el-row>
-           <el-col :span="7" v-for="(o, index) in loginStyle" :key="index" :offset="index > 0 ? 1 : 0">
+        <el-form-item label="默认计算资源配额" prop="resourceQuota">
+          <el-input-number 
+            v-model="form.resourceQuota" 
+            :min="1" 
+            :max="100" 
+            :step="5"
+            controls-position="right"
+          >
+            <template slot="append">CU</template>
+          </el-input-number>
+          <span class="form-tip">(计算单元，1CU=1核4GB内存)</span>
+        </el-form-item>
 
-             <el-card :body-style="{ padding: '0px !important' }" :class="form.loginStyle == o.id?'select-card':''" shadow="never">
-               <img :src="'http://data.linesno.com/icons/login/style-0'+(index+1)+'.png'" class="image">
-               <div style="padding: 14px;">
-                 <span>{{ o.desc }}</span>
-                 <div class="bottom clearfix">
-                   <el-button @click="selectStyle(o)" type="text" class="button">选择</el-button>
-                 </div>
-               </div>
-             </el-card>
-           </el-col>
-         </el-row>
-       </el-form-item>
+        <el-form-item label="任务超时时间" prop="taskTimeout">
+          <el-input-number 
+            v-model="form.taskTimeout" 
+            :min="10" 
+            :max="1440" 
+            :step="10"
+            controls-position="right"
+          >
+            <template slot="append">分钟</template>
+          </el-input-number>
+        </el-form-item>
 
-       <el-form-item label="显示社会化登录">
-         <el-switch v-model="form.enableSociety"
-           :active-value="1"
-           :inactive-value="0"
-         ></el-switch>
-       </el-form-item>
+        <el-form-item label="失败重试次数" prop="retryTimes">
+          <el-input-number 
+            v-model="form.retryTimes" 
+            :min="0" 
+            :max="10" 
+            controls-position="right"
+          ></el-input-number>
+        </el-form-item>
 
-       <el-form-item label="错误次数" prop="errorCount">
-         <el-input-number type="input" maxlength="500" :min="1" :max="10" show-word-limit v-model="form.errorCount" >
-             <template slot="append">次</template>
-         </el-input-number>
-       </el-form-item>
+        <el-form-item label="数据保留策略" prop="dataRetention">
+          <el-radio-group v-model="form.dataRetention">
+            <el-radio label="7">7天</el-radio>
+            <el-radio label="30">30天</el-radio>
+            <el-radio label="90">90天</el-radio>
+            <el-radio label="custom">自定义</el-radio>
+          </el-radio-group>
+          <el-input-number 
+            v-if="form.dataRetention === 'custom'"
+            v-model="form.customRetentionDays" 
+            :min="1" 
+            :max="365"
+            controls-position="right"
+            style="margin-left: 15px;"
+          >
+            <template slot="append">天</template>
+          </el-input-number>
+        </el-form-item>
 
-       <el-form-item label="锁定时长" prop="lockTime">
-         <el-input-number type="input" maxlength="500" show-word-limit v-model="form.lockTime" >
-             <template slot="append">分钟</template>
-         </el-input-number>
-       </el-form-item>
+        <el-form-item label="启用数据质量检查" prop="enableQualityCheck">
+          <el-switch 
+            v-model="form.enableQualityCheck"
+            active-text="启用"
+            inactive-text="禁用"
+          ></el-switch>
+        </el-form-item>
 
-       <el-form-item label="显示忘记密码">
-         <el-switch v-model="form.enableFindPwd"
-           :active-value="1"
-           :inactive-value="0"
-         ></el-switch>
-       </el-form-item>
+        <el-form-item label="数据血缘跟踪" prop="enableLineage">
+          <el-switch 
+            v-model="form.enableLineage"
+            active-text="启用"
+            inactive-text="禁用"
+          ></el-switch>
+        </el-form-item>
 
-       <el-form-item label="默认首页" prop="defaultIndex">
-         <el-input type="input" maxlength="500" show-word-limit v-model="form.defaultIndex" placeholder="请输入默认首页"></el-input>
-       </el-form-item>
+        <el-form-item label="任务调度策略" prop="schedulingStrategy">
+          <el-select v-model="form.schedulingStrategy" placeholder="请选择调度策略">
+            <el-option
+              v-for="item in strategyOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            ></el-option>
+          </el-select>
+        </el-form-item>
 
-       <el-form-item label="是否开启登陆验证码">
-         <el-switch v-model="form.enableValidate"
-           :active-value="1"
-           :inactive-value="0"
-         ></el-switch>
-       </el-form-item>
+        <el-form-item label="默认存储格式" prop="storageFormat">
+          <el-checkbox-group v-model="form.storageFormat">
+            <el-checkbox label="parquet">Parquet</el-checkbox>
+            <el-checkbox label="orc">ORC</el-checkbox>
+            <el-checkbox label="csv">CSV</el-checkbox>
+            <el-checkbox label="json">JSON</el-checkbox>
+          </el-checkbox-group>
+        </el-form-item>
 
-       <br/>
+        <el-form-item label="告警通知方式" prop="notificationMethods">
+          <el-checkbox-group v-model="form.notificationMethods">
+            <el-checkbox label="email">邮件</el-checkbox>
+            <el-checkbox label="sms">短信</el-checkbox>
+            <el-checkbox label="webhook">Webhook</el-checkbox>
+          </el-checkbox-group>
+        </el-form-item>
 
-       <el-form-item>
-         <el-button type="primary" @click="submitForm('form')">
-           保存
-         </el-button>
-         <el-button @click="resetForm">
-           重置
-         </el-button>
-       </el-form-item>
-     </el-form>
-   </div>
- </div>
+        <el-form-item>
+          <el-button type="primary" @click="submitForm('form')">
+            保存配置
+          </el-button>
+          <el-button @click="resetForm">
+            恢复默认
+          </el-button>
+        </el-form-item>
+      </el-form>
+    </div>
+  </div>
 </template>
 
 <script>
-
-//   import {
-//     addLoginSetting,
-//     updateLoginSetting,
-//     getCurrentConfig } from "@/api/business/OauthLoginSetting";
-
-//   import ImageUpload from "alinesno-ui/packages/ImageUpload"
-
- export default {
-
-  //  components:{
-  //    ImageUpload
-  //  },
-   data() {
-     return {
-       loginStyle:[
-         {id:'1' , icon:'asserts/images/style-01.png' , desc:'经典版本的登陆UI，提供更加流畅的交互体验'} ,
-         {id:'2' , icon:'asserts/images/style-02.png' , desc:'简洁版的登陆，优化登录注册页面设计，PC视觉更简洁'} ,
-         {id:'3' , icon:'asserts/images/style-03.png' , desc:'平台版本的登陆界面，大气简洁的登陆界面，更贴近平台化'} ,
-       ],
-       theme: null , 
-       form: {
-         themeCode: null , 
-         loginStyle:'1' ,
-         enableSociety: '1' ,
-         enableFindPwd: '1' ,
-         logoImg: '' ,
-         lockTime: 250 ,
-         errorCount: 5,
-         defaultIndex: '' , 
-         enableValidate: '1',
-       },
-       // 表单参数
-       rules: {
-         logoTitle: [
-           { required: true, message: "请输入登陆标题", trigger: "blur" },
-         ],
-         logoTitle: [
-           { required: true, message: "请输入登陆标题", trigger: "blur" },
-         ],
-         loginDescription: [
-           { required: true, message: "请输入登陆描述", trigger: "blur" },
-         ],
-         loginLogo: [
-           { required: true, message: "请至少上传一张Logo图", trigger: "blur" },
-         ],
-         logoBackgroun: [
-           { required: true, message: "请至少上传一张背景图", trigger: "blur" },
-         ],
-         defaultIndex: [
-           { required: true, message: "请输入默认主页", trigger: "blur" },
-           { type: 'url',message: "请输入正确的链接地址",trigger: 'blur'},
-         ],
-       },
-       currentSiteId: null,
-       // 遮罩层
-       loading: false ,
-     };
-   },
-   created(){
-     // this.getSetting();
-   },
-   methods: {
-     // getSetting(){
-     //   getCurrentConfig().then(response => {
-
-     //     if(response.theme.id != null){
-     //       this.form = response.data ;
-     //       this.theme = response.theme ;
-           
-     //       if(this.theme){
-     //         this.form.themeCode = response.theme.themeCode ;
-     //       }
-
-     //     }
-     //   })
-     // },
-     // uploadImg(data){
-     //   console.log('data = ' + data) ;
-     // } , 
-     // selectStyle(item){
-     //   this.form.loginStyle = item.id;  
-     //   console.log('item = ' + item.id) ;
-     // } ,
-     // copySuccess() {
-     //   this.$message.success("复制成功")
-     // },
-     // configTheme(){
-     //   this.$router.push('/business/theme/settings') ;
-     // },
-     // submitForm(formName) {
-     //   this.$refs[formName].validate((valid) => {
-     //     if (valid) {
-     //       this.loading = true ;
-     //       if (this.form.id != null) {
-     //         updateLoginSetting(this.form).then(response => {
-     //           this.msgSuccess("修改成功");
-     //           this.loading = false ;
-     //         });
-     //       } else {
-     //         addLoginSetting(this.form).then(response => {
-     //           this.msgSuccess("新增成功");
-     //           this.loading = false ;
-     //         });
-     //       }
-     //     }
-     //   });
-     // },
-     // resetForm() {
-     //   this.$refs["form"].resetFields();
-     //   this.getSetting();
-     // }
-   },
- };
+export default {
+  data() {
+    return {
+      engineOptions: [
+        { value: 'spark', label: 'Apache Spark' },
+        { value: 'flink', label: 'Apache Flink' },
+        { value: 'hive', label: 'Apache Hive' },
+        { value: 'presto', label: 'Presto' }
+      ],
+      strategyOptions: [
+        { value: 'fifo', label: '先进先出(FIFO)' },
+        { value: 'priority', label: '优先级调度' },
+        { value: 'fair', label: '公平调度' },
+        { value: 'deadline', label: '截止时间优先' }
+      ],
+      form: {
+        computeEngine: 'spark',
+        resourceQuota: 10,
+        taskTimeout: 120,
+        retryTimes: 3,
+        dataRetention: '30',
+        customRetentionDays: 30,
+        enableQualityCheck: true,
+        enableLineage: true,
+        schedulingStrategy: 'fair',
+        storageFormat: ['parquet', 'orc'],
+        notificationMethods: ['email', 'webhook']
+      },
+      rules: {
+        computeEngine: [
+          { required: true, message: '请选择计算引擎', trigger: 'change' }
+        ],
+        resourceQuota: [
+          { required: true, message: '请输入资源配额', trigger: 'blur' },
+          { type: 'number', min: 1, max: 100, message: '配额范围1-100CU', trigger: 'blur' }
+        ],
+        taskTimeout: [
+          { required: true, message: '请输入任务超时时间', trigger: 'blur' },
+          { type: 'number', min: 10, max: 1440, message: '超时时间10-1440分钟', trigger: 'blur' }
+        ]
+      },
+      loading: false
+    }
+  },
+  methods: {
+    submitForm(formName) {
+      this.$refs[formName].validate((valid) => {
+        if (valid) {
+          this.loading = true
+          // 这里应该调用API保存配置
+          console.log('提交配置:', this.form)
+          setTimeout(() => {
+            this.loading = false
+            this.$message.success('配置保存成功')
+          }, 1000)
+        }
+      })
+    },
+    resetForm() {
+      this.$refs.form.resetFields()
+      this.$message.info('已恢复默认配置')
+    }
+  }
+}
 </script>
 
 <style scoped lang="scss">
- .form-container {
-   max-width: 960px;
-   margin-left: auto;
-   margin-right: auto;
-   margin-top: 20px;
- }
+.app-container {
+  padding: 20px;
+}
 
- .label-title {
-   text-align: center;
-   max-width: 960px;
-   margin-left: auto;
-   margin-right: auto;
-   margin-top: 10px;
+.form-container {
+  max-width: 1024px;
+  margin: 20px auto;
+  padding: 20px;
+  background: #fff;
+  border-radius: 4px;
+  // box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
 
-   .tip {
-     padding-bottom: 10px;
-     font-size: 26px;
-     font-weight: bold;
-   }
+.label-title {
+  text-align: center;
+  margin-bottom: 30px;
 
-   .sub-tip {
-     font-size: 13px;
-     text-align: center;
-     padding: 10px;
-   }
- }
+  .tip {
+    font-size: 24px;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 10px;
+  }
 
- .image{
-   width:100%;
-   height: 120px ;
- }
+  .sub-tip {
+    font-size: 14px;
+    color: #666;
+  }
+}
 
- .select-card {
-   border: 1px solid rgb(0, 91, 212) ;
- }
+.form-tip {
+  margin-left: 10px;
+  font-size: 12px;
+  color: #999;
+}
+
+.el-form-item {
+  margin-bottom: 22px;
+}
 </style>
-
-
