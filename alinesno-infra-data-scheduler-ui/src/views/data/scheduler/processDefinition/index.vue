@@ -22,6 +22,7 @@
                     ref="deptTreeRef"
                     node-key="id"
                     highlight-current
+                    default-expand-all
                     @node-click="handleNodeClick"
                  />
               </div>
@@ -64,7 +65,7 @@
 
                <el-table-column align="center" width="40" key="icon">
                   <template #default="scope">
-                     <div style="font-size:25px;color:#3b5998">
+                     <div style="font-size:20px;color:#3b5998">
                         <i :class="scope.row.icon"></i>
                      </div>
                   </template>
@@ -78,14 +79,14 @@
                      </div>
                      <div style="font-size: 13px;color: #a5a5a5;cursor: pointer;" class="text-overflow"
                         v-copyText="scope.row.promptId">
-                        {{ scope.row.name }}，运行多任务状态和成功
+                        {{ scope.row.name }}，运行多任务状态
                      </div>
                   </template>
                </el-table-column>
                <el-table-column label="运行次数" align="center" key="jobDesc" prop="jobDesc" v-if="columns[1].visible">
                   <template #default="scope">
                      <div style="margin-top: 5px;">
-                        <router-link :to="{ path: '/data/scheduler/processInstance/index', query: { processId: scope.row.id } }">
+                        <router-link :to="{ path: '/data/scheduler/processInstance/index', query: { processId: scope.row.id , fromWhere: 'process' } }">
                            <el-button type="primary" text> 
                               <i class="fa-solid fa-truck-fast" style="margin-right:5px;"></i>
                               次数: {{ scope.row.runCount }}({{ scope.row.successCount }}) 条 
@@ -106,22 +107,11 @@
                   </template>
                </el-table-column>
 
-               <!-- 
-               <el-table-column label="任务上线" align="center" width="150" key="documentType" prop="documentType"
-                  v-if="columns[1].visible" :show-overflow-tooltip="true">
-                  <template #default="scope">
-                     <el-button type="primary" bg text @click="handleOnline(scope.row.id, scope.row.documentType)">
-                        <i class="fa-solid fa-upload"></i>&nbsp;上线
-                     </el-button>
-                  </template>
-               </el-table-column>
-               -->
-
-               <el-table-column label="迁移配置" align="center" width="150" key="documentType" prop="documentType"
+               <el-table-column label="配置" align="center" width="150" key="documentType" prop="documentType"
                   v-if="columns[1].visible" :show-overflow-tooltip="true">
                   <template #default="scope">
                      <el-button type="primary" bg text @click="handleConfigType(scope.row.id, scope.row.documentType)">
-                        <i class="fa-solid fa-screwdriver-wrench"></i>&nbsp;任务参数
+                        <i class="fa-solid fa-rocket"></i> &nbsp;配置流程
                      </el-button>
                   </template>
                </el-table-column> 
@@ -491,7 +481,12 @@ function submitForm() {
 /** 配置文档类型 */
 function handleConfigType(id, documentType) {
    let path = '/data/scheduler/processDefinition/createDefinition' ;
-   router.push({ path: path , query:{processDefinitionId:id,node:'node'} }).then(() => {
+   router.push({ path: path , 
+      query:{
+         processDefinitionId:id,
+         node:'node',
+         from: 'list'
+      } }).then(() => {
       window.location.reload();
    }) ;
    
