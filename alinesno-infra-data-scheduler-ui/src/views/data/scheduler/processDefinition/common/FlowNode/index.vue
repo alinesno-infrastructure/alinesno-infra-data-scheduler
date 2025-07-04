@@ -14,11 +14,18 @@
     
     <!-- 子节点-->
     <FlowNode v-if="node && node.childNode && node.childNode.hasOwnProperty('name')" :node="node.childNode" :readable="readable" />
+
+    <!-- 修改子节点渲染方式 -->
+    <!-- <template v-if="node.childNode && !dragging">
+      <FlowNode :node="node.childNode" :readable="readable" />
+    </template> -->
     
   </div>
 </template>
 
 <script setup>
+
+const dragging = ref(false);
 
 import FlowShellNode from './Shell/index'  // 引入SHELL组件(1)
 import FlowHttpNode from './Http/index'  // 引入HTTP组件(2)
