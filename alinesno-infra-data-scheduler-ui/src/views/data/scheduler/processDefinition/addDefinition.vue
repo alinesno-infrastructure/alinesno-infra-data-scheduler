@@ -6,7 +6,7 @@
       <div class="sub-tip">根据业务场景需求创建数据编排任务，便于数据业务场景开发和分析</div>
     </div>
     <div class="form-container">
-      <el-form :model="form" :rules="rules" ref="databaseRef" label-width="180px">
+      <el-form :model="form" :rules="rules" ref="databaseRef" label-width="180px" size="large">
 
         <el-form-item label="图标" prop="icon">
             <el-radio-group v-model="form.icon">
@@ -105,9 +105,9 @@
         </el-form-item>
 
         <!-- 参与人监控邮箱 -->
-        <el-form-item label="参与人监控邮箱" prop="monitorEmail">
+        <!-- <el-form-item label="参与人监控邮箱" prop="monitorEmail">
           <el-input v-model="form.monitorEmail" placeholder="请输入参与人监控邮箱"></el-input>
-        </el-form-item>
+        </el-form-item> -->
 
         <br />
 
