@@ -1,13 +1,19 @@
 <template>
   <div class="siderbar">
     <el-menu default-active="1" class="el-menu-vertical" :collapse="isCollapse" @open="handleOpen" @close="handleClose">
-      <el-menu-item index="1" @click="jumpTo">
+      <el-menu-item index="1" @click="jumpTo" class="menu-item">
         <i class="fa-solid fa-desktop"></i>
+        <span>
+          仪盘表 
+        </span>
       </el-menu-item>
 
       <el-tooltip effect="dark" :content="item.desc" v-for="item in menuItems" :key="item.id" placement="right">
-          <el-menu-item :index="item.id" @click="openServiceList(item.link)">
+          <el-menu-item :index="item.id" @click="openServiceList(item.link)" class="menu-item">
             <i :class="item.icon"></i>
+            <span>
+              {{ item.desc }}
+            </span>
           </el-menu-item>
       </el-tooltip>
 
@@ -23,15 +29,15 @@ const router = useRouter();
 
 // 菜单列表
 const menuItems = ref([
-  {id:'2' , icon:'fa-solid fa-feather' , link:'/data/scheduler/project/index' , desc:'项目管理'},
-  {id:'3' , icon:'fa-solid fa-masks-theater' , link:'/data/scheduler/processDefinition/index' , desc:'流程管理'},
-  {id:'5' , icon:'fa-brands fa-wordpress' , link:'/data/scheduler/processInstance/index' , desc:'流程实例'},
-  {id:'15' , icon:'fa-solid fa-box-open' , link:'/data/scheduler/catelog/index' , desc:'流程分类'},
-  {id:'8' , icon:'fa-solid fa-file-pdf' , link:'/data/scheduler/resources/index' , desc:'资源中心'},
-  {id:'7' , icon:'fa-solid fa-database' , link:'/data/scheduler/datasource/index' , desc:'数据源管理'},
-  {id:'4' , icon:'fa-brands fa-skype' , link:'/data/scheduler/analyse/index' , desc:'监控服务'},
-  {id:'10' , icon:'fa-solid fa-computer' , link:'/data/scheduler/configuration/index' , desc:'配置管理'},
-  {id:'9' , icon:'fa-solid fa-code-pull-request' , link:'/data/scheduler/apiRecord/index' , desc:'操作记录'},
+  {id:'2' , icon:'fa-solid fa-feather' , link:'/data/scheduler/project/index' , desc:'项目'},
+  {id:'3' , icon:'fa-solid fa-masks-theater' , link:'/data/scheduler/processDefinition/index' , desc:'流程'},
+  {id:'5' , icon:'fa-brands fa-wordpress' , link:'/data/scheduler/processInstance/index' , desc:'实例'},
+  {id:'15' , icon:'fa-solid fa-box-open' , link:'/data/scheduler/catelog/index' , desc:'分类'},
+  {id:'8' , icon:'fa-solid fa-file-pdf' , link:'/data/scheduler/resources/index' , desc:'资源'},
+  {id:'7' , icon:'fa-solid fa-database' , link:'/data/scheduler/datasource/index' , desc:'数据源'},
+  {id:'4' , icon:'fa-brands fa-skype' , link:'/data/scheduler/analyse/index' , desc:'监控'},
+  {id:'10' , icon:'fa-solid fa-computer' , link:'/data/scheduler/configuration/index' , desc:'配置'},
+  {id:'9' , icon:'fa-solid fa-code-pull-request' , link:'/data/scheduler/apiRecord/index' , desc:'记录'},
 ]);
 
 // 打开服务市场
@@ -75,5 +81,23 @@ function openSmartService() {
   overflow: hidden;
   background-color: #fff;
   position: fixed;
+}
+
+.menu-item {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.4rem;
+  font-size: 14px !important;
+  margin-bottom: 10px;
+  padding-top:10px;
+  margin: 2px;
+  border-radius: 10px;
+
+  span{
+    font-size: 12px;
+    color: #888;
+  }
 }
 </style>
