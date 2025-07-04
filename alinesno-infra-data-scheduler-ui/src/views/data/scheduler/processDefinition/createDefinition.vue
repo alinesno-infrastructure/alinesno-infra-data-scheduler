@@ -1,6 +1,6 @@
 <template>
   <div class="app-container">
-    <el-page-header @back="goBack" content="配置任务编排"></el-page-header>
+    <el-page-header @back="goBack" :content="headerContent"></el-page-header>
 
     <div class="form-container">
       <div class="designer-wrap">
@@ -17,7 +17,18 @@
               <div id="flow-design-content" class="flow-design-content">
                 <FlowStartNode :node="nodeData" />
 
-                <FlowNode :node="item" :readable="readable" v-for="(item, index) in nodeDataArr" :key="index" />
+                <draggable 
+                  v-model="nodeDataArr"
+                  group="nodes"
+                  item-key="id"
+                  @end="onDragEnd"
+                  class="draggable-container">
+                  <template #item="{element}">
+                    <FlowNode :node="element" :readable="readable" />
+                  </template>
+                </draggable>
+
+                <!-- <FlowNode :node="item" :readable="readable" v-for="(item, index) in nodeDataArr" :key="index" /> -->
 
                 <FlowEndNode :node="nodeData" :readable="readable" />
               </div>
@@ -37,8 +48,12 @@
 
 <script setup name="createProcessDefinition">
 
+import draggable from 'vuedraggable'
+
 const router = useRouter();
 const route = useRoute();
+
+const fromWhere = route.query.from
 const { proxy } = getCurrentInstance();
 
 import { ElLoading } from 'element-plus'
@@ -64,7 +79,7 @@ import { nextTick } from 'vue';
 const processDefinitionId = route.query.processDefinitionId
 const updateNode = ref(route.query.node)
 const nodeDataArr = ref(flowNodeStore.getNodes);
-
+const headerContent = ref('任务编排')
 
 /** 返回 */
 function goBack() {
@@ -75,7 +90,20 @@ function goBack() {
    queryObj = {'processDefinitionId': processDefinitionId } ;
   }
 
-  router.push({ path: '/data/scheduler/processDefinition/addDefinition', query: queryObj });
+  if(fromWhere === 'list'){
+    router.push({ path: '/data/scheduler/processDefinition/index'}) ; 
+  }else{
+    router.push({ path: '/data/scheduler/processDefinition/addDefinition', query: queryObj });
+  }
+
+}
+
+function onDragEnd() {
+  // 更新节点间的childNode关系
+  for (let i = 0; i < nodeDataArr.value.length - 1; i++) {
+    nodeDataArr.value[i].childNode = nodeDataArr.value[i + 1];
+  }
+  nodeDataArr.value[nodeDataArr.value.length - 1].childNode = null;
 }
 
 /**
@@ -141,57 +169,18 @@ if(processDefinitionId){
     });
 
     nodeDataArr.value = flowNodeStore.getNodes
-    
   })
 }else{
     nodeDataArr.value = flowNodeStore.getNodes
 }
 
-/** 初始化数据 */
-// onMounted(() => {
-//   console.log('onMounted');
-
-  // flowNodeStore.resetNodes()
-
-  // if(processDefinitionId){
-
-  //   getTaskDefinition(processDefinitionId).then(res => {
-  //     // 使用 forEach 循环遍历 data 数组
-  //     res.data.forEach(item => {
-  //       if(item.type != 0){
-  //         // nodeSessionStore.setNode(item);
-  //         flowNodeStore.setNode(item);
-  //       }
-  //     });
-
-  //     nodeDataArr.value = flowNodeStore.getNodes
-      
-  //   })
-  // }else{
-  //     nodeDataArr.value = flowNodeStore.getNodes
-  // }
-// })
-
-// nextTick(() => {
-
-//   if(processDefinitionId){
-
-//     getTaskDefinition(processDefinitionId).then(res => {
-//       // 使用 forEach 循环遍历 data 数组
-//       res.data.forEach(item => {
-//         if(item.type != 0){
-//           // nodeSessionStore.setNode(item);
-//           flowNodeStore.setNode(item);
-//         }
-//       });
-
-//       nodeDataArr.value = flowNodeStore.getNodes
-      
-//     })
-//   }else{
-//       nodeDataArr.value = flowNodeStore.getNodes
-//   }
-// })
-
 
 </script>
+
+<style lang="scss" scoped>
+.draggable-container {
+  display: flex;
+  flex-direction: column;
+  // gap: 20px;
+}
+</style>
