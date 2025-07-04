@@ -9,28 +9,18 @@
           <div class="panel-body acp-height-auto" style="padding: 0;padding-bottom: 10px;">
             <div class="acp-app-list">
               <ul>
-                <li class="app-items" v-for="(item , index) in apps" :key="index" style="width:calc(25% - 10px)">
+                <li class="app-items" v-for="(item , index) in apps" :key="index" style="width:calc(25% - 10px)" @click="handleClick(item)">
                   <div class="app-icon">
-                    <!-- <img :src="item.icon" :alt="item.name" /> -->
                     <i :class="item.icon" style="font-size: 20px" />
                   </div>
                   <div class="app-info">
                     <div class="app-item-title">{{ item.name }}</div>
                     <div class="app-item desc">{{ item.description == null ? '此流程定义服务未添加描述信息': item.description }}</div>
                   </div>
-                  <!-- <div class="app-status">
-                    <el-icon>
-                      <CircleCheckFilled />
-                    </el-icon> 正常
-                  </div> -->
                 </li>
               </ul>
             </div>
           </div>
-          <!-- <div class="panel-footer">
-            <div class="footer-link">
-            </div>
-          </div> -->
         </div>
       </el-col>
 
@@ -67,6 +57,8 @@ import {
   simpleStatistics 
 } from '@/api/data/scheduler/dashboard'
 
+const router = useRouter()
+
 const opertionAssets = ref([
   { id: '6', title: '总项目数', enTitle: 'projectCount', count: 0},
   { id: '1', title: '总任务', enTitle: 'taskCount', count: 0},
@@ -95,6 +87,18 @@ function handleSimpleStatistics(){
 
       // 更新opertionAssets为新的格式
       opertionAssets.value = updatedAssets; 
+  })
+}
+
+const handleClick = (item) => {
+  console.log(item)
+  // 跳转到 /data/scheduler/processInstance/index?processId=1870251951331667970
+  router.push({
+    path: '/data/scheduler/processInstance/index',
+    query: {
+      processId: item.id , 
+      fromWhere: 'dashboard'
+    }
   })
 }
 
@@ -133,6 +137,7 @@ handleSimpleStatistics()
     float: left;
     border-bottom: 1px solid #fafafa;
     width: 50%;
+    cursor: pointer;
     padding: 10px 0px;
     width: calc(33% - 10px);
     background: #fafafa;
@@ -141,6 +146,13 @@ handleSimpleStatistics()
     margin-right: 5px;
     margin-top: 10px;
     margin-left: 5px;
+
+    &:hover { 
+      background: #f5f5f5;
+      .app-item-title{
+        font-weight: bold;
+      }
+    }
   }
 }
 </style>
