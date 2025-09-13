@@ -16,7 +16,7 @@ import com.alinesno.infra.data.scheduler.api.ProcessContextDto;
 import com.alinesno.infra.data.scheduler.api.ProcessDefinitionDto;
 import com.alinesno.infra.data.scheduler.api.ProcessTaskDto;
 import com.alinesno.infra.data.scheduler.api.ProcessTaskValidateDto;
-import com.alinesno.infra.data.scheduler.api.session.CurrentProjectSession;
+//import com.alinesno.infra.data.scheduler.api.session.CurrentProjectSession;
 import com.alinesno.infra.data.scheduler.constants.PipeConstants;
 import com.alinesno.infra.data.scheduler.entity.ProcessDefinitionEntity;
 import com.alinesno.infra.data.scheduler.service.ICategoryService;
@@ -75,7 +75,7 @@ public class ProcessDefinitionController extends BaseController<ProcessDefinitio
     public TableDataInfo datatables(HttpServletRequest request, Model model, DatatablesPageBean page) {
         log.debug("page = {}", ToStringBuilder.reflectionToString(page));
 
-        CurrentProjectSession.filterProject(page);
+//        CurrentProjectSession.filterProject(page);
 
         return this.toPage(model, this.getFeign(), page);
     }
@@ -122,7 +122,7 @@ public class ProcessDefinitionController extends BaseController<ProcessDefinitio
     @DataPermissionQuery
     @GetMapping("/catalogTreeSelect")
     public AjaxResult catalogTreeSelect(PermissionQuery query){
-        long currentProject = CurrentProjectSession.get().getId() ;
+        long currentProject = 1L ; // CurrentProjectSession.get().getId() ;
         return AjaxResult.success("success" , catalogService.selectCatalogTreeList(query , currentProject)) ;
     }
 
@@ -157,7 +157,7 @@ public class ProcessDefinitionController extends BaseController<ProcessDefinitio
         List<ProcessTaskDto> taskFlow = dto.getTaskFlow() ;
         Assert.isTrue(taskFlow.size() > 1 , "流程定义为空,请定义流程.");
 
-        dto.setProjectId(CurrentProjectSession.get().getId());
+//        dto.setProjectId(CurrentProjectSession.get().getId());
 
         service.updateProcessDefinition(dto) ;
         return AjaxResult.success() ;
@@ -175,7 +175,7 @@ public class ProcessDefinitionController extends BaseController<ProcessDefinitio
         List<ProcessTaskDto> taskFlow = dto.getTaskFlow() ;
         Assert.isTrue(taskFlow.size() > 1 , "流程定义为空,请定义流程.");
 
-        dto.setProjectId(CurrentProjectSession.get().getId());
+//        dto.setProjectId(CurrentProjectSession.get().getId());
 
         long processId = service.commitProcessDefinition(dto) ;
         return AjaxResult.success("success" , processId) ;
