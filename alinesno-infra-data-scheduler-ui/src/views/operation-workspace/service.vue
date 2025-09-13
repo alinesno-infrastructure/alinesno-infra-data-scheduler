@@ -19,6 +19,9 @@
                   </div>
                 </li>
               </ul>
+              <div v-if="apps.length == 0">
+                <el-empty image-size="120" description="任务列表为空，暂时还未配置任务" />
+              </div>
             </div>
           </div>
         </div>
