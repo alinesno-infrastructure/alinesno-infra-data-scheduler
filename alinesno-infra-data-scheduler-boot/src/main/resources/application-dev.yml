@@ -3,12 +3,6 @@ server:
 
 # spring 配置
 spring:
-  servlet:
-    multipart:
-      max-file-size: 512MB
-      max-request-size: 512MB
-      enabled: true
-      file-size-threshold: 0
   application:
     name: alinesno-infra-data-scheduler-boot
     id: 1865936259484930048
@@ -21,7 +15,13 @@ spring:
     redis:
       host: 127.0.0.1
       port: 6379
-      password: aip@local
+#      password: aip@local
+  servlet:
+    multipart:
+      max-file-size: 512MB
+      max-request-size: 512MB
+      enabled: true
+      file-size-threshold: 0
   quartz:
     #是否自动启动
     autoStartup: false
