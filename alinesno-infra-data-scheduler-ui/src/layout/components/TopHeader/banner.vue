@@ -16,17 +16,16 @@
     </div>
 
     <!-- 项目选择弹窗管理 -->
-    <el-dialog :title="title" v-model="open" v-if="open" width="1200px" append-to-body>
+    <!-- <el-dialog :title="title" v-model="open" v-if="open" width="1200px" append-to-body>
       <choiceProject />
 
       <template #footer>
         <div class="dialog-footer">
-          <!-- <el-button :loading="buttonLoading" type="primary" @click="submitForm">确 定</el-button> -->
           <el-button @click="cancel">取 消</el-button>
         </div>
       </template>
 
-    </el-dialog>
+    </el-dialog> -->
 
   </div>
 </template>
