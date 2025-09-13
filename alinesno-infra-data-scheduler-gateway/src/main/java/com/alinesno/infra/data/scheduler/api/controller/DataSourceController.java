@@ -11,7 +11,7 @@ import com.alinesno.infra.common.facade.response.AjaxResult;
 import com.alinesno.infra.common.web.adapter.rest.BaseController;
 import com.alinesno.infra.data.scheduler.api.CheckDbConnectResult;
 import com.alinesno.infra.data.scheduler.api.DataSourceDto;
-import com.alinesno.infra.data.scheduler.api.session.CurrentProjectSession;
+//import com.alinesno.infra.data.scheduler.api.session.CurrentProjectSession;
 import com.alinesno.infra.data.scheduler.entity.DataSourceEntity;
 import com.alinesno.infra.data.scheduler.enums.SinkReaderEnums;
 import com.alinesno.infra.data.scheduler.service.IDataSourceService;
@@ -61,7 +61,7 @@ public class DataSourceController extends BaseController<DataSourceEntity, IData
     public TableDataInfo datatables(HttpServletRequest request, Model model, DatatablesPageBean page) {
         log.debug("page = {}", ToStringBuilder.reflectionToString(page));
 
-        CurrentProjectSession.filterProject(page);
+//        CurrentProjectSession.filterProject(page);
 
         return this.toPage(model, this.getFeign(), page);
     }
@@ -90,7 +90,7 @@ public class DataSourceController extends BaseController<DataSourceEntity, IData
         BeanUtils.copyProperties(dto, dbEntity) ;
 
         dbEntity.setReaderName(dto.getReaderType().toUpperCase());
-        dbEntity.setProjectId(CurrentProjectSession.get().getId());
+//        dbEntity.setProjectId(CurrentProjectSession.get().getId());
 
         try {
             return super.update(null, dbEntity) ;
@@ -110,7 +110,7 @@ public class DataSourceController extends BaseController<DataSourceEntity, IData
         LambdaQueryWrapper<DataSourceEntity> wrapper = new LambdaQueryWrapper<>() ;
         wrapper.setEntityClass(DataSourceEntity.class) ;
         query.toWrapper(wrapper);
-        wrapper.eq(DataSourceEntity::getProjectId , CurrentProjectSession.get().getId()) ;
+//        wrapper.eq(DataSourceEntity::getProjectId , CurrentProjectSession.get().getId()) ;
 
         List<DataSourceEntity> list = service.list(wrapper) ;
 
@@ -136,7 +136,7 @@ public class DataSourceController extends BaseController<DataSourceEntity, IData
         dbEntity.setReaderName(dto.getReaderType().toUpperCase());
         dbEntity.setOperationType("source");
 
-        dbEntity.setProjectId(CurrentProjectSession.get().getId());
+//        dbEntity.setProjectId(CurrentProjectSession.get().getId());
 
         try {
             return super.save(null, dbEntity) ;
