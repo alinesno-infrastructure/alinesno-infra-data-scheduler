@@ -16,8 +16,8 @@
     <version>${revision}</version>
 
     <properties>
-        <revision>1.1.0-SNAPSHOT</revision>
-        <alinesno.infra.version>${revision}</alinesno.infra.version>
+        <revision>2.0.0-SNAPSHOT</revision>
+        <alinesno.infra.common.version>1.1.0-SNAPSHOT</alinesno.infra.common.version>
     </properties>
 
     <modules>
