@@ -12,7 +12,7 @@ import com.alinesno.infra.common.facade.response.AjaxResult;
 import com.alinesno.infra.common.facade.response.R;
 import com.alinesno.infra.common.web.adapter.rest.BaseController;
 import com.alinesno.infra.data.scheduler.adapter.CloudStorageConsumer;
-import com.alinesno.infra.data.scheduler.api.session.CurrentProjectSession;
+//import com.alinesno.infra.data.scheduler.api.session.CurrentProjectSession;
 import com.alinesno.infra.data.scheduler.entity.ResourceEntity;
 import com.alinesno.infra.data.scheduler.enums.ResourceTypeEnums;
 import com.alinesno.infra.data.scheduler.service.ICategoryService;
@@ -76,7 +76,7 @@ public class ResourceController extends BaseController<ResourceEntity, IResource
     public TableDataInfo datatables(HttpServletRequest request, Model model, DatatablesPageBean page) {
         log.debug("page = {}", ToStringBuilder.reflectionToString(page));
 
-        CurrentProjectSession.filterProject(page);
+//        CurrentProjectSession.filterProject(page);
 
         return this.toPage(model, this.getFeign(), page);
     }
@@ -119,7 +119,7 @@ public class ResourceController extends BaseController<ResourceEntity, IResource
         resourceEntity.setSize(targetFile.length());
         resourceEntity.setStorageId(Long.parseLong(ajaxResult.getData()));
 
-        resourceEntity.setProjectId(CurrentProjectSession.get().getId());
+//        resourceEntity.setProjectId(CurrentProjectSession.get().getId());
 
         service.save(resourceEntity) ;
 
@@ -137,7 +137,7 @@ public class ResourceController extends BaseController<ResourceEntity, IResource
         LambdaQueryWrapper<ResourceEntity> wrapper = new LambdaQueryWrapper<>() ;
         wrapper.setEntityClass(ResourceEntity.class) ;
         query.toWrapper(wrapper);
-        wrapper.eq(ResourceEntity::getProjectId , CurrentProjectSession.get().getId()) ;
+//        wrapper.eq(ResourceEntity::getProjectId , CurrentProjectSession.get().getId()) ;
 
         List<ResourceEntity> list = service.list(wrapper) ;
 
