@@ -7,7 +7,7 @@ import com.alinesno.infra.common.facade.pageable.DatatablesPageBean;
 import com.alinesno.infra.common.facade.pageable.TableDataInfo;
 import com.alinesno.infra.common.facade.response.AjaxResult;
 import com.alinesno.infra.common.web.adapter.rest.BaseController;
-import com.alinesno.infra.data.scheduler.api.session.CurrentProjectSession;
+//import com.alinesno.infra.data.scheduler.api.session.CurrentProjectSession;
 import com.alinesno.infra.data.scheduler.entity.ProcessInstanceEntity;
 import com.alinesno.infra.data.scheduler.service.IProcessInstanceService;
 import io.swagger.annotations.Api;
@@ -62,7 +62,7 @@ public class ProcessInstanceController extends BaseController<ProcessInstanceEnt
 
         page.setConditionList(condition);
 
-        CurrentProjectSession.filterProject(page);
+//        CurrentProjectSession.filterProject(page);
 
         return this.toPage(model, this.getFeign(), page);
     }
