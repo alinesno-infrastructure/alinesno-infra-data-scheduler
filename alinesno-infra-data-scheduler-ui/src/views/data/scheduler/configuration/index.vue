@@ -20,7 +20,7 @@
 <script setup>
 const tabPosition = ref('right')
 
-import RunningMonitor from './components/runningMonitor.vue'
+// import RunningMonitor from './components/runningMonitor.vue'
 import EnvironmentManage from './components/environmentManage.vue'
 import CredentialManage from './components/credentialManage.vue'
 import SecretsManager from './components/secretsManager.vue'
