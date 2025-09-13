@@ -29,7 +29,7 @@ const router = useRouter();
 
 // 菜单列表
 const menuItems = ref([
-  {id:'2' , icon:'fa-solid fa-feather' , link:'/data/scheduler/project/index' , desc:'项目'},
+  // {id:'2' , icon:'fa-solid fa-feather' , link:'/data/scheduler/project/index' , desc:'项目'},
   {id:'3' , icon:'fa-solid fa-masks-theater' , link:'/data/scheduler/processDefinition/index' , desc:'流程'},
   {id:'5' , icon:'fa-brands fa-wordpress' , link:'/data/scheduler/processInstance/index' , desc:'实例'},
   {id:'15' , icon:'fa-solid fa-box-open' , link:'/data/scheduler/catelog/index' , desc:'分类'},
