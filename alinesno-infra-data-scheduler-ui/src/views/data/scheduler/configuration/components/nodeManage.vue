@@ -16,6 +16,8 @@
         class="demo-form"
       >
         <el-form-item label="计算引擎类型" prop="computeEngine">
+
+          <!-- 
           <el-select v-model="form.computeEngine" placeholder="请选择计算引擎">
             <el-option
               v-for="item in engineOptions"
@@ -23,7 +25,17 @@
               :label="item.label"
               :value="item.value"
             ></el-option>
-          </el-select>
+          </el-select> 
+          -->
+
+          <el-radio-group v-model="form.computeEngine" size="large" >
+            <el-radio-button 
+              v-for="item in engineOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"></el-radio-button>
+            </el-radio-group>
+
         </el-form-item>
 
         <el-form-item label="默认计算资源配额" prop="resourceQuota">
@@ -95,6 +107,7 @@
           ></el-switch>
         </el-form-item>
 
+        <!-- 
         <el-form-item label="任务调度策略" prop="schedulingStrategy">
           <el-select v-model="form.schedulingStrategy" placeholder="请选择调度策略">
             <el-option
@@ -113,7 +126,8 @@
             <el-checkbox label="csv">CSV</el-checkbox>
             <el-checkbox label="json">JSON</el-checkbox>
           </el-checkbox-group>
-        </el-form-item>
+        </el-form-item> 
+        -->
 
         <el-form-item label="告警通知方式" prop="notificationMethods">
           <el-checkbox-group v-model="form.notificationMethods">
