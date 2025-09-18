@@ -1,7 +1,6 @@
 package com.alinesno.infra.data.scheduler.mapper;
 
 import com.alinesno.infra.common.facade.mapper.repository.IBaseMapper;
-import com.alinesno.infra.data.scheduler.entity.EnvironmentEntity;
 import com.alinesno.infra.data.scheduler.entity.ResourceEntity;
 
 /**
