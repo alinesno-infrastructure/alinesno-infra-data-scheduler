@@ -1,5 +1,5 @@
 import QuestionNodeVue from './index.vue'
-import { AppNode, AppNodeModel } from '@/views/smart/assistant/workflow/common/appNode'
+import { AppNode, AppNodeModel } from '@/views/data/scheduler/workflow/common/appNode'
 
 // 自定义节点的 view
 class QuestionNode extends AppNode {
