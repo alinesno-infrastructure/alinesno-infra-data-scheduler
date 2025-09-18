@@ -317,6 +317,13 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
 
     }
 
+    @Override
+    public void saveProcessDefinition(ProcessDefinitionSaveDto dto) {
+        ProcessDefinitionEntity processDefinition = ProcessUtils.fromSaveDtoToEntity(dto);
+        processDefinition.setOnline(false);
+        this.saveOrUpdate(processDefinition);
+    }
+
 }
 
 
