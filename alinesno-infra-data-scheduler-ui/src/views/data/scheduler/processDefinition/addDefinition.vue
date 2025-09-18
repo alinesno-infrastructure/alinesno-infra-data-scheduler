@@ -25,6 +25,11 @@
           <el-input v-model="form.taskName" placeholder="请输入任务名称"></el-input>
         </el-form-item>
 
+        <!-- 任务描述 -->
+         <el-form-item label="任务描述" prop="taskDesc">
+          <el-input v-model="form.taskDesc" placeholder="请输入任务描述"></el-input>
+        </el-form-item>
+
         <el-form-item style="width: 100%;" label="类型" prop="categoryId">
           <el-tree-select
               v-model="form.categoryId"
@@ -33,6 +38,7 @@
               value-key="id"
               placeholder="请选择归属类型"
               check-strictly
+              @change="onCategoryChange"
           />
         </el-form-item>
 
@@ -62,22 +68,26 @@
           </el-select>
         </el-form-item>
 
+        <!-- 
         <el-form-item label="变量">
           <el-button type="primary" bg text @click="centerDialogVisible = true">
             <i class="fa-solid fa-screwdriver-wrench"></i>&nbsp;配置全局变量
           </el-button>
-        </el-form-item>
+        </el-form-item> 
+        -->
 
         <!-- CRON表达式 -->
+        <!-- 
         <el-form-item label="CRON表达式" prop="cronExpression">
           <el-input disabled="true" v-model="form.cronExpression" placeholder="请输入CRON表达式">
             <template #append>
               <el-button :icon="Search" @click="handleShowCron">生成CRON表达式</el-button>
             </template>
           </el-input>
-        </el-form-item>
+        </el-form-item> 
+        -->
 
-        <!-- 是否告警 -->
+        <!-- 是否告警 
         <el-form-item label="起止时间" prop="startTime">
           <el-col :span="11">
             <el-date-picker 
@@ -103,6 +113,7 @@
               style="width: 100%" />
           </el-col>
         </el-form-item>
+         -->
 
         <!-- 参与人监控邮箱 -->
         <!-- <el-form-item label="参与人监控邮箱" prop="monitorEmail">
@@ -112,10 +123,12 @@
         <br />
 
         <el-form-item>
+          <!-- 
           <el-button icon="Right" type="primary" @click="createDatasource">
             下一步
-          </el-button>
-          <el-button icon="UploadFilled" type="danger" @click="saveDefinition">
+          </el-button> 
+          -->
+          <el-button icon="UploadFilled" type="primary" @click="saveDefinition">
             保存 
           </el-button>
           <el-button @click="resetForm">
@@ -149,7 +162,11 @@
 import ContextParam from "./params/contextParam.vue";
 import Crontab from '@/components/Crontab'
 import { getAllEnvironment } from '@/api/data/scheduler/environment'
-import { getProcessDefinitionByDto , catalogTreeSelect } from '@/api/data/scheduler/processDefinition'
+import { 
+  getProcessDefinitionByDto , 
+  catalogTreeSelect , 
+  saveProcessDefinition
+} from '@/api/data/scheduler/processDefinition'
 import { nextTick } from "vue";
 
 const { proxy } = getCurrentInstance();
@@ -240,6 +257,12 @@ const data = reactive({
     envId: [
       { required: true, message: "请选择环境ID", trigger: "blur" }
     ],
+    taskDesc: [
+      { required: true, message: "请输入任务描述", trigger: "blur" }
+    ],
+    categoryId: [
+      { required: true, message: "请选择任务分类", trigger: "blur" }
+    ],
     icon: [
       { required: true, message: "请输入数据采集模板", trigger: "blur" }
     ],
@@ -296,7 +319,40 @@ function createDatasource() {
 
 /** 保存更新流程 */
 function saveDefinition(){
-  proxy.$modal.msgSuccess("功能模块开发中.");
+  console.log('form = ' + form.value)
+
+  // 先做一下数据校验
+  proxy.$refs["databaseRef"].validate(valid => {
+    if (valid) {
+      saveProcessDefinition(form.value).then(res => {
+        console.log('res = > ' + res);
+        proxy.$modal.msgSuccess("保存成功");
+        goBack();
+      })
+    }
+  })
+
+}
+
+function findNodeById(nodes, id) {
+  if (!nodes) return null;
+  for (const n of nodes) {
+    if (n.id === id) return n;
+    if (n.children) {
+      const r = findNodeById(n.children, id);
+      if (r) return r;
+    }
+  }
+  return null;
+}
+
+function onCategoryChange(val) {
+  const node = findNodeById(deptOptions.value, val);
+  if (node && node.children && node.children.length) {
+    proxy.$message.warning('只能选择叶子节点，请选择具体类型');
+    // 撤销选择（根据需求可设为 null 或上一次有效值）
+    form.value.categoryId = null;
+  }
 }
 
 /** cron表达式按钮操作 */
@@ -364,12 +420,44 @@ function getDeptTree() {
   });
 };
 
+// // 调用此方法以加载数据
+// getAllEnvironment().then(res => {
+//   envData.value = res.data
+
+//   nextTick(() => {
+
+//     console.log('processDefinitionId = ' + processDefinitionId)
+//     if (processDefinitionId) {
+//       getProcessDefinitionByDto(processDefinitionId).then(res => {
+//         form.value = res.data;
+//         currentLoginStyle.value = form.value.dataCollectionTemplate;
+//       })
+//     } else {
+//       // loadFormDataFromStorage();
+//       // 清空本地缓存 
+//       localStorage.setItem('processDefinitionFormData', JSON.stringify(form.value));
+//     }
+//   })
+// })
+
 // 调用此方法以加载数据
 getAllEnvironment().then(res => {
-  envData.value = res.data
+  envData.value = res.data || [];
+
+  // 如果没有可用环境，则添加一个默认环境项并默认选中
+  if (!envData.value || envData.value.length === 0) {
+    const defaultEnv = {
+      id: 0,                    // 根据后端实际 id 类型可改为 '0' 或 -1
+      name: '默认环境',
+      systemEnv: 'default'
+    };
+    envData.value.push(defaultEnv);
+
+    // 将表单 envId 设为默认环境（如果需要自动选中）
+    form.value.envId = defaultEnv.id;
+  }
 
   nextTick(() => {
-
     console.log('processDefinitionId = ' + processDefinitionId)
     if (processDefinitionId) {
       getProcessDefinitionByDto(processDefinitionId).then(res => {
@@ -377,8 +465,7 @@ getAllEnvironment().then(res => {
         currentLoginStyle.value = form.value.dataCollectionTemplate;
       })
     } else {
-      // loadFormDataFromStorage();
-      // 清空本地缓存 
+      // 如果不希望自动选中默认环境，可以注释掉下一行
       localStorage.setItem('processDefinitionFormData', JSON.stringify(form.value));
     }
   })
@@ -391,7 +478,7 @@ getDeptTree();
 
 <style scoped lang="scss">
 .form-container {
-  max-width: 960px;
+  max-width: 900px;
   margin-left: auto;
   margin-right: auto;
   margin-top: 20px;
@@ -402,7 +489,7 @@ getDeptTree();
   max-width: 960px;
   margin-left: auto;
   margin-right: auto;
-  margin-top: 10px;
+  margin-top: 10vh;
 
   .tip {
     padding-bottom: 10px;
