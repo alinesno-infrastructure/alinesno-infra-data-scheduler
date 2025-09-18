@@ -18,7 +18,6 @@ import com.alinesno.infra.data.scheduler.service.IDataSourceService;
 import com.alinesno.infra.data.scheduler.service.IEnvironmentService;
 import com.alinesno.infra.data.scheduler.service.IResourceService;
 import com.alinesno.infra.data.scheduler.service.ISecretsService;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
