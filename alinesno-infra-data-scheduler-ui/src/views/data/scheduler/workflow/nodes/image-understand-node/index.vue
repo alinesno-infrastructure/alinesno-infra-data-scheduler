@@ -58,12 +58,12 @@
 import { set } from 'lodash'
 import { ref, reactive } from 'vue'
 
-import FlowContainer from '@/views/smart/assistant/workflow/common/FlowContainer'
-import ScriptEditorPanel from '@/views/smart/assistant/workflow/components/ScriptEditor';
-import ScriptEditorFullPanel from '@/views/smart/assistant/workflow/components/NodeScriptEditor';
+import FlowContainer from '@/views/data/scheduler/workflow/common/FlowContainer'
+import ScriptEditorPanel from '@/views/data/scheduler/workflow/components/ScriptEditor';
+import ScriptEditorFullPanel from '@/views/data/scheduler/workflow/components/NodeScriptEditor';
 
-import FlowCascader from '@/views/smart/assistant/workflow/common/FlowCascader'
-import LLMSelector from '@/views/smart/assistant/workflow/components/LLMSelector'
+import FlowCascader from '@/views/data/scheduler/workflow/common/FlowCascader'
+import LLMSelector from '@/views/data/scheduler/workflow/components/LLMSelector'
 
 const props = defineProps({
   properties: {
