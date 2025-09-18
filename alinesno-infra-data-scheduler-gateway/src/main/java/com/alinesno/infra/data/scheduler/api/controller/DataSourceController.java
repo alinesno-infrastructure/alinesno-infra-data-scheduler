@@ -11,7 +11,6 @@ import com.alinesno.infra.common.facade.response.AjaxResult;
 import com.alinesno.infra.common.web.adapter.rest.BaseController;
 import com.alinesno.infra.data.scheduler.api.CheckDbConnectResult;
 import com.alinesno.infra.data.scheduler.api.DataSourceDto;
-//import com.alinesno.infra.data.scheduler.api.session.CurrentProjectSession;
 import com.alinesno.infra.data.scheduler.entity.DataSourceEntity;
 import com.alinesno.infra.data.scheduler.enums.SinkReaderEnums;
 import com.alinesno.infra.data.scheduler.service.IDataSourceService;
