@@ -79,7 +79,7 @@
                      </div>
                      <div style="font-size: 13px;color: #a5a5a5;cursor: pointer;" class="text-overflow"
                         v-copyText="scope.row.promptId">
-                        {{ scope.row.name }}，运行多任务状态
+                        {{ scope.row.description?scope.row.description:'当前任务没有描述'}}
                      </div>
                   </template>
                </el-table-column>
@@ -128,7 +128,7 @@
                   <template #default="scope">
                      <div>
                         <el-tooltip placement="top" v-if="scope.row.processId !== 1">
-                           CRON: {{ scope.row.scheduleCron }}
+                           {{ scope.row.scheduleCron?scope.row.scheduleCron:'未设置' }}
                         </el-tooltip>
                      </div>
                      <div style="font-size: 13px;color: #a5a5a5;cursor: pointer;" v-copyText="scope.row.promptId">
@@ -487,7 +487,7 @@ function handleConfigType(id, documentType) {
          node:'node',
          from: 'list'
       } }).then(() => {
-      window.location.reload();
+      // window.location.reload();
    }) ;
    
 }
