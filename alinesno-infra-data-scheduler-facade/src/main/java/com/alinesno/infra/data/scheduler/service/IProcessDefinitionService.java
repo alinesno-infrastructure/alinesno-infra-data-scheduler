@@ -3,6 +3,7 @@ package com.alinesno.infra.data.scheduler.service;
 import com.alinesno.infra.common.facade.datascope.PermissionQuery;
 import com.alinesno.infra.common.facade.services.IBaseService;
 import com.alinesno.infra.data.scheduler.api.ProcessDefinitionDto;
+import com.alinesno.infra.data.scheduler.api.ProcessDefinitionSaveDto;
 import com.alinesno.infra.data.scheduler.api.ProcessTaskValidateDto;
 import com.alinesno.infra.data.scheduler.entity.ProcessDefinitionEntity;
 import com.alinesno.infra.data.scheduler.entity.TaskDefinitionEntity;
@@ -49,4 +50,9 @@ public interface IProcessDefinitionService extends IBaseService<ProcessDefinitio
      */
     void updateProcessDefinition(ProcessDefinitionDto dto);
 
+    /**
+     * 保存流程定义
+     * @param dto
+     */
+    void saveProcessDefinition(ProcessDefinitionSaveDto dto);
 }
