@@ -27,7 +27,6 @@
           </el-form-item>
 
           <el-form-item label="指定回答内容" v-if="formData.replayType === 'text'">
-            <!-- <el-input type="textarea" :rows="5" resize="none" placeholder="角色设置" /> -->
             <div class="function-CodemirrorEditor mb-8" style="height: 120px;width:100%">
               <ScriptEditorPanel ref="auditEditorRef" :lang="'markdown'" />
               <div class="function-CodemirrorEditor__footer">
@@ -70,11 +69,11 @@
 import { set } from 'lodash'
 import { ref, reactive } from 'vue'
 
-import FlowContainer from '@/views/smart/assistant/workflow/common/FlowContainer'
-import ScriptEditorPanel from '@/views/smart/assistant/workflow/components/ScriptEditor';
-import ScriptEditorFullPanel from '@/views/smart/assistant/workflow/components/NodeScriptEditor';
+import FlowContainer from '@/views/data/scheduler/workflow/common/FlowContainer'
+import ScriptEditorPanel from '@/views/data/scheduler/workflow/components/ScriptEditor';
+import ScriptEditorFullPanel from '@/views/data/scheduler/workflow/components/NodeScriptEditor';
 
-import FlowCascader from '@/views/smart/assistant/workflow/common/FlowCascader'
+import FlowCascader from '@/views/data/scheduler/workflow/common/FlowCascader'
 
 // 定义组件接收的属性
 const props = defineProps({
