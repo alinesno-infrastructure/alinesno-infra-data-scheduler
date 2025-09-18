@@ -9,7 +9,6 @@ import com.alinesno.infra.common.facade.pageable.DatatablesPageBean;
 import com.alinesno.infra.common.facade.pageable.TableDataInfo;
 import com.alinesno.infra.common.facade.response.AjaxResult;
 import com.alinesno.infra.common.web.adapter.rest.BaseController;
-//import com.alinesno.infra.data.scheduler.api.session.CurrentProjectSession;
 import com.alinesno.infra.data.scheduler.entity.CategoryEntity;
 import com.alinesno.infra.data.scheduler.service.ICategoryService;
 import io.swagger.annotations.Api;
@@ -61,9 +60,7 @@ public class CategoryController extends BaseController<CategoryEntity, ICategory
     @DataPermissionQuery
     @GetMapping("/list")
     public AjaxResult list(CategoryEntity promptCatalog , PermissionQuery query) {
-
-        long currentProject = 1L ; // CurrentProjectSession.get().getId() ;
-        List<CategoryEntity> promptCatalogEntities = service.selectCatalogList(promptCatalog , query , currentProject);
+        List<CategoryEntity> promptCatalogEntities = service.selectCatalogList(promptCatalog , query);
 
         return AjaxResult.success("操作成功." , promptCatalogEntities) ;
     }
@@ -93,9 +90,7 @@ public class CategoryController extends BaseController<CategoryEntity, ICategory
     @GetMapping("/excludeChild/{id}")
     public AjaxResult excludeChild(@PathVariable(value = "id", required = false) Long deptId , PermissionQuery query) {
 
-        long currentProject = 1L ; // CurrentProjectSession.get().getId() ;
-        List<CategoryEntity> depts = service.selectCatalogList(new CategoryEntity(), query, currentProject);
-
+        List<CategoryEntity> depts = service.selectCatalogList(new CategoryEntity(), query);
         depts.removeIf(d -> d.getId().longValue() == deptId || ArrayUtils.contains(StringUtils.split(d.getAncestors(), ","), deptId + ""));
 
         return AjaxResult.success("操作成功." , depts);
