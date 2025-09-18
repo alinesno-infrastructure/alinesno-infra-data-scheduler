@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
     <div class="label-title">
-      <div class="tip">数据编排计算服务配置</div>
+      <div class="tip">AI数据编排计算服务配置</div>
       <div class="sub-tip">配置数据治理工作流程的编排能力，优化离线计算的数据处理效率</div>
     </div>
 
