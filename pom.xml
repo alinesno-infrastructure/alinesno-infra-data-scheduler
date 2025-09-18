@@ -16,17 +16,29 @@
     <version>${revision}</version>
 
     <properties>
-        <revision>2.0.0-SNAPSHOT</revision>
+        <revision>2.1.0-SNAPSHOT</revision>
         <alinesno.infra.common.version>1.1.0-SNAPSHOT</alinesno.infra.common.version>
+
+        <!-- 版本号 -->
+        <spring.file.storage.version>2.0.0</spring.file.storage.version>
+        <aliyun.sdk.oss.version>3.16.1</aliyun.sdk.oss.version>
+        <qiniu.java.sdk.version>7.12.1</qiniu.java.sdk.version>
+        <minio.version>8.5.2</minio.version>
+        <cos_api.version>5.6.137</cos_api.version>
+
+        <!-- 模型适配 -->
+        <model-adapter.version>3.0.0-M2-SNAPSHOT</model-adapter.version>
     </properties>
 
     <modules>
         <!-- 应用服务 -->
         <module>alinesno-infra-data-scheduler-facade</module>  <!-- 接口和引用 -->
+        <module>alinesno-infra-data-scheduler-adapter</module> <!-- 适配层 -->
+        <module>alinesno-infra-data-scheduler-llm</module> <!-- 大模型层 -->
 
+        <module>alinesno-infra-data-scheduler-workflow</module> <!--  工作流层次 -->
         <module>alinesno-infra-data-scheduler-scheduler</module>  <!-- 定时任务 -->
         <module>alinesno-infra-data-scheduler-domain</module>  <!-- 领域服务 -->
-        <module>alinesno-infra-data-scheduler-adapter</module> <!-- 适配层 -->
         <module>alinesno-infra-data-scheduler-gateway</module>  <!-- 接口服务 -->
 
         <module>alinesno-infra-data-scheduler-executor</module>  <!-- 任务执行器 -->
@@ -36,6 +48,215 @@
         <module>alinesno-infra-data-scheduler-ui</module>
         -->
     </modules>
+
+    <dependencyManagement>
+        <dependencies>
+
+            <!-- 动态脚本 -->
+            <dependency>
+                <groupId>org.codehaus.groovy</groupId>
+                <artifactId>groovy-all</artifactId>
+                <version>3.0.9</version>
+                <type>pom</type>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.ivy</groupId>
+                <artifactId>ivy</artifactId>
+                <version>2.5.2</version>
+            </dependency>
+            <dependency>
+                <groupId>org.codehaus.gpars</groupId>
+                <artifactId>gpars</artifactId>
+                <version>1.2.1</version> <!-- 请使用最新版本 -->
+            </dependency>
+
+            <!-- x-file-storage -->
+            <dependency>
+                <groupId>org.dromara.x-file-storage</groupId>
+                <artifactId>x-file-storage-spring</artifactId>
+                <version>${spring.file.storage.version}</version>
+            </dependency>
+
+            <!-- 腾讯云存储 -->
+            <dependency>
+                <groupId>com.qcloud</groupId>
+                <artifactId>cos_api</artifactId>
+                <version>${cos_api.version}</version>
+            </dependency>
+
+
+            <!-- 阿里云存储 -->
+            <dependency>
+                <groupId>com.aliyun.oss</groupId>
+                <artifactId>aliyun-sdk-oss</artifactId>
+                <version>${aliyun.sdk.oss.version}</version>
+            </dependency>
+
+            <!-- 七牛云存储 -->
+            <dependency>
+                <groupId>com.qiniu</groupId>
+                <artifactId>qiniu-java-sdk</artifactId>
+                <version>${qiniu.java.sdk.version}</version>
+            </dependency>
+
+            <!-- minio云存储 -->
+            <dependency>
+                <groupId>io.minio</groupId>
+                <artifactId>minio</artifactId>
+                <version>${minio.version}</version>
+            </dependency>
+
+            <!-- 多模型适配 -->
+            <dependency>
+                <groupId>com.agentsflex</groupId>
+                <artifactId>alinesno-smart-model-adapter-spring-boot-starter</artifactId>
+                <version>${model-adapter.version}</version>
+            </dependency>
+            <!--llm start-->
+            <dependency>
+                <groupId>com.agentsflex</groupId>
+                <artifactId>alinesno-smart-model-adapter-llm-doubao</artifactId>
+                <version>${model-adapter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.agentsflex</groupId>
+                <artifactId>alinesno-smart-model-adapter-llm-ollama</artifactId>
+                <version>${model-adapter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.agentsflex</groupId>
+                <artifactId>alinesno-smart-model-adapter-llm-openai</artifactId>
+                <version>${model-adapter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.agentsflex</groupId>
+                <artifactId>alinesno-smart-model-adapter-llm-qwq</artifactId>
+                <version>${model-adapter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.agentsflex</groupId>
+                <artifactId>alinesno-smart-model-adapter-llm-deepseek</artifactId>
+                <version>${model-adapter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.agentsflex</groupId>
+                <artifactId>alinesno-smart-model-adapter-llm-siliconflow</artifactId>
+                <version>${model-adapter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.agentsflex</groupId>
+                <artifactId>alinesno-smart-model-adapter-llm-gitee</artifactId>
+                <version>${model-adapter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.agentsflex</groupId>
+                <artifactId>alinesno-smart-model-adapter-llm-qwen</artifactId>
+                <version>${model-adapter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.agentsflex</groupId>
+                <artifactId>alinesno-smart-model-adapter-llm-jdcloud</artifactId>
+                <version>${model-adapter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.agentsflex</groupId>
+                <artifactId>alinesno-smart-model-adapter-llm-spark</artifactId>
+                <version>${model-adapter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.agentsflex</groupId>
+                <artifactId>alinesno-smart-model-adapter-llm-moonshot</artifactId>
+                <version>${model-adapter.version}</version>
+            </dependency>
+            <!--llm end-->
+
+            <!-- speech_start -->
+            <dependency>
+                <groupId>com.agentsflex</groupId>
+                <artifactId>alinesno-smart-model-adapter-speech-qwen</artifactId>
+                <version>${model-adapter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.agentsflex</groupId>
+                <artifactId>alinesno-smart-model-adapter-speech-siliconflow</artifactId>
+                <version>${model-adapter.version}</version>
+            </dependency>
+            <!-- speech_end -->
+
+            <!-- images_start -->
+            <dependency>
+                <groupId>com.agentsflex</groupId>
+                <artifactId>alinesno-smart-model-adapter-image-doubao</artifactId>
+                <version>${model-adapter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.agentsflex</groupId>
+                <artifactId>alinesno-smart-model-adapter-image-qwen</artifactId>
+                <version>${model-adapter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.agentsflex</groupId>
+                <artifactId>alinesno-smart-model-adapter-image-gitee</artifactId>
+                <version>${model-adapter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.agentsflex</groupId>
+                <artifactId>alinesno-smart-model-adapter-image-siliconflow</artifactId>
+                <version>${model-adapter.version}</version>
+            </dependency>
+            <!-- images_end -->
+
+            <!-- 重排序模型_start -->
+            <dependency>
+                <groupId>com.agentsflex</groupId>
+                <artifactId>alinesno-smart-model-adapter-reranker-qwen</artifactId>
+                <version>${model-adapter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.agentsflex</groupId>
+                <artifactId>alinesno-smart-model-adapter-reranker-siliconflow</artifactId>
+                <version>${model-adapter.version}</version>
+            </dependency>
+            <!-- 重排序模型_end-->
+
+            <!-- 文件解析_start -->
+            <dependency>
+                <groupId>com.agentsflex</groupId>
+                <artifactId>alinesno-smart-model-adapter-document-parser-poi</artifactId>
+                <version>${model-adapter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.agentsflex</groupId>
+                <artifactId>alinesno-smart-model-adapter-document-parser-pdfbox</artifactId>
+                <version>${model-adapter.version}</version>
+            </dependency>
+            <!-- 文件解析_end -->
+
+            <!-- OCR模型_start -->
+            <dependency>
+                <groupId>com.agentsflex</groupId>
+                <artifactId>alinesno-smart-model-adapter-ocr-aip</artifactId>
+                <version>${model-adapter.version}</version>
+            </dependency>
+            <!-- OCR模型_end -->
+
+            <!-- 视觉模型_start -->
+            <dependency>
+                <groupId>com.agentsflex</groupId>
+                <artifactId>alinesno-smart-model-adapter-vision-qwen</artifactId>
+                <version>${model-adapter.version}</version>
+            </dependency>
+            <!-- 视觉模型_end -->
+
+            <!-- 向量化存储_start -->
+            <dependency>
+                <groupId>com.agentsflex</groupId>
+                <artifactId>alinesno-smart-model-adapter-store-pgvector</artifactId>
+                <version>${model-adapter.version}</version>
+            </dependency>
+            <!-- 向量化存储_end -->
+        </dependencies>
+    </dependencyManagement>
 
 </project>
 
