@@ -9,7 +9,7 @@
             @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="状态" prop="hasStatus">
+      <!-- <el-form-item label="状态" prop="hasStatus">
         <el-select v-model="queryParams.hasStatus" placeholder="分类状态" clearable>
           <el-option
               v-for="dict in sys_normal_disable"
@@ -18,7 +18,7 @@
               :value="dict.value"
           />
         </el-select>
-      </el-form-item>
+      </el-form-item> -->
       <el-form-item>
         <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
         <el-button icon="Refresh" @click="resetQuery">重置</el-button>
@@ -56,21 +56,25 @@
 
       <el-table-column prop="name" label="分类名称">
         <template #default="scope">
-          {{ scope.row.name }}
+          <i :class="scope.row.icon"></i> {{ scope.row.name }}
         </template>
       </el-table-column>
       <el-table-column prop="description" label="类型描述" ></el-table-column>
       <el-table-column align="center" prop="orderNum" label="排序" width="100"></el-table-column>
-      <el-table-column align="center" prop="level" label="数据级别" width="100">
+      <el-table-column align="center" prop="level" label="数据级别" width="200">
         <template #default="scope">
-          L2级别
+          <span style="font-weight: bold;">
+            {{ getDataSecurityLevelDesc(scope.row.dataSecurityLevel) }}
+          </span>
         </template>
       </el-table-column>
+      <!-- 
       <el-table-column align="center" prop="hasStatus" label="状态" width="100">
         <template #default="scope">
           <dict-tag :options="sys_normal_disable" :value="scope.row.hasStatus" />
         </template>
-      </el-table-column>
+      </el-table-column> 
+      -->
       <el-table-column label="创建时间" align="center" prop="createTime" width="200">
         <template #default="scope">
           <span>{{ parseTime(scope.row.addTime ) }}</span>
@@ -103,7 +107,7 @@
 
     <!-- 添加或修改分类对话框 -->
     <el-dialog :title="title" v-model="open" width="800px" append-to-body>
-      <el-form ref="deptRef" :model="form" :rules="rules" label-width="80px">
+      <el-form ref="deptRef" :model="form" :rules="rules" label-width="80px" size="large">
         <el-row>
           <el-col :span="24">
             <el-form-item label="上级分类" prop="parentId">
@@ -141,8 +145,8 @@
             </el-form-item>
           </el-col>
           <el-col :span="24">
-             <el-form-item label="安全级别" prop="confidentialityLevel">
-              <el-radio-group v-model="form.confidentialityLevel">
+             <el-form-item label="安全级别" prop="dataSecurityLevel">
+              <el-radio-group v-model="form.dataSecurityLevel">
                 <el-radio v-for="level in dataSecurityLevels" :key="level.key" :label="level.key">
                   {{ level.value }} - {{ level.desc }}
                 </el-radio>
@@ -190,8 +194,9 @@ const data = reactive({
   rules: {
     parentId: [{ required: true, message: "上级分类不能为空", trigger: "blur" }],
     name: [{ required: true, message: "分类名称不能为空", trigger: "blur" }],
+    icon: [{ required: true, message: "图标不能为空", trigger: "blur" }],
     description: [{ required: true, message: "分类描述不能为空", trigger: "blur" }],
-    confidentialityLevel: [{ required: true, message: "安全级别不能为空", trigger: "blur" }],
+    dataSecurityLevel: [{ required: true, message: "安全级别不能为空", trigger: "blur" }],
     orderNum: [{ required: true, message: "显示排序不能为空", trigger: "blur" }],
     email: [{ type: "email", message: "请输入正确的邮箱地址", trigger: ["blur", "change"] }],
     phone: [{ pattern: /^1[3|4|5|6|7|8|9][0-9]\d{8}$/, message: "请输入正确的手机号码", trigger: "blur" }]
@@ -214,12 +219,18 @@ const icons = ref([
 
 // 定义数据安全级别常量
 const dataSecurityLevels = ref([
-  { key: 1, value: 'Public', desc: '公开数据，无敏感信息，对数据丢失或泄露的影响较小' },
-  { key: 2, value: 'Internal', desc: '仅限公司内部使用，对数据丢失或泄露有一定影响' },
-  { key: 3, value: 'Confidential', desc: '重要数据，对数据丢失或泄露有较大影响，需严格保护' },
-  { key: 4, value: 'Highly Confidential', desc: '非常重要的数据，对数据丢失或泄露有严重影响，需最高级别保护' },
-  { key: 5, value: 'Top Secret', desc: '极其重要的数据，对数据丢失或泄露有灾难性影响，需最严格的保护措施' }
+  { key: "1", value: 'Public', desc: '公开数据，无敏感信息，对数据丢失或泄露的影响较小' },
+  { key: "2", value: 'Internal', desc: '仅限公司内部使用，对数据丢失或泄露有一定影响' },
+  { key: "3", value: 'Confidential', desc: '重要数据，对数据丢失或泄露有较大影响，需严格保护' },
+  { key: "4", value: 'Highly Confidential', desc: '非常重要的数据，对数据丢失或泄露有严重影响，需最高级别保护' },
+  { key: "5", value: 'Top Secret', desc: '极其重要的数据，对数据丢失或泄露有灾难性影响，需最严格的保护措施' }
 ]);
+
+// 通过key获取到dataSecurityLevels value
+function getDataSecurityLevelDesc(key) {
+  const item = dataSecurityLevels.value.find(item => item.key === key);
+  return item ? item.value: '';
+}
 
 
 /** 查询分类列表 */
