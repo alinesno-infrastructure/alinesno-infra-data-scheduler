@@ -19,6 +19,22 @@
 
     </el-menu>
 
+    <el-menu style="" class="el-menu-vertical acp-suggest" :collapse="isCollapse" @open="handleOpen" @close="handleClose">
+      <!-- <el-tooltip effect="dark" :content="item.desc" v-for="item in footerMenuItems" :key="item.id" placement="right"> -->
+          <el-menu-item 
+            :index="item.id" 
+            v-for="item in footerMenuItems" 
+            :key="item.id" 
+            @click="openServiceList(item.link)" 
+            class="menu-item">
+            <i :class="item.icon"></i>
+            <span>
+              {{ item.desc }}
+            </span>
+          </el-menu-item>
+      <!-- </el-tooltip> -->
+    </el-menu>
+
   </div>
 </template>
 
@@ -36,9 +52,14 @@ const menuItems = ref([
   {id:'8' , icon:'fa-solid fa-file-pdf' , link:'/data/scheduler/resources/index' , desc:'资源'},
   {id:'7' , icon:'fa-solid fa-database' , link:'/data/scheduler/datasource/index' , desc:'数据源'},
   {id:'4' , icon:'fa-brands fa-skype' , link:'/data/scheduler/analyse/index' , desc:'监控'},
-  {id:'10' , icon:'fa-solid fa-computer' , link:'/data/scheduler/configuration/index' , desc:'配置'},
   {id:'9' , icon:'fa-solid fa-code-pull-request' , link:'/data/scheduler/apiRecord/index' , desc:'记录'},
 ]);
+
+// 底部菜单
+const footerMenuItems = ref([
+  {id: '13', icon: 'fa-solid fa-robot', link: '/smart/assistant/llmModel/index', desc: '大模型'},
+  {id:'10' , icon:'fa-solid fa-cog' , link:'/data/scheduler/configuration/index' , desc:' 系统配置'},
+])
 
 // 打开服务市场
 function openServiceList(_path) {
@@ -83,7 +104,7 @@ function openSmartService() {
   position: fixed;
 }
 
-.menu-item {
+.menu-item , .acp-suggest {
   display: flex;
   justify-content: center;
   flex-direction: column;
