@@ -12,11 +12,7 @@ import com.alinesno.infra.common.facade.pageable.DatatablesPageBean;
 import com.alinesno.infra.common.facade.pageable.TableDataInfo;
 import com.alinesno.infra.common.facade.response.AjaxResult;
 import com.alinesno.infra.common.web.adapter.rest.BaseController;
-import com.alinesno.infra.data.scheduler.api.ProcessContextDto;
-import com.alinesno.infra.data.scheduler.api.ProcessDefinitionDto;
-import com.alinesno.infra.data.scheduler.api.ProcessTaskDto;
-import com.alinesno.infra.data.scheduler.api.ProcessTaskValidateDto;
-//import com.alinesno.infra.data.scheduler.api.session.CurrentProjectSession;
+import com.alinesno.infra.data.scheduler.api.*;
 import com.alinesno.infra.data.scheduler.constants.PipeConstants;
 import com.alinesno.infra.data.scheduler.entity.ProcessDefinitionEntity;
 import com.alinesno.infra.data.scheduler.service.ICategoryService;
@@ -122,8 +118,7 @@ public class ProcessDefinitionController extends BaseController<ProcessDefinitio
     @DataPermissionQuery
     @GetMapping("/catalogTreeSelect")
     public AjaxResult catalogTreeSelect(PermissionQuery query){
-        long currentProject = 1L ; // CurrentProjectSession.get().getId() ;
-        return AjaxResult.success("success" , catalogService.selectCatalogTreeList(query , currentProject)) ;
+        return AjaxResult.success("success" , catalogService.selectCatalogTreeList(query)) ;
     }
 
     /**
@@ -140,6 +135,20 @@ public class ProcessDefinitionController extends BaseController<ProcessDefinitio
         service.runProcessTask(dto) ;
 
         return AjaxResult.success() ;
+    }
+
+    /**
+     * 保存流程定义信息 saveProcessDefinition
+     */
+    @DataPermissionSave
+    @PostMapping("/saveProcessDefinition")
+    public AjaxResult saveProcessDefinition(@RequestBody @Validated ProcessDefinitionSaveDto dto){
+
+        log.debug("dto = {}", dto);
+
+        service.saveProcessDefinition(dto) ;
+
+        return ok() ;
     }
 
     /**
