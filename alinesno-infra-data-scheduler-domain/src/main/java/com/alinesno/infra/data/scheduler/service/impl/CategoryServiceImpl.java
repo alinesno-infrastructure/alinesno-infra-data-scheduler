@@ -1,5 +1,6 @@
 package com.alinesno.infra.data.scheduler.service.impl;
 
+import cn.hutool.core.util.IdUtil;
 import com.alinesno.infra.common.core.service.impl.IBaseServiceImpl;
 import com.alinesno.infra.common.core.utils.StringUtils;
 import com.alinesno.infra.common.facade.datascope.PermissionQuery;
@@ -9,6 +10,7 @@ import com.alinesno.infra.data.scheduler.mapper.CategoryMapper;
 import com.alinesno.infra.data.scheduler.service.ICategoryService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -26,25 +28,47 @@ import java.util.stream.Collectors;
 public class CategoryServiceImpl extends IBaseServiceImpl<CategoryEntity, CategoryMapper> implements ICategoryService {
 
     @Override
-    public List<CategoryEntity> selectCatalogList(CategoryEntity promptCatalog, PermissionQuery query, long currentProject) {
+    public List<CategoryEntity> selectCatalogList(CategoryEntity promptCatalog, PermissionQuery query) {
 
         LambdaQueryWrapper<CategoryEntity> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.setEntityClass(CategoryEntity.class) ;
         query.toWrapper(queryWrapper);
-        queryWrapper.eq(CategoryEntity::getProjectId, currentProject);
+
+        long count = count(queryWrapper);
+
+        if(promptCatalog.getName() != null && !promptCatalog.getName().isEmpty()){
+            queryWrapper.like(CategoryEntity::getName, promptCatalog.getName());
+        }
 
         List<CategoryEntity> list = list(queryWrapper);
 
-        if(list == null || list.isEmpty()){
+        if(count == 0){
 
             list = new ArrayList<>() ;
 
-            // 默认有一个选项是父类
+            // 创建默认父类【数据编排】
             CategoryEntity parent = new CategoryEntity() ;
-            parent.setName("父类对象");
-            parent.setId(0L);
-
+            BeanUtils.copyProperties(query ,  parent);
+            parent.setName("数据编排");
+            parent.setDescription("数据编排是数据处理和可视化的解决方案，用于处理和可视化数据。"); // 50个字的描述
+            parent.setId(IdUtil.getSnowflakeNextId());
+            parent.setDataSecurityLevel("2");
+            parent.setParentId(0L); // 标识为顶级节点
             list.add(parent) ;
+
+            // 创建默认子类【默认业务】，作为【数据编排】的子节点
+            CategoryEntity child = new CategoryEntity();
+            BeanUtils.copyProperties(query ,  child);
+            child.setName("默认业务");
+            child.setDescription("默认业务是数据处理和可视化的默认业务。");
+            child.setId(IdUtil.getSnowflakeNextId()); // 给一个唯一ID
+            child.setParentId(parent.getId()); // 设置父节点为【数据编排】
+            child.setAncestors(String.valueOf(parent.getId())); // 设置祖先为父节点ID
+            child.setDataSecurityLevel("2");
+            list.add(child);
+
+            // 如果需要将默认分类保存到数据库，可以在这里添加保存逻辑
+             this.saveBatch(list);
         }
 
         return list ;
@@ -63,12 +87,11 @@ public class CategoryServiceImpl extends IBaseServiceImpl<CategoryEntity, Catego
     }
 
     @Override
-    public List<TreeSelectDto> selectCatalogTreeList(PermissionQuery query, long currentProject) {
+    public List<TreeSelectDto> selectCatalogTreeList(PermissionQuery query) {
 
         LambdaQueryWrapper<CategoryEntity> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.setEntityClass(CategoryEntity.class) ;
         query.toWrapper(queryWrapper);
-        queryWrapper.eq(CategoryEntity::getProjectId, currentProject);
 
         List<CategoryEntity> deptTrees = buildDeptTree(list(queryWrapper));
         return deptTrees.stream().map(TreeSelectDto::new).collect(Collectors.toList());
@@ -133,5 +156,5 @@ public class CategoryServiceImpl extends IBaseServiceImpl<CategoryEntity, Catego
     private boolean hasChild(List<CategoryEntity> list, CategoryEntity t) {
         return !getChildList(list, t).isEmpty();
     }
-    
+
 }
