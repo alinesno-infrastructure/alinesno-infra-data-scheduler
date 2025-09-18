@@ -10,9 +10,11 @@
       <div v-if="saasUrl" class="dashboard-home" @click="dashboardHome()">
         <i class="fa-solid fa-house"></i> 工作台
       </div>
+      <!-- 
       <div class="dashboard-home" @click="choiceCurrentProject()">
         <i :class="projectInfo.projectIcons"></i> {{ projectInfo.projectName }}
-      </div>
+      </div> 
+      -->
     </div>
 
     <!-- 项目选择弹窗管理 -->
@@ -32,11 +34,11 @@
 
 <script setup>
 
-import { 
-  getCurrentProject
-} from "@/api/data/scheduler/project";
+// import { 
+//   getCurrentProject
+// } from "@/api/data/scheduler/project";
 
-import choiceProject from '@/views/data/scheduler/project/choiceProject'
+// import choiceProject from '@/views/data/scheduler/project/choiceProject'
 import Logo from '@/assets/logo/logo.png'
 
 /** 参数管理 */
@@ -79,13 +81,13 @@ function choiceCurrentProject(){
 }
 
 /** 获取当前项目信息 */
-function handleCurrentProject(){
-  getCurrentProject().then(res => {
-    projectInfo.value = res.data
-  })
-}
+// function handleCurrentProject(){
+//   getCurrentProject().then(res => {
+//     projectInfo.value = res.data
+//   })
+// }
 
-handleCurrentProject() ; 
+// handleCurrentProject() ; 
 
 </script>
 
