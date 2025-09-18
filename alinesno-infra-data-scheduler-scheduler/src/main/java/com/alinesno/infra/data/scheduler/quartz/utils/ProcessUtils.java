@@ -2,10 +2,7 @@ package com.alinesno.infra.data.scheduler.quartz.utils;
 
 import com.alibaba.fastjson.JSONObject;
 import com.alinesno.infra.common.core.utils.DateUtils;
-import com.alinesno.infra.data.scheduler.api.ParamsDto;
-import com.alinesno.infra.data.scheduler.api.ProcessContextDto;
-import com.alinesno.infra.data.scheduler.api.ProcessDefinitionDto;
-import com.alinesno.infra.data.scheduler.api.ProcessTaskDto;
+import com.alinesno.infra.data.scheduler.api.*;
 import com.alinesno.infra.data.scheduler.entity.ProcessDefinitionEntity;
 import com.alinesno.infra.data.scheduler.entity.ProcessInstanceEntity;
 import com.alinesno.infra.data.scheduler.entity.TaskDefinitionEntity;
@@ -173,5 +170,23 @@ public class ProcessUtils {
         }
 
         return taskDefinitionList ;
+    }
+
+    public static ProcessDefinitionEntity fromSaveDtoToEntity(ProcessDefinitionSaveDto dto) {
+        ProcessDefinitionEntity entity = new ProcessDefinitionEntity();
+
+        entity.setId(dto.getId());
+        entity.setIcon(dto.getIcon());
+        entity.setName(dto.getTaskName());
+        entity.setDescription(dto.getTaskDesc());
+        entity.setEnvId(dto.getEnvId());
+        entity.setCategoryId(dto.getCategoryId());
+
+        entity.setOrgId(dto.getOrgId());
+        entity.setOperatorId(dto.getOperatorId());
+        entity.setDepartmentId(dto.getDepartmentId());
+        entity.setApplicationId(dto.getApplicationId());
+
+        return entity ;
     }
 }
