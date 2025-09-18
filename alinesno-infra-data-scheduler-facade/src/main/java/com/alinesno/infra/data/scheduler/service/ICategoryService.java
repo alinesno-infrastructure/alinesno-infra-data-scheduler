@@ -19,10 +19,9 @@ public interface ICategoryService extends IBaseService<CategoryEntity> {
      *
      * @param promptCatalog
      * @param query
-     * @param currentProject
      * @return
      */
-    List<CategoryEntity> selectCatalogList(CategoryEntity promptCatalog, PermissionQuery query, long currentProject);
+    List<CategoryEntity> selectCatalogList(CategoryEntity promptCatalog, PermissionQuery query);
 
     /**
      * 保存用户类型
@@ -34,6 +33,6 @@ public interface ICategoryService extends IBaseService<CategoryEntity> {
      * 查询类型列表树
      * @return
      */
-    List<TreeSelectDto> selectCatalogTreeList(PermissionQuery query, long currentProject);
+    List<TreeSelectDto> selectCatalogTreeList(PermissionQuery query);
     
 }
