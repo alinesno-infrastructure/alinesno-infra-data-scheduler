@@ -66,8 +66,8 @@
 import { ref, reactive, toRaw, nextTick } from 'vue'
 import { cloneDeep, set } from 'lodash'
 
-import FlowContainer from '@/views/smart/assistant/workflow/common/FlowContainer'
-import FlowCascader from '@/views/smart/assistant/workflow/common/FlowCascader'
+import FlowContainer from '@/views/data/scheduler/workflow/common/FlowContainer'
+import FlowCascader from '@/views/data/scheduler/workflow/common/FlowCascader'
 
 // 定义组件接收的属性
 const props = defineProps({
