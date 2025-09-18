@@ -66,6 +66,15 @@ public class CategoryEntity extends InfraBaseEntity {
     @ColumnComment("生成式数量")
     private int promptCount;
 
+    /**
+     * 安全级别
+     */
+    @Excel(name="安全级别")
+    @TableField("data_security_level")
+    @ColumnType(length=5)
+    @ColumnComment("安全级别")
+    private String dataSecurityLevel ;
+
     @Excel(name="祖级列表")
     @TableField("ancestors")
     @ColumnType(length=256)
