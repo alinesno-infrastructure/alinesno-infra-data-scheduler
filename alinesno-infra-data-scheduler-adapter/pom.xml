@@ -13,6 +13,10 @@
 	<artifactId>alinesno-infra-data-scheduler-adapter</artifactId>
 	<packaging>jar</packaging>
 
+    <properties>
+
+    </properties>
+
 	<dependencies>
 
 		<!-- 引用公共门面服务 -->
@@ -29,6 +33,162 @@
 			<version>${forest.version}</version>
 		</dependency>
 		<!-- 引入forest_starter_end -->
+
+        <dependency>
+            <groupId>org.dromara.x-file-storage</groupId>
+            <artifactId>x-file-storage-spring</artifactId>
+        </dependency>
+
+        <!-- 腾讯云存储 -->
+        <dependency>
+            <groupId>com.qcloud</groupId>
+            <artifactId>cos_api</artifactId>
+        </dependency>
+
+
+        <!-- 阿里云存储 -->
+        <dependency>
+            <groupId>com.aliyun.oss</groupId>
+            <artifactId>aliyun-sdk-oss</artifactId>
+        </dependency>
+
+        <!-- 七牛云存储 -->
+        <dependency>
+            <groupId>com.qiniu</groupId>
+            <artifactId>qiniu-java-sdk</artifactId>
+        </dependency>
+
+        <!-- minio云存储 -->
+        <dependency>
+            <groupId>io.minio</groupId>
+            <artifactId>minio</artifactId>
+        </dependency>
+
+        <!-- 多模型适配 -->
+        <dependency>
+            <groupId>com.agentsflex</groupId>
+            <artifactId>alinesno-smart-model-adapter-spring-boot-starter</artifactId>
+        </dependency>
+        <!--llm start-->
+        <dependency>
+            <groupId>com.agentsflex</groupId>
+            <artifactId>alinesno-smart-model-adapter-llm-doubao</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.agentsflex</groupId>
+            <artifactId>alinesno-smart-model-adapter-llm-ollama</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.agentsflex</groupId>
+            <artifactId>alinesno-smart-model-adapter-llm-openai</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.agentsflex</groupId>
+            <artifactId>alinesno-smart-model-adapter-llm-qwq</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.agentsflex</groupId>
+            <artifactId>alinesno-smart-model-adapter-llm-deepseek</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.agentsflex</groupId>
+            <artifactId>alinesno-smart-model-adapter-llm-siliconflow</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.agentsflex</groupId>
+            <artifactId>alinesno-smart-model-adapter-llm-gitee</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.agentsflex</groupId>
+            <artifactId>alinesno-smart-model-adapter-llm-qwen</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.agentsflex</groupId>
+            <artifactId>alinesno-smart-model-adapter-llm-jdcloud</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.agentsflex</groupId>
+            <artifactId>alinesno-smart-model-adapter-llm-spark</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.agentsflex</groupId>
+            <artifactId>alinesno-smart-model-adapter-llm-moonshot</artifactId>
+        </dependency>
+        <!--llm end-->
+
+        <!-- speech_start -->
+        <dependency>
+            <groupId>com.agentsflex</groupId>
+            <artifactId>alinesno-smart-model-adapter-speech-qwen</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.agentsflex</groupId>
+            <artifactId>alinesno-smart-model-adapter-speech-siliconflow</artifactId>
+        </dependency>
+        <!-- speech_end -->
+
+        <!-- images_start -->
+        <dependency>
+            <groupId>com.agentsflex</groupId>
+            <artifactId>alinesno-smart-model-adapter-image-doubao</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.agentsflex</groupId>
+            <artifactId>alinesno-smart-model-adapter-image-qwen</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.agentsflex</groupId>
+            <artifactId>alinesno-smart-model-adapter-image-gitee</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.agentsflex</groupId>
+            <artifactId>alinesno-smart-model-adapter-image-siliconflow</artifactId>
+        </dependency>
+        <!-- images_end -->
+
+        <!-- 重排序模型_start -->
+        <dependency>
+            <groupId>com.agentsflex</groupId>
+            <artifactId>alinesno-smart-model-adapter-reranker-qwen</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.agentsflex</groupId>
+            <artifactId>alinesno-smart-model-adapter-reranker-siliconflow</artifactId>
+        </dependency>
+        <!-- 重排序模型_end-->
+
+        <!-- 文件解析_start -->
+        <dependency>
+            <groupId>com.agentsflex</groupId>
+            <artifactId>alinesno-smart-model-adapter-document-parser-poi</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.agentsflex</groupId>
+            <artifactId>alinesno-smart-model-adapter-document-parser-pdfbox</artifactId>
+        </dependency>
+        <!-- 文件解析_end -->
+
+        <!-- OCR模型_start -->
+        <dependency>
+            <groupId>com.agentsflex</groupId>
+            <artifactId>alinesno-smart-model-adapter-ocr-aip</artifactId>
+        </dependency>
+        <!-- OCR模型_end -->
+
+        <!-- 视觉模型_start -->
+        <dependency>
+            <groupId>com.agentsflex</groupId>
+            <artifactId>alinesno-smart-model-adapter-vision-qwen</artifactId>
+        </dependency>
+        <!-- 视觉模型_end -->
+
+        <!-- 向量化存储_start -->
+        <dependency>
+            <groupId>com.agentsflex</groupId>
+            <artifactId>alinesno-smart-model-adapter-store-pgvector</artifactId>
+        </dependency>
+        <!-- 向量化存储_end -->
+
 
 	</dependencies>
 
