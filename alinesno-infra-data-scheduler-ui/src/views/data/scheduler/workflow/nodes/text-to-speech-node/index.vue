@@ -31,9 +31,9 @@
 import { set } from 'lodash'
 import { ref, reactive } from 'vue'
 
-import FlowContainer from '@/views/smart/assistant/workflow/common/FlowContainer'
-import FlowCascader from '@/views/smart/assistant/workflow/common/FlowCascader'
-import LLMSelector from '@/views/smart/assistant/workflow/components/LLMSelector'
+import FlowContainer from '@/views/data/scheduler/workflow/common/FlowContainer'
+import FlowCascader from '@/views/data/scheduler/workflow/common/FlowCascader'
+import LLMSelector from '@/views/data/scheduler/workflow/components/LLMSelector'
 
 const props = defineProps({
   properties: {
