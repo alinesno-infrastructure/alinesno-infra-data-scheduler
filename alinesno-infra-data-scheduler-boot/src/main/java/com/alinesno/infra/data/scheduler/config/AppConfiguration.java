@@ -26,7 +26,10 @@ import org.springframework.context.annotation.Configuration;
 @EnableInfraSsoApi
 @MapperScan({
         "com.alinesno.infra.data.scheduler.quartz.mapper" ,
-        "com.alinesno.infra.data.scheduler.mapper"
+        "com.alinesno.infra.data.scheduler.mapper",
+
+        "com.alinesno.infra.data.scheduler.llm.mapper",
+        "com.alinesno.infra.data.scheduler.workflow.mapper"
 })
 @ForestScan({
         "com.alinesno.infra.common.web.adapter.base.consumer" ,
