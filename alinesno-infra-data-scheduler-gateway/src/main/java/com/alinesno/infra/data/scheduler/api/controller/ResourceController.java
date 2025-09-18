@@ -12,7 +12,6 @@ import com.alinesno.infra.common.facade.response.AjaxResult;
 import com.alinesno.infra.common.facade.response.R;
 import com.alinesno.infra.common.web.adapter.rest.BaseController;
 import com.alinesno.infra.data.scheduler.adapter.CloudStorageConsumer;
-//import com.alinesno.infra.data.scheduler.api.session.CurrentProjectSession;
 import com.alinesno.infra.data.scheduler.entity.ResourceEntity;
 import com.alinesno.infra.data.scheduler.enums.ResourceTypeEnums;
 import com.alinesno.infra.data.scheduler.service.ICategoryService;
