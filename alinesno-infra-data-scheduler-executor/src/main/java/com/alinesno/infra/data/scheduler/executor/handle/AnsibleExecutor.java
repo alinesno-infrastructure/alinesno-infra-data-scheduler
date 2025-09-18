@@ -1,7 +1,6 @@
 package com.alinesno.infra.data.scheduler.executor.handle;
 
 import cn.hutool.core.util.IdUtil;
-import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.fastjson.JSONObject;
 import com.alinesno.infra.data.scheduler.api.ParamsDto;
 import com.alinesno.infra.data.scheduler.executor.AbstractExecutorService;
