@@ -26,8 +26,8 @@
 import { set } from 'lodash'
 import { ref, reactive } from 'vue'
 
-import FlowContainer from '@/views/smart/assistant/workflow/common/FlowContainer'
-import FlowCascader from '@/views/smart/assistant/workflow/common/FlowCascader'
+import FlowContainer from '@/views/data/scheduler/workflow/common/FlowContainer'
+import FlowCascader from '@/views/data/scheduler/workflow/common/FlowCascader'
 
 // 绑定选择框的值
 const value = ref('')
