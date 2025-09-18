@@ -69,10 +69,10 @@
 </template>
 
 <script setup name="Dataset">
-import {
-  listDataset,
-  catalogManifestTreeSelect,
-} from "@/api/base/search/vectorDataset";
+// import {
+//   listDataset,
+//   catalogManifestTreeSelect,
+// } from "@/api/base/search/vectorDataset";
 
 import { reactive, ref, nextTick } from "vue";
 import { getCurrentInstance, toRefs } from 'vue';
@@ -283,8 +283,8 @@ function setSelectItemList(items){
   setTableSelection();
 }
 
-getDeptTree();
-getList();
+// getDeptTree();
+// getList();
 
 defineExpose({
   getSelectItemList ,
