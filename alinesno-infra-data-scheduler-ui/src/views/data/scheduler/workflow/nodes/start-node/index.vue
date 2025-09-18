@@ -24,7 +24,7 @@
 </template>
 
 <script setup>
-import FlowContainer from '@/views/smart/assistant/workflow/common/FlowContainer'
+import FlowContainer from '@/views/data/scheduler/workflow/common/FlowContainer'
 import { copyClick } from '@/utils/clipboard'
 
 const showCopyBtn = ref(-1);
