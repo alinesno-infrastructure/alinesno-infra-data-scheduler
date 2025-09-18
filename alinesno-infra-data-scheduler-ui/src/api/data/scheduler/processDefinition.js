@@ -31,7 +31,17 @@ var managerUrl = {
     catalogTreeSelect: prefix + "catalogTreeSelect",
     validateTask: prefix + "validateTask",
     getProcessDefinitionByDto: prefix + "getProcessDefinitionByDto",
-    downloadfile: prefix + "downloadfile"
+    downloadfile: prefix + "downloadfile" , 
+    saveProcessDefinition:  prefix + "saveProcessDefinition",
+}
+
+// 用户保存流程
+export function saveProcessDefinition(data){
+  return request({
+    url: managerUrl.saveProcessDefinition ,
+    method: 'post',
+    data: data
+  })
 }
 
 // 查询任务详细
