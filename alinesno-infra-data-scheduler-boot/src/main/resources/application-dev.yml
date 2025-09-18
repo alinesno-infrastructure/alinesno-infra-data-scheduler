@@ -61,7 +61,7 @@ spring:
     job-store-type: jdbc
     #初始化表结构
     jdbc:
-      initialize-schema: never # always/never
+      initialize-schema: always # always/never
   devtools:
     restart:
       enabled: true
@@ -71,7 +71,7 @@ actable:
   table:
     auto: update
   model:
-    pack: com.alinesno.infra.data.scheduler.entity;
+    pack: com.alinesno.infra.data.scheduler.entity;com.alinesno.infra.data.scheduler.llm.entity;com.alinesno.infra.data.scheduler.workflow.entity;
   database:
     type: mysql
   index:
