@@ -1,4 +1,4 @@
-import { AppNode, AppNodeModel } from '@/views/smart/assistant/workflow/common/appNode';
+import { AppNode, AppNodeModel } from '@/views/data/scheduler/workflow/common/appNode';
 import ConditionNodeVue from './index.vue';
 
 // 自定义节点的 view
