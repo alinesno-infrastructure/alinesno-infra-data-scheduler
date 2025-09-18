@@ -119,10 +119,10 @@
 import { set } from 'lodash'
 import { ref, reactive, onMounted, nextTick, computed } from 'vue'
 
-import FlowContainer from '@/views/smart/assistant/workflow/common/FlowContainer'
-import ScriptEditorPanel from '@/views/smart/assistant/workflow/components/ScriptEditor'
-import ScriptEditorFullPanel from '@/views/smart/assistant/workflow/components/ScriptEditorFull'
-import FlowCascader from '@/views/smart/assistant/workflow/common/FlowCascader'
+import FlowContainer from '@/views/data/scheduler/workflow/common/FlowContainer'
+import ScriptEditorPanel from '@/views/data/scheduler/workflow/components/ScriptEditor'
+import ScriptEditorFullPanel from '@/views/data/scheduler/workflow/components/ScriptEditorFull'
+import FlowCascader from '@/views/data/scheduler/workflow/common/FlowCascader'
 
 const props = defineProps({
   properties: {
