@@ -31,6 +31,15 @@ var managerUrl = {
     checkConnection: prefix + "checkConnection",
     checkConnectionByObj: prefix + "checkConnectionByObj",
     checkDBUrl: prefix + "checkDB",
+    listAvailableDataSources: prefix + "listAvailableDataSources",
+}
+
+// 列出可用的数据湖
+export function listAvailableDataSources() {
+  return request({
+    url: managerUrl.listAvailableDataSources,
+    method: 'get'
+  })
 }
 
 // 列出所有数据源列表
