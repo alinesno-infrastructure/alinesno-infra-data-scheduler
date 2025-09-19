@@ -63,12 +63,14 @@
         </el-card>
 
         <el-card shadow="always" class="flow-control-panel">
-            <!-- 角色配置按钮 -->
+            <!-- 流程配置按钮 -->
             <el-button type="primary" text @click="roleConfiguration">
-                <el-tooltip class="box-item" effect="dark" content="角色配置" placement="top">
-                    <el-avatar :size="30" :src="imagePath(currentRole.roleAvatar)" />
+                <el-tooltip class="box-item" effect="dark" content="流程配置" placement="top">
+                    <el-icon :size="18" title="流程配置">
+                        <Setting />
+                    </el-icon>
                 </el-tooltip>
-                &nbsp;角色配置
+                &nbsp;流程配置
             </el-button>
             <!-- 保存按钮 -->
             <el-button type="primary" text bg @click="save">
@@ -106,7 +108,7 @@
                 title="预览与调试"
                 :with-header="true">
                 <div style="margin-top: 0px;">
-                    <RoleChatPanel ref="roleChatPanelRef" />
+                    <DebuggerProcessFlowPanel ref="debuggerProcessFlowPanelRef" />
                 </div>
             </el-drawer>
         </div>
@@ -119,7 +121,7 @@
                 :modal="false" 
                 size="40%" 
                 style="position: absolute; max-width: 600px;" 
-                title="角色参数配置"
+                title="流程参数配置"
                 :with-header="true">
                 <div style="margin-top: 0px;padding:0px !important" class="agent-chat-box  agent-inference-container">
                     <!-- <ParamsConfigPanel ref="paramsConfigRef" :diffHeight="295" /> -->
@@ -139,9 +141,9 @@
 <script setup>
 
 
-// import {
-//     processAndSave
-// } from "@/api/smart/assistant/flow";
+import {
+    processAndSave
+} from "@/api/data/scheduler/flow";
 
 // import {
 //     getRole , 
@@ -151,7 +153,8 @@
 const { proxy } = getCurrentInstance();
 
 import NodeComponents from '@/views/data/scheduler/workflow/components/NodeComponents.vue'
-// import RoleChatPanel from '@/views/smart/assistant/role/chat/index';
+import DebuggerProcessFlowPanel from '@/views/data/scheduler/workflow/components/DebuggerProcessFlowPanel.vue'
+
 // import ParamsConfigPanel from '@/views/data/scheduler/workflow/components/ParamsConfigPanel.vue';
 // import ParamsConfigPanel from '@/views/smart/assistant/role/ParamsConfigPanel.vue';
 
@@ -163,7 +166,7 @@ const emits = defineEmits(['clickNode'])
 let escKeydownListener = null;
 
 const router = useRouter();
-const currentRoleId = ref(null)
+const processDefinitionId = ref(null)
 
 const loading = ref(false)
 
@@ -172,11 +175,11 @@ const showParamsDialog = ref(false);
 const showDebugRunDialog = ref(false);
 // const emits = defineEmits(['getWorkflowGraphData'])
 
-const currentRole = ref({
+const processDefinition = ref({
     roleName: ''
 });
 const paramsConfigRef = ref(null);
-const roleChatPanelRef = ref(null)
+const debuggerProcessFlowPanelRef = ref(null)
 const workflowRef = ref(null);
 
 /**
@@ -273,11 +276,11 @@ const addNode = (item) => {
 }
 
 /**
- * 角色配置方法
- * 目前仅打印角色配置操作的日志，可根据实际需求添加具体逻辑
+ * 流程配置方法
+ * 目前仅打印流程配置操作的日志，可根据实际需求添加具体逻辑
  */
 const roleConfiguration = () => {
-    console.log('角色配置操作');
+    console.log('流程配置操作');
     showParamsDialog.value = !showParamsDialog.value;
 };
 
@@ -297,7 +300,7 @@ const save = () => {
         background: 'rgba(0, 0, 0, 0.7)'
     });
 
-    processAndSave(workflowData, currentRoleId.value).then(response => {
+    processAndSave(workflowData, processDefinitionId.value).then(response => {
         ElMessage.success('保存成功');
         loading.close();
     }).catch(error => {
@@ -315,16 +318,16 @@ const trialRun = () => {
 };
 
 /** 获取角色信息 */
-function getRoleInfo() {
-    currentRoleId.value = router.currentRoute.value.query.roleId;
+// function getRoleInfo() {
+//     processDefinitionId.value = router.currentRoute.value.query.roleId;
 
-    getRole(currentRoleId.value).then(response => {
-        currentRole.value = response.data;
-        // roleChatPanelRef.value.setRoleInfo(currentRole.value)
-        // displayRoleInfoBack(currentRole.value);
-    });
+//     getRole(processDefinitionId.value).then(response => {
+//         processDefinition.value = response.data;
+//         // debuggerProcessFlowPanelRef.value.setRoleInfo(processDefinition.value)
+//         // displayRoleInfoBack(processDefinition.value);
+//     });
 
-}
+// }
 
 /** 提交脚本任务 */
 const submitModelConfig = async() => {
@@ -341,7 +344,7 @@ const submitModelConfig = async() => {
     // console.log('type = ' + type);
 
     // const scriptCode = getCode()[type];
-    // const roleId = currentRoleId.value;
+    // const roleId = processDefinitionId.value;
 
     loading.value = true
 
@@ -362,7 +365,7 @@ const submitModelConfig = async() => {
 
 onMounted(() => {
     // console.log('props.lf = ' + JSON.stringify(props.lf))
-    currentRoleId.value = router.currentRoute.value.query.roleId;
+    processDefinitionId.value = router.currentRoute.value.query.processDefinitionId;
     // getRoleInfo();
 
     escKeydownListener = (e) => {
