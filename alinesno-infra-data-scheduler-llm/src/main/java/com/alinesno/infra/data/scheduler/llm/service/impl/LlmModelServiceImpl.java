@@ -88,7 +88,7 @@ public class LlmModelServiceImpl extends IBaseServiceImpl<LlmModelEntity, LlmMod
 
         if(modelType.equals(ModelTypeEnums.LARGE_LANGUAGE_MODEL.getCode())){  // 大语言模型
 
-            validateLargeLanguageModel(url, apiKey, secretKey , modelName, modelProvider, workflowId);
+           return validateLargeLanguageModel(url, apiKey, secretKey , modelName, modelProvider, workflowId);
 
         } else if(modelType.equals(ModelTypeEnums.VECTOR_MODEL.getCode())){  // 向量模型
 
@@ -439,18 +439,20 @@ public class LlmModelServiceImpl extends IBaseServiceImpl<LlmModelEntity, LlmMod
 
     /**
      * 测试大语言模型
+     *
      * @param url
      * @param apiKey
      * @param modelName
      * @param modelProvider
      * @param workflowId
+     * @return
      */
-    private void validateLargeLanguageModel(String url,
-                                            String apiKey,
-                                            String secretKey,
-                                            String modelName,
-                                            String modelProvider,
-                                            long workflowId) {
+    private String validateLargeLanguageModel(String url,
+                                              String apiKey,
+                                              String secretKey,
+                                              String modelName,
+                                              String modelProvider,
+                                              long workflowId) {
         LlmConfig llmConfig = new LlmConfig();
         llmConfig.setEndpoint(url);
         llmConfig.setApiKey(apiKey) ;
@@ -458,48 +460,50 @@ public class LlmModelServiceImpl extends IBaseServiceImpl<LlmModelEntity, LlmMod
         llmConfig.setModel(modelName);
 
         Llm llm = llmAdapterService.getLlm(modelProvider, llmConfig);
-        String prompt = "你是谁." ;
+        String prompt = "你是谁，请10个字回复." ;
+        return llm.chat(prompt);
 
-        llm.chatStream(prompt , new StreamResponseListener(){
-
-            @Override
-            public void onMessage(ChatContext context , AiMessageResponse response) {
-                AiMessage message = response.getMessage();
-
-                if(StringUtil.hasText(message.getReasoningContent())){
-//                    taskInfo.setReasoningText(message.getReasoningContent());
-                    streamMessagePublisher.doStuffAndPublishAnEvent(null , workflowId);
-                }
-
-                if(StringUtil.hasText(message.getContent())){
-//                    taskInfo.setReasoningText(null);
-                    streamMessagePublisher.doStuffAndPublishAnEvent(message.getContent() , workflowId);
-                }
-
-                MessageStatus status =  message.getStatus() ;
-                if(status == MessageStatus.END){  // 结束
-                    streamMessagePublisher.doStuffAndPublishAnEvent("流式任务完成.", IdUtil.getSnowflakeNextId()) ;
-                }
-            }
-
-            @Override
-            public void onFailure(ChatContext context, Throwable throwable) {
-//                log.error(">>>> " + throwable.getMessage());
+//        llm.chatStream(prompt , new StreamResponseListener(){
 //
-//                // 标识为异常信息
-//                taskInfo.setHasError(true);
-//                taskInfo.setErrorMessage(throwable.getMessage());
+//            @Override
+//            public void onMessage(ChatContext context , AiMessageResponse response) {
+//                AiMessage message = response.getMessage();
+//
+//                if(StringUtil.hasText(message.getReasoningContent())){
+////                    taskInfo.setReasoningText(message.getReasoningContent());
+//                    streamMessagePublisher.doStuffAndPublishAnEvent(null , workflowId);
+//                }
+//
+//                if(StringUtil.hasText(message.getContent())){
+////                    taskInfo.setReasoningText(null);
+//                    streamMessagePublisher.doStuffAndPublishAnEvent(message.getContent() , workflowId);
+//                }
+//
+//                MessageStatus status =  message.getStatus() ;
+//                if(status == MessageStatus.END){  // 结束
+//                    streamMessagePublisher.doStuffAndPublishAnEvent("流式任务完成.", IdUtil.getSnowflakeNextId()) ;
+//                }
+//            }
+//
+//            @Override
+//            public void onFailure(ChatContext context, Throwable throwable) {
+////                log.error(">>>> " + throwable.getMessage());
+////
+////                // 标识为异常信息
+////                taskInfo.setHasError(true);
+////                taskInfo.setErrorMessage(throwable.getMessage());
+//
+//                streamMessagePublisher.doStuffAndPublishAnEvent(throwable.getMessage(), IdUtil.getSnowflakeNextId()) ;
+//                streamMessagePublisher.doStuffAndPublishAnEvent("[DONE]", IdUtil.getSnowflakeNextId()) ;
+//
+//                try {
+//                    Thread.sleep(1000);
+//                } catch (InterruptedException e) {
+//                    throw new RuntimeException(e);
+//                }
+//            }
+//        });
 
-                streamMessagePublisher.doStuffAndPublishAnEvent(throwable.getMessage(), IdUtil.getSnowflakeNextId()) ;
-                streamMessagePublisher.doStuffAndPublishAnEvent("[DONE]", IdUtil.getSnowflakeNextId()) ;
-
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        });
     }
 
     /**
@@ -597,29 +601,30 @@ public class LlmModelServiceImpl extends IBaseServiceImpl<LlmModelEntity, LlmMod
     @Override
     public List<LlmModelEntity> listLlmMode(PermissionQuery query, String modelType) {
         LambdaQueryWrapper<LlmModelEntity> queryWrapper = new LambdaQueryWrapper<>();
+        query.toWrapper(queryWrapper);
         queryWrapper.setEntityClass(LlmModelEntity.class);
 
-        Long orgId = query.getOrgId();
-        Long operatorId = query.getOperatorId();
-
+//        Long orgId = query.getOrgId();
+//        Long operatorId = query.getOperatorId();
+//
         // 组合条件：公共模型 或 组织模型（按 orgId 过滤） 或 个人模型（按 operatorId 过滤）
-        queryWrapper.and(wrapper ->
-                wrapper
-                        // 无条件查询 PUBLIC 模型
-                        .eq(LlmModelEntity::getModelPermission, ModelDataScopeOptions.PUBLIC.getValue())
-                        .or()
-                        // 查询 ORG 模型，并限制 orgId 匹配
-                        .nested(q -> {
-                            q.eq(LlmModelEntity::getModelPermission, ModelDataScopeOptions.ORG.getValue())
-                                    .eq(LlmModelEntity::getOrgId, orgId);  // 直接按 orgId 过滤
-                        })
-                        .or()
-                        // 查询 PERSON 模型，并限制 operatorId 匹配
-                        .nested(q -> {
-                            q.eq(LlmModelEntity::getModelPermission, ModelDataScopeOptions.PERSON.getValue())
-                                    .eq(LlmModelEntity::getOperatorId, operatorId);  // 直接按 operatorId 过滤
-                        })
-        );
+//        queryWrapper.and(wrapper ->
+//                wrapper
+//                        // 无条件查询 PUBLIC 模型
+//                        .eq(LlmModelEntity::getModelPermission, ModelDataScopeOptions.PUBLIC.getValue())
+//                        .or()
+//                        // 查询 ORG 模型，并限制 orgId 匹配
+//                        .nested(q -> {
+//                            q.eq(LlmModelEntity::getModelPermission, ModelDataScopeOptions.ORG.getValue())
+//                                    .eq(LlmModelEntity::getOrgId, orgId);  // 直接按 orgId 过滤
+//                        })
+//                        .or()
+//                        // 查询 PERSON 模型，并限制 operatorId 匹配
+//                        .nested(q -> {
+//                            q.eq(LlmModelEntity::getModelPermission, ModelDataScopeOptions.PERSON.getValue())
+//                                    .eq(LlmModelEntity::getOperatorId, operatorId);  // 直接按 operatorId 过滤
+//                        })
+//        );
 
         // 按模型类型筛选（如果有）
         if (StringUtils.isNotEmpty(modelType)) {
