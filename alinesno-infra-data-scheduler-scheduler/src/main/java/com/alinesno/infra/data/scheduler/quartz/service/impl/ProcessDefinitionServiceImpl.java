@@ -252,14 +252,13 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
     }
 
     @Override
-    public List<ProcessDefinitionEntity> queryRecentlyProcess(int count, PermissionQuery query, long projectId) {
+    public List<ProcessDefinitionEntity> queryRecentlyProcess(int count, PermissionQuery query) {
 
         LambdaQueryWrapper<ProcessDefinitionEntity> queryWrapper = Wrappers.lambdaQuery();
         queryWrapper.setEntityClass(ProcessDefinitionEntity.class);
         query.toWrapper(queryWrapper);
 
         queryWrapper
-                .eq(ProcessDefinitionEntity::getProjectId, projectId)
                 .orderByDesc(ProcessDefinitionEntity::getAddTime)
                 .last("limit " + count);
 
