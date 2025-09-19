@@ -55,7 +55,7 @@ export function imagePath(icon) {
       return 'data:image/jpeg;base64,' + icon;
   }
 
-  return import.meta.env.VITE_APP_BASE_API + "/v1/api/infra/base/im/chat/displayImage/" + icon;
+  return import.meta.env.VITE_APP_BASE_API + "/v1/api/infra/data/scheduler/chat/displayImage/" + icon;
 }
 
 // 表单重置
