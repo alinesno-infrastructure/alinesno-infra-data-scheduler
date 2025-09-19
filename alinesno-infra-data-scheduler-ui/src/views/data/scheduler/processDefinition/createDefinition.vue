@@ -5,7 +5,7 @@
         <template #content>
           <div style="display: flex;gap: 10px;">
             <span class="mr-3">
-              <img :src="imagePath(currentRole.roleAvatar)" style="width:25px;height:25px;border-radius:5px;" /> {{ currentRole.roleName + ' 配置任务编排' }}
+              <i :class="currentProcessDefinition.icon" style="width:25px;height:25px;border-radius:5px;" /> {{ currentProcessDefinition.name + ' 配置任务编排' }}
             </span>
             <div style="display: flex;gap:10px;align-items: center;" v-if="currentFlow">
               <el-tag effect="danger" v-if="currentFlow?.publishStatus == 'unpublished'">
@@ -14,20 +14,13 @@
               <el-tag effect="primary" v-if="currentFlow?.publishStatus == 'published'">
                 已发布
               </el-tag>
-              <!-- <span style="color: #aaaaaa;font-size: 14px;">最后更新 {{ currentFlow?.updateTime }}</span> -->
-              <span style="color: #aaaaaa;font-size: 14px;">更新时间： {{ parseTime(currentRole.updateTime?currentRole.updateTime:currentRole.addTime) }} </span>
+              <span style="color: #aaaaaa;font-size: 14px;">更新时间： {{ parseTime(currentProcessDefinition.updateTime?currentProcessDefinition.updateTime:currentProcessDefinition.addTime) }} </span>
             </div>
           </div>
         </template>
       </el-page-header>
 
       <div class="page-header-btn-container">
-        <!--
-        <el-button type="danger" icon="Setting" size="large" text bg @click="handlePublishedFlow">
-          保存配置
-        </el-button>
-        -->
-
         <el-button type="primary" icon="Position" size="large" text bg @click="handlePublishedFlow">
           发布角色
         </el-button>
@@ -48,14 +41,23 @@
 
 <script setup name="createProcessDefinition">
 
-// import {
-//   getRole
-// } from "@/api/smart/assistant/role";
+import {
+   listProcessDefinition,
+   delProcessDefinition,
+   getProcessDefinition,
+   updateProcessDefinition,
+   addProcessDefinition,
+   runOneTime,
+   resumeTrigger,
+   catalogTreeSelect,
+   pauseTrigger,
+   changStatusField
+} from "@/api/data/scheduler/processDefinition";
 
-// import {
-//   getLatestFlow,
-//   publishedFlow,
-// } from "@/api/smart/assistant/flow";
+import {
+  getLatestFlow,
+  publishedFlow,
+} from "@/api/data/scheduler/flow";
 
 import flowPanel from '@/views/data/scheduler/workflow/flowPanel'
 import { ElMessage } from "element-plus";
@@ -64,29 +66,29 @@ const router = useRouter();
 
 const workflowRef = ref(null);
 const currentFlow = ref(null);
-const currentRole = ref({
+const currentProcessDefinition = ref({
   roleName: ''
 });
 
-const currentRoleId = ref(null)
+const currentProcessDefinitionId = ref(null)
 
 /** 返回 */
 function goBack() {
-  router.push({ path: '/expert/smart/assistant/role/index' });
+  router.push({ path: '/data/scheduler/processDefinition/index' });
 }
 
 /** 获取角色信息 */
-function getRoleInfo() {
-  currentRoleId.value = router.currentRoute.value.query.roleId;
-  getRole(currentRoleId.value).then(response => {
-    currentRole.value = response.data;
+function getProcessDefinitionInfo() {
+  currentProcessDefinitionId.value = router.currentRoute.value.query.processDefinitionId;
+  getProcessDefinition(currentProcessDefinitionId.value).then(response => {
+    currentProcessDefinition.value = response.data;
   });
 
   handleGetLastFlow();
 }
 
 const handleGetLastFlow = () => {
-  getLatestFlow(currentRoleId.value).then(response => {
+  getLatestFlow(currentProcessDefinitionId.value).then(response => {
     if (response.data) {
       workflowRef.value?.setWorkflowGraphData(response.data?.flowGraphJson);
       currentFlow.value = response.data;
@@ -105,7 +107,7 @@ const handlePublishedFlow = () => {
 /** 初始化数据 */
 onMounted(() => {
   console.log('onMounted');
-  // getRoleInfo();
+  getProcessDefinitionInfo();
 })
 
 </script>
