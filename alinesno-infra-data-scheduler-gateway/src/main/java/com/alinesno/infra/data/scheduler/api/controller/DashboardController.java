@@ -48,9 +48,11 @@ public class DashboardController extends SuperController {
      */
     @DataPermissionQuery
     @GetMapping(value = "/recentlyProcess")
-    public AjaxResult recentlyProcess(PermissionQuery query) {
-//        long projectId = CurrentProjectSession.get().getId() ;
-        List<ProcessDefinitionEntity> list = processDefinitionService.queryRecentlyProcess(11 , query , 1L) ;
+    public AjaxResult recentlyProcess(PermissionQuery query , Integer limit) {
+        if(limit == null){
+            limit = 11 ;
+        }
+        List<ProcessDefinitionEntity> list = processDefinitionService.queryRecentlyProcess(limit , query) ;
         return AjaxResult.success(list) ;
     }
 
