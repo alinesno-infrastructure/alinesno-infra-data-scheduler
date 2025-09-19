@@ -18,42 +18,42 @@ public interface IFlowService extends IBaseService<FlowEntity> {
 
     /**
      * 保存角色工作流信息
-     * @param roleId
+     * @param processDefinitionId
      * @param flowDto
      */
-    void saveRoleFlow(Long roleId, WorkflowRequestDto flowDto);
+    void saveRoleFlow(Long processDefinitionId, WorkflowRequestDto flowDto);
 
     /**
      * 发布工作流
-     * @param roleId
+     * @param processDefinitionId
      */
-    void publishFlow(Long roleId);
+    void publishFlow(Long processDefinitionId);
 
     /**
      * 获取指定角色最新版本的已发布流程
-     * @param roleId 角色ID
+     * @param processDefinitionId 角色ID
      * @return 最新版本的已发布流程实体，如果不存在则返回 null
      */
-    FlowEntity getLatestPublishedFlowByRoleId(Long roleId);
+    FlowEntity getLatestPublishedFlowByProcessDefinitionId(Long processDefinitionId);
 
     /**
      * 获取指定角色的未发布流程
-     * @param roleId 角色ID
+     * @param processDefinitionId 角色ID
      * @return 未发布流程实体，如果不存在则返回 null
      */
-    FlowEntity getUnpublishedFlowByRoleId(Long roleId);
+    FlowEntity getUnpublishedFlowByProcessDefinitionId(Long processDefinitionId);
 
     /**
      * 获取指定角色最新版本的已发布流程
-     * @param roleId 角色ID
+     * @param processDefinitionId 角色ID
      * @return 最新版本的已发布流程实体，如果不存在则返回 null
      */
-    FlowDto getLatestFlowByRoleId(Long roleId);
+    FlowDto getLatestFlowByProcessDefinitionId(Long processDefinitionId);
 
     /**
      * 运行Agent角色
      *
      */
-    CompletableFuture<String> runRoleFlow();
+    CompletableFuture<String> runRoleFlow(Long processDefinitionId);
 
 }
