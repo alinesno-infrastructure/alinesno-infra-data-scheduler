@@ -14,7 +14,7 @@ import { ref, onMounted, onUnmounted , computed } from 'vue'
 
 import LogicFlow from '@logicflow/core'
 import '@logicflow/extension/lib/style/index.css'
-import '@logicflow/core/dist/style/index.css'
+import "@logicflow/core/lib/style/index.css";
 
 import Dagre from './plugins/dagre.js'
 import AppEdge from './common/edge'
@@ -107,16 +107,33 @@ const clickNode = (shapeItem) => {
   // 清除所有选中的元素
   lf.value.clearSelectElements();
 
-  // 获取虚拟矩形的中心位置
-  const { virtualRectCenterPositionX, virtualRectCenterPositionY } = lf.value.graphModel.getVirtualRectSize();
-  console.log('virtualRectCenterPositionX = ' + virtualRectCenterPositionX + ', virtualRectCenterPositionY = ' + virtualRectCenterPositionY);
+  // // 获取虚拟矩形的中心位置
+  // const { virtualRectCenterPositionX, virtualRectCenterPositionY } = lf.value.graphModel.getVirtualRectSize();
+  // console.log('virtualRectCenterPositionX = ' + virtualRectCenterPositionX + ', virtualRectCenterPositionY = ' + virtualRectCenterPositionY);
 
-  // 添加一个新的节点
+  // // 添加一个新的节点
+  // const newNode = lf.value.graphModel.addNode({
+  //   type: shapeItem.type,
+  //   properties: shapeItem.properties,
+  //   x: lf.value.graphModel.width / 2 + virtualRectCenterPositionX/2 - 300 , 
+  //   y: lf.value.graphModel.height / 2 + virtualRectCenterPositionY/2 - 300,
+  // });
+
+  // 获取画布当前可见中心（graph 坐标）
+  const { centerX, centerY } = getViewportCenterInGraphCoords();
+
+  // 如果你仍希望考虑 virtualRect 的偏移（你的场景里可能需要）
+  const { virtualRectCenterPositionX = 0, virtualRectCenterPositionY = 0 } = lf.value.graphModel.getVirtualRectSize() || {};
+
+  // 最终位置（根据需要可以去掉 virtualRect 偏移）
+  const nodeX = centerX + virtualRectCenterPositionX;
+  const nodeY = centerY + virtualRectCenterPositionY;
+
   const newNode = lf.value.graphModel.addNode({
     type: shapeItem.type,
     properties: shapeItem.properties,
-    x: lf.value.graphModel.width / 2 + virtualRectCenterPositionX/2 - 300 , 
-    y: lf.value.graphModel.height / 2 + virtualRectCenterPositionY/2 - 300,
+    x: nodeX,
+    y: nodeY,
   });
 
   // 设置新节点为选中和悬停状态
@@ -127,6 +144,34 @@ const clickNode = (shapeItem) => {
 
   // 将新节点置于最上层
   lf.value.toFront(newNode.id);
+};
+
+// TODO: 获取当前可见画布（viewport）中心对应的 graph 坐标
+const getViewportCenterInGraphCoords = () => {
+  const graphModel = lf.value.graphModel;
+  const container = lf.value.container;
+
+  // viewport 宽高（优先 container）
+  const width = (container && container.clientWidth) || graphModel.width || 0;
+  const height = (container && container.clientHeight) || graphModel.height || 0;
+
+  // transform 可能在 graphModel.transform 或者通过方法获取
+  let transform = graphModel.transform ?? {};
+  if ((!transform || Object.keys(transform).length === 0) && typeof graphModel.getTransform === 'function') {
+    transform = graphModel.getTransform() || {};
+  }
+
+  // 常见命名有 x,y,k 或 scale
+  const tx = transform.x ?? transform.tx ?? 0;
+  const ty = transform.y ?? transform.ty ?? 0;
+  const k = transform.k ?? transform.scale ?? 1;
+
+  // 屏幕（container）中心相对于 container 的坐标是 (width/2, height/2)
+  // graph 坐标 = (screenContainerCoord - translate) / scale
+  const centerX = (width / 2 - tx) / k;
+  const centerY = (height / 2 - ty) / k;
+
+  return { centerX, centerY, tx, ty, k, width, height };
 };
 
 const getWorkflowGraphData = () => {
@@ -145,7 +190,7 @@ const setWorkflowGraphData = (data) => {
           color: "#2962FF",
           stepName: '开始',
           showNode: true,
-          height: 380,
+          height: 480,
           width: 330
         },
         x: 240,
