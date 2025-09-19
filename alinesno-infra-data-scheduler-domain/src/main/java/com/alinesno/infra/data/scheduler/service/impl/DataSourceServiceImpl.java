@@ -2,17 +2,21 @@ package com.alinesno.infra.data.scheduler.service.impl;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alinesno.infra.common.core.service.impl.IBaseServiceImpl;
+import com.alinesno.infra.common.facade.datascope.PermissionQuery;
+import com.alinesno.infra.common.facade.enums.HasStatusEnums;
 import com.alinesno.infra.data.scheduler.api.CheckDbConnectResult;
 import com.alinesno.infra.data.scheduler.entity.DataSourceEntity;
 import com.alinesno.infra.data.scheduler.enums.DbTypeEnums;
 import com.alinesno.infra.data.scheduler.mapper.DataSourceMapper;
 import com.alinesno.infra.data.scheduler.service.IDataSourceService;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -47,6 +51,15 @@ public class DataSourceServiceImpl extends IBaseServiceImpl<DataSourceEntity, Da
         return createDataSource(entity);
     }
 
+    @Override
+    public List<DataSourceEntity> listAvailableDataSources(PermissionQuery query) {
+        LambdaQueryWrapper<DataSourceEntity> wrapper = new LambdaQueryWrapper<>() ;
+        wrapper.setEntityClass(DataSourceEntity.class) ;
+        query.toWrapper(wrapper);
+        wrapper.eq(DataSourceEntity::getHasStatus, HasStatusEnums.LEGAL.value) ;
+        return list(wrapper) ;
+    }
+
     @SneakyThrows
     private DruidDataSource createDataSource(DataSourceEntity entity) {
 
@@ -60,7 +73,7 @@ public class DataSourceServiceImpl extends IBaseServiceImpl<DataSourceEntity, Da
         dataSource.setInitialSize(5);
         dataSource.setMinIdle(5);
         dataSource.setMaxActive(20);
-        dataSource.setMaxWait(60000);
+        dataSource.setMaxWait(45*1000);
         dataSource.setTimeBetweenEvictionRunsMillis(60000);
         dataSource.setMinEvictableIdleTimeMillis(300000);
         dataSource.setValidationQuery("SELECT 1");
