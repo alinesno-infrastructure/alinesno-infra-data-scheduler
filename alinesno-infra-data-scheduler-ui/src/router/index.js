@@ -141,6 +141,13 @@ export const constantRoutes = [
         meta: { title: '监控服务', icon: 'fa-brands fa-skype', affix: false }
       },
       {
+        path: '/data/scheduler/llmModel/index',
+        name: 'data.scheduler.llmModel.index',
+        hidden: false,
+        component: () => import('@/views/data/scheduler/llmModel/index'),
+        meta: { title: '大模型配置管理', icon: 'fa-solid fa-computer', affix: false }
+      },
+      {
         path: '/data/scheduler/configuration/index',
         name: 'data.scheduler.configuration.index',
         hidden: false,
