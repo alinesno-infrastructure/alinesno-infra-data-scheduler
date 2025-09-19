@@ -4,20 +4,21 @@ const WorkflowType = {
     End: 'end',
     AiChat: 'ai_chat',
     SearchDataset: 'knowledge_search',
-    Question: 'question',
+    Notice: 'notice',
     Condition: 'condition',
-    Reply: 'reply',
+    Shell: 'shell',
+    SqlNode: 'sql',
     HttpApi: 'http_api',
     FunctionLib: 'function_lib',
     FunctionLibCustom: 'function',
-    RrerankerNode: 'reranker',
+    FlinkNode: 'flink',
     Application: 'application',
     DocumentExtractNode: 'document_extract',
     ImageUnderstandNode: 'image_understand',
     FormNode: 'form',
-    TextToSpeechNode: 'text_to_speech',
-    SpeechToTextNode: 'speech_to_text',
-    ImageGenerateNode: 'image_generate'
+    PythonNode: 'python',
+    SparkNode: 'spark',
+    ShellNode: 'shell'
 };
 
 export { WorkflowType };
