@@ -5,6 +5,7 @@ import com.alinesno.infra.common.extend.datasource.annotation.DataPermissionQuer
 import com.alinesno.infra.common.extend.datasource.annotation.DataPermissionSave;
 import com.alinesno.infra.common.extend.datasource.annotation.DataPermissionScope;
 import com.alinesno.infra.common.facade.datascope.PermissionQuery;
+import com.alinesno.infra.common.facade.enums.HasStatusEnums;
 import com.alinesno.infra.common.facade.pageable.DatatablesPageBean;
 import com.alinesno.infra.common.facade.pageable.TableDataInfo;
 import com.alinesno.infra.common.facade.response.AjaxResult;
@@ -68,15 +69,34 @@ public class DataSourceController extends BaseController<DataSourceEntity, IData
     @PostMapping("/checkConnectionByObj")
     public AjaxResult checkDBConnect(@Validated @RequestBody DataSourceDto dto ) {
 
-        DataSourceEntity dbListEntity = new DataSourceEntity() ;
-        BeanUtils.copyProperties(dto, dbListEntity) ;
+        DataSourceEntity dbEntity = new DataSourceEntity() ;
+        BeanUtils.copyProperties(dto, dbEntity) ;
 
-//        DbParserUtils.parserJdbcUrl(dbListEntity , dto.getJdbcUrl()) ;
+//        DbParserUtils.parserJdbcUrl(dbEntity , dto.getJdbcUrl()) ;
 
-        CheckDbConnectResult result = service.checkDbConnect(dbListEntity);
+        CheckDbConnectResult result = service.checkDbConnect(dbEntity);
         if (result.isAccepted()) {
             return AjaxResult.success("操作成功", result);
         } else {
+            return AjaxResult.error("数据库检验失败", result);
+        }
+    }
+
+    /**
+     *  通过id验证是否连接正常 checkConnection
+     * @param sourceId
+     * @return
+     */
+    @GetMapping("/checkConnection")
+    public AjaxResult checkDBConnect(String sourceId) {
+        DataSourceEntity dbEntity = service.getById(sourceId) ;
+        CheckDbConnectResult result = service.checkDbConnect(dbEntity);
+        if (result.isAccepted()) {
+            return AjaxResult.success("操作成功", result);
+        } else {
+            // 更新数据源状态
+            dbEntity.setHasStatus(HasStatusEnums.ILLEGAL.value);
+            service.update(dbEntity);
             return AjaxResult.error("数据库检验失败", result);
         }
     }
@@ -168,6 +188,16 @@ public class DataSourceController extends BaseController<DataSourceEntity, IData
         return AjaxResult.success(map) ;
     }
 
+    /**
+     * 列出状态正常的数据源 listAvailableDataSources
+     * @return
+     */
+    @DataPermissionQuery
+    @GetMapping("/listAvailableDataSources")
+    public AjaxResult listAvailableDataSources(PermissionQuery query){
+        List<DataSourceEntity> list = service.listAvailableDataSources(query) ;
+        return AjaxResult.success("操作成功", list);
+    }
 
     @Override
     public IDataSourceService getFeign() {
