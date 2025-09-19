@@ -35,11 +35,11 @@
 
             <el-table v-loading="loading" :data="DatasourceList" @selection-change="handleSelectionChange">
                <el-table-column type="selection" width="50" align="center" />
-               <el-table-column label="描述" align="left" width="50" key="status" v-if="columns[5].visible">
+               <el-table-column label="图标" align="left" width="50" key="status" v-if="columns[5].visible">
                   <template #default="scope">
                      <div>
                         <img style="width:35px; height:35px"
-                           :src="'http://data.linesno.com/icons/database/' + scope.row.readerType + '.png'" />
+                           :src="getDatasourceIconPath(scope.row.readerType)" />
                      </div>
                   </template>
                </el-table-column>
@@ -149,7 +149,7 @@
                      :value="item.id" size="large">
                      <div style="float: left;">
                         <img style="width:30px; height:30px"
-                           :src="'http://data.linesno.com/icons/database/' + item.readerType + '.png'" />
+                           :src="getDatasourceIconPath(item.readerType)" />
                      </div>
                      <div style="float: left;margin-left: 10px;line-height: 1.2rem;">
                         {{ item.readerName }}
@@ -197,6 +197,7 @@
 
 <script setup name="Datasource">
 
+import { getDatasourceIconPath } from '@/utils/llmIcons';
 import {
    listDatasource,
    delDatasource,
@@ -309,8 +310,10 @@ function handleCheckConnect(row) {
    checkConnection(row.id).then(response => {
       loading.close()
       proxy.$modal.msgSuccess("读取源校验成功");
+      getList();
    }).catch(error => {
       loading.close()
+      getList();
    })
 
 }
