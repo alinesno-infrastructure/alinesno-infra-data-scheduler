@@ -78,12 +78,12 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
      * 6. 所有节点实例执行完毕后，流程实例结束 <br/>
      */
     @Override
-    public CompletableFuture<String> runRoleFlow() {
+    public CompletableFuture<String> runRoleFlow(Long processDefinitionId) {
 
         return CompletableFuture.supplyAsync(() -> {
             try {
 
-                FlowEntity flowEntity = null ; // getLatestPublishedFlowByRoleId(roleId);
+                FlowEntity flowEntity = getLatestPublishedFlowByProcessDefinitionId(processDefinitionId);
                 Assert.notNull(flowEntity, "未发布角色流程");
 
                 FlowExecutionEntity flowExecutionEntity = new FlowExecutionEntity();
@@ -639,20 +639,20 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
 
     /**
      * 每次保存之后，版本号加1
-     * @param roleId
+     * @param processDefinitionId
      * @param flowDto
      */
     @Override
     @Transactional
-    public void saveRoleFlow(Long roleId, WorkflowRequestDto flowDto) {
+    public void saveRoleFlow(Long processDefinitionId, WorkflowRequestDto flowDto) {
         // 查询角色的流程
         LambdaQueryWrapper<FlowEntity> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(FlowEntity::getRoleId, roleId);
+        queryWrapper.eq(FlowEntity::getProcessDefinitionId, processDefinitionId);
         FlowEntity flowEntity = getOne(queryWrapper);
 
         if (flowEntity == null) {
             flowEntity = new FlowEntity();
-            flowEntity.setRoleId(roleId);
+            flowEntity.setProcessDefinitionId(processDefinitionId);
             flowEntity.setLockVersion(0);
             flowEntity.setPublishStatus(PublishStatus.UNPUBLISHED.getCode());
             flowEntity.setUpdateTime(new Date());
@@ -713,13 +713,13 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
 
     /**
      * 获取指定角色最新版本的已发布流程
-     * @param roleId 角色ID
+     * @param processDefinitionId 角色ID
      * @return 最新版本的已发布流程实体，如果不存在则返回 null
      */
     @Override
-    public FlowEntity getLatestPublishedFlowByRoleId(Long roleId) {
+    public FlowEntity getLatestPublishedFlowByProcessDefinitionId(Long processDefinitionId) {
         LambdaQueryWrapper<FlowEntity> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(FlowEntity::getRoleId, roleId)
+        queryWrapper.eq(FlowEntity::getProcessDefinitionId, processDefinitionId)
                 .eq(FlowEntity::getPublishStatus, PublishStatus.PUBLISHED.getCode())
                 .last("LIMIT 1");
         return getOne(queryWrapper);
@@ -727,27 +727,27 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
 
     /**
      * 获取指定角色的未发布流程
-     * @param roleId 角色ID
+     * @param processDefinitionId 角色ID
      * @return 未发布流程实体，如果不存在则返回 null
      */
     @Override
-    public FlowEntity getUnpublishedFlowByRoleId(Long roleId) {
+    public FlowEntity getUnpublishedFlowByProcessDefinitionId(Long processDefinitionId) {
         LambdaQueryWrapper<FlowEntity> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(FlowEntity::getRoleId, roleId)
+        queryWrapper.eq(FlowEntity::getProcessDefinitionId, processDefinitionId)
                 .eq(FlowEntity::getPublishStatus, PublishStatus.UNPUBLISHED.getCode());
         return getOne(queryWrapper);
     }
 
     /**
      * 获取指定角色最新版本的流程
-     * @param roleId 角色ID
+     * @param processDefinitionId 角色ID
      * @return 最新版本的已发布流程实体，如果不存在则返回 null
      */
     @Override
-    public FlowDto getLatestFlowByRoleId(Long roleId) {
+    public FlowDto getLatestFlowByProcessDefinitionId(Long processDefinitionId) {
         LambdaQueryWrapper<FlowEntity> queryWrapper = new LambdaQueryWrapper<>();
 
-        queryWrapper.eq(FlowEntity::getRoleId, roleId)
+        queryWrapper.eq(FlowEntity::getProcessDefinitionId, processDefinitionId)
                 .last("LIMIT 1");
         FlowEntity flowEntity = getOne(queryWrapper);
 
