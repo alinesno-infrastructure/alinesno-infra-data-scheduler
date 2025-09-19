@@ -9,13 +9,19 @@
           <div class="panel-body acp-height-auto" style="padding: 0;padding-bottom: 10px;">
             <div class="acp-app-list">
               <ul>
-                <li class="app-items" v-for="(item , index) in apps" :key="index" style="width:calc(25% - 10px)" @click="handleClick(item)">
+                <li class="app-items" v-for="(item , index) in apps" :key="index" 
+                  style="width:calc(25% - 10px);display: flex;border-radius: 6px;" 
+                  @click="handleClick(item)">
                   <div class="app-icon">
                     <i :class="item.icon" style="font-size: 20px" />
                   </div>
                   <div class="app-info">
                     <div class="app-item-title">{{ item.name }}</div>
-                    <div class="app-item desc">{{ item.description == null ? '此流程定义服务未添加描述信息': item.description }}</div>
+                    <div class="app-item desc">
+                      <el-text line-clamp="1">
+                        {{ item.description == null ? '此流程定义服务未添加描述信息': item.description }}
+                      </el-text>
+                    </div>
                   </div>
                 </li>
               </ul>
@@ -143,7 +149,7 @@ handleSimpleStatistics()
     cursor: pointer;
     padding: 10px 0px;
     width: calc(33% - 10px);
-    background: #fafafa;
+    background: #f5f5f5;
     border-radius: 3px;
     padding: 10px;
     margin-right: 5px;
@@ -151,7 +157,7 @@ handleSimpleStatistics()
     margin-left: 5px;
 
     &:hover { 
-      background: #f5f5f5;
+      background: #f9f9f9;
       .app-item-title{
         font-weight: bold;
       }
