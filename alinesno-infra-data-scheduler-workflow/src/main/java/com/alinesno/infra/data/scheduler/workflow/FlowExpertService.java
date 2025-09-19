@@ -27,12 +27,12 @@ public class FlowExpertService {
     @Setter
     private StringBuilder outputContent;
 
-    protected CompletableFuture<String> handleRole() {
+    protected CompletableFuture<String> handleRole(Long processDefinitionId) {
 
 //        String datasetKnowledgeDocument = getDatasetKnowledgeDocument(role, workflowExecution, taskInfo);
 //        taskInfo.setDatasetKnowledgeDocument(datasetKnowledgeDocument);
 
-        CompletableFuture<String> result = flowService.runRoleFlow();
+        CompletableFuture<String> result = flowService.runRoleFlow(processDefinitionId);
         log.debug("handleRole result : {}", result);
 
         return result ; //   AgentConstants.ChatText.CHAT_FINISH ;
