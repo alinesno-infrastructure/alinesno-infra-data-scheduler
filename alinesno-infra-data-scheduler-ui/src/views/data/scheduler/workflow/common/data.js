@@ -12,14 +12,14 @@ const startNode = {
         stepName: '开始节点',
         config: {
             fields: [
-                { label: '用户消息', value: 'message' },
-                { label: '文档', value: 'document' }
+                { label: '特定要求', value: 'message' },
+                { label: '非结构化材料', value: 'document' }
             ],
             globalFields: [
                 { value: 'time', label: '当前时间' },
-                { value: 'pre_content', label: '上节点内容' },
-                { value: 'channelId', label: '频道号' },
-                { value: 'datasetKnowledgeDocument', label: '全局知识库' },
+                { value: 'trigger', label: '触发事件' },
+                { value: 'taskId', label: '任务标识' },
+                { value: 'envInfo', label: '环境信息' },
                 { value: 'history_content', label: '历史对话' }
             ]
         }
@@ -124,8 +124,8 @@ const searchDatasetNode = {
 };
 
 // 问题节点配置
-const questionNode = {
-    type: WorkflowType.Question,
+const noticeNode = {
+    type: WorkflowType.Notice,
     text: '问题节点',
     label: '问题节点',
     height: 345,
@@ -163,18 +163,18 @@ const conditionNode = {
 };
 
 // 回复节点配置
-const replyNode = {
-    type: WorkflowType.Reply,
-    text: '回复节点',
-    label: '回复节点',
+const sqlNode = {
+    type: WorkflowType.Sql,
+    text: '执行SQL',
+    label: ' 执行SQL',
     height: 210,
     properties: {
-        stepName: '回复节点',
+        stepName: '执行SQL',
         config: {
             fields: [
                 {
-                    label: '内容',
-                    value: 'answer'
+                    label: '结果',
+                    value: 'sql_result'
                 }
             ]
         }
@@ -201,8 +201,8 @@ const httpApiNode = {
 };
 
 // 重排器节点配置
-const rerankerNode = {
-    type: WorkflowType.RrerankerNode,
+const flinkNode= {
+    type: WorkflowType.FlinkNode,
     text: '重排器节点',
     label: '重排器节点',
     height: 252,
@@ -288,14 +288,14 @@ const imageUnderstandNode = {
     }
 };
 
-// 图片生成节点配置
-const imageGenerateNode = {
-    type: WorkflowType.ImageGenerateNode,
-    text: '图片生成节点',
-    label: '图片生成节点',
+// 执行SHELL节点配置
+const shellNode= {
+    type: WorkflowType.ShellNode,
+    text: '执行SHELL节点',
+    label: '执行SHELL节点',
     height: 252,
     properties: {
-        stepName: '图片生成节点',
+        stepName: '执行SHELL节点',
         config: {
             fields: [
                 {
@@ -311,14 +311,14 @@ const imageGenerateNode = {
     }
 };
 
-// 语音转文本节点配置
-const speechToTextNode = {
-    type: WorkflowType.SpeechToTextNode,
-    text: '语音转文本节点',
-    label: '语音转文本节点',
+// 执行SPARK节点配置
+const sparkNode = {
+    type: WorkflowType.SparkNode,
+    text: '执行SPARK节点',
+    label: '执行SPARK节点',
     height: 252,
     properties: {
-        stepName: '语音转文本节点',
+        stepName: '执行SPARK节点',
         config: {
             fields: [
                 {
@@ -330,14 +330,14 @@ const speechToTextNode = {
     }
 };
 
-// 文本转语音节点配置
-const textToSpeechNode = {
-    type: WorkflowType.TextToSpeechNode,
-    text: '文本转语音节点',
-    label: '文本转语音节点',
+// 执行PYTHON节点配置
+const pythonNode = {
+    type: WorkflowType.PythonNode,
+    text: '执行PYTHON节点',
+    label: '执行PYTHON节点',
     height: 252,
     properties: {
-        stepName: '文本转语音节点',
+        stepName: '执行PYTHON节点',
         config: {
             fields: [
                 {
@@ -353,17 +353,17 @@ const textToSpeechNode = {
 const menuNodes = [
     aiChatNode,
     imageUnderstandNode,
-    imageGenerateNode,
+    shellNode,
     searchDatasetNode,
-    rerankerNode,
+    flinkNode,
     conditionNode,
-    replyNode,
+    sqlNode,
     httpApiNode,
     formNode,
-    questionNode,
+    noticeNode,
     documentExtractNode,
-    speechToTextNode,
-    textToSpeechNode,
+    sparkNode,
+    pythonNode,
     endNode
 ];
 
@@ -446,22 +446,22 @@ const compareList = [
 const nodeDict = {
     [WorkflowType.AiChat]: aiChatNode,
     [WorkflowType.SearchDataset]: searchDatasetNode,
-    [WorkflowType.Question]: questionNode,
+    [WorkflowType.Notice]: noticeNode,
     [WorkflowType.Condition]: conditionNode,
     [WorkflowType.Base]: baseNode,
     [WorkflowType.Start]: startNode,
-    [WorkflowType.Reply]: replyNode,
+    [WorkflowType.SqlNode]: sqlNode,
     [WorkflowType.HttpApi]: httpApiNode,
     [WorkflowType.FunctionLib]: functionLibNode,
     [WorkflowType.FunctionLibCustom]: functionNode,
-    [WorkflowType.RrerankerNode]: rerankerNode,
+    [WorkflowType.FlinkNode]: flinkNode,
     [WorkflowType.FormNode]: formNode,
     [WorkflowType.Application]: applicationNode,
     [WorkflowType.DocumentExtractNode]: documentExtractNode,
     [WorkflowType.ImageUnderstandNode]: imageUnderstandNode,
-    [WorkflowType.TextToSpeechNode]: textToSpeechNode,
-    [WorkflowType.SpeechToTextNode]: speechToTextNode,
-    [WorkflowType.ImageGenerateNode]: imageGenerateNode,
+    [WorkflowType.PythonNode]: pythonNode,
+    [WorkflowType.SparkNode]: sparkNode,
+    [WorkflowType.ShellNode]: shellNode,
     [WorkflowType.End]: endNode
 };
 
@@ -488,17 +488,17 @@ export {
     baseNodes,
     aiChatNode,
     searchDatasetNode,
-    questionNode,
+    noticeNode,
     conditionNode,
-    replyNode,
+    sqlNode,
     httpApiNode,
-    rerankerNode,
+    flinkNode,
     formNode,
     documentExtractNode,
     imageUnderstandNode,
-    imageGenerateNode,
-    speechToTextNode,
-    textToSpeechNode,
+    shellNode,
+    sparkNode,
+    pythonNode,
     menuNodes,
     functionNode,
     functionLibNode,
