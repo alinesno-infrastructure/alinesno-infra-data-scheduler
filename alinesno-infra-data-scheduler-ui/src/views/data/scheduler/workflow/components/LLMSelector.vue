@@ -40,9 +40,9 @@
 import { ref, computed, defineEmits, nextTick } from 'vue';
 import { getLlmIconPath } from '@/utils/llmIcons';
 
-// import {
-//   listAllLlmModel
-// } from "@/api/smart/assistant/llmModel";
+import {
+  listAllLlmModel
+} from "@/api/data/scheduler/llmModel";
 
 // 定义 props
 const props = defineProps({
@@ -77,7 +77,7 @@ const selectedModel = ref('');
 const selectedModelIcon = computed(() => {
   const selected = models.value.find((model) => model.id === selectedModel.value);
   return selected ? selected.imageUrl : null;
-});
+})
 
 // 定义 emits
 const emit = defineEmits(['update:modelValue']);
@@ -92,26 +92,27 @@ const data = computed({
   get: () => {
     return props.modelValue;
   }
-});
+})
 
-// nextTick(() => {
-//   listAllLlmModel(props.modelType).then(response => {
-//     console.log('listAllLlmModel = ' + JSON.stringify(response.data));
-//     // 转换接口返回的数据结构
-//     const newModels = response.data.map(item => ({
-//       id: item.id,
-//       name: item.modelName,
-//       imageUrl: getLlmIconPath(item.providerCode) 
-//     }));
-//     models.value = newModels;
+nextTick(() => {
+  listAllLlmModel(props.modelType).then(response => {
+    console.log('listAllLlmModel = ' + JSON.stringify(response.data));
+    // 转换接口返回的数据结构
+    const newModels = response.data.map(item => ({
+      id: item.id,
+      name: item.modelName,
+      imageUrl: getLlmIconPath(item.providerCode) 
+    }));
+    models.value = newModels;
 
-//     // 根据传入的 modelValue 更新 selectedModel
-//     const initialSelectedModel = models.value.find(model => model.id === props.modelValue);
-//     if (initialSelectedModel) {
-//       selectedModel.value = initialSelectedModel.id;
-//     }
-//   });
-// });
+    // 根据传入的 modelValue 更新 selectedModel
+    const initialSelectedModel = models.value.find(model => model.id === props.modelValue);
+    if (initialSelectedModel) {
+      selectedModel.value = initialSelectedModel.id;
+    }
+  });
+})
+
 </script>
 
 <style scoped lang="scss">
