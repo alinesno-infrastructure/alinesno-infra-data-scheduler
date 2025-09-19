@@ -1,15 +1,15 @@
-import QuestionNodeVue from './index.vue'
+import NoticeNodeVue from './index.vue'
 import { AppNode, AppNodeModel } from '@/views/data/scheduler/workflow/common/appNode'
 
 // 自定义节点的 view
-class QuestionNode extends AppNode {
+class NoticeNode extends AppNode {
     constructor(props) {
-        super(props, QuestionNodeVue);
+        super(props, NoticeNodeVue);
     }
 }
 
 export default {
-  type: 'question',
+  type: 'notice',
   model: AppNodeModel,
-  view: QuestionNode 
+  view: NoticeNode 
 }
