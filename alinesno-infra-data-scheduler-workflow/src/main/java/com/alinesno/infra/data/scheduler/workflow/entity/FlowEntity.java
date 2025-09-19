@@ -23,10 +23,10 @@ import lombok.NoArgsConstructor;
 @TableComment(value = "工作流表")
 public class FlowEntity extends InfraBaseEntity {
 
-    @TableField(value = "role_id")
+    @TableField(value = "process_definition_id")
     @ColumnType(value = MySqlTypeConstant.BIGINT, length = 32)
-    @ColumnComment("角色ID")
-    private Long roleId;
+    @ColumnComment("流程定义ID")
+    private Long processDefinitionId;
 
     @TableField(value = "flow_graph_json")
     @ColumnType(value = MySqlTypeConstant.TEXT)
