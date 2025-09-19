@@ -175,7 +175,10 @@ public class ProcessUtils {
     public static ProcessDefinitionEntity fromSaveDtoToEntity(ProcessDefinitionSaveDto dto) {
         ProcessDefinitionEntity entity = new ProcessDefinitionEntity();
 
-        entity.setId(dto.getId());
+        if(dto.getId() != null && dto.getId() > 0){
+            entity.setId(dto.getId());
+        }
+
         entity.setIcon(dto.getIcon());
         entity.setName(dto.getTaskName());
         entity.setDescription(dto.getTaskDesc());
