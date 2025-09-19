@@ -30,7 +30,7 @@
                      :value="item.code" 
                      size="large">
                      <div style="float: left;">
-                        <img style="width:30px; height:30px" :src="'http://data.linesno.com/icons/database/' + item.icon+ ''" /> 
+                        <img style="width:30px; height:30px" :src="getDatasourceIconPath(item.code)"  /> 
                      </div>
                      <div style="float: left;margin-left: 10px;line-height: 1.2rem;">
                            {{ item.code}}
@@ -147,6 +147,7 @@
 
 <script setup name="Datasource">
 
+import { getDatasourceIconPath } from '@/utils/llmIcons';
 import {
    listDatasource,
    delDatasource,
