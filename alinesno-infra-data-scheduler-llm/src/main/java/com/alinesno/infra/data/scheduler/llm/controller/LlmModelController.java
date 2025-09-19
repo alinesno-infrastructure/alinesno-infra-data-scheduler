@@ -53,7 +53,7 @@ import java.util.Map;
 @Api(tags = "LlmModel")
 @RestController
 @Scope("prototype")
-@RequestMapping("/api/infra/smart/assistant/llmModel")
+@RequestMapping("/api/infra/data/scheduler/llmModel")
 public class LlmModelController extends BaseController<LlmModelEntity, ILlmModelService> {
 
     @Autowired
