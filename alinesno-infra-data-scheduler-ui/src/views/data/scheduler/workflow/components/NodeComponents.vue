@@ -95,43 +95,28 @@ const workflowNodes = [
     {
         id: '1003',
         name: "IMAGE_GENERATE",
-        label: "图片生成",
+        label: "执行SHELL",
         description: "根据提供的文本内容生成图片",
-        type: "image_generate",
+        type: "shell",
         properties: {
             icon: 'fa-solid fa-palette',
             color: "#F57C00",
-            stepName: '图片生成',
+            stepName: '执行SHELL',
             showNode: true,
             height: 584,
             width: 330
         }
     },
     {
-        id: '1004',
-        name: "KNOWLEDGE_SEARCH",
-        label: "知识库检索",
-        description: "关联知识库，查找与问题相关的分段",
-        type: "knowledge_search",
-        properties: {
-            icon: 'fa-solid fa-book',
-            color: "#D32F2F",
-            stepName: '知识库检索',
-            showNode: true,
-            height: 740,
-            width: 330
-        }
-    },
-    {
         id: '1005',
-        name: "RERANKER",
-        label: "多路召回",
+        name: "FLINK",
+        label: "执行FLINK",
         description: "使用重排模型对多个知识库的检索结果进行二次召回",
-        type: "reranker",
+        type: "flink",
         properties: {
             icon: 'fa-solid fa-magnifying-glass-chart',
             color: "#616161",
-            stepName: '多路召回',
+            stepName: '执行FLINK',
             showNode: true,
             height: 570,
             width: 330
@@ -166,29 +151,29 @@ const workflowNodes = [
     },
     {
         id: '1007',
-        name: "REPLAY",
-        label: "指定回复",
-        description: "指定回复内容，引用变量会转换为字符串进行输出",
-        type: "reply",
+        name: "SQL",
+        label: "运行SQL",
+        description: "运行SQL内容，引用变量会转换为字符串进行输出",
+        type: "sql",
         properties: {
             icon: 'fa-solid fa-reply',
             color: "#FF9800",
-            stepName: '指定回复',
+            stepName: '运行SQL',
             showNode: true,
-            height: 400,
+            height: 500,
             width: 330
         }
     },
     {
         id: '1009',
-        name: "QUESTION",
-        label: "问题优化",
+        name: "NOTICE",
+        label: "IM通知",
         description: "根据历史聊天记录优化完善当前问题，更利于匹配知识库分段",
-        type: "question",
+        type: "notice",
         properties: {
             icon: 'fa-solid fa-pencil',
             color: "#F4511E",
-            stepName: '问题优化',
+            stepName: 'IM通知',
             showNode: true,
             height: 570,
             width: 330
@@ -212,13 +197,13 @@ const workflowNodes = [
     {
         id: '1011',
         name: "SPEECH_TO_TEXT",
-        label: "语音转文本",
+        label: "执行SPARK",
         description: "将音频通过语音识别模型转换为文本",
-        type: "speech_to_text",
+        type: "spark",
         properties: {
             icon: 'fa-solid fa-masks-theater',
             color: "#00ACC1",
-            stepName: '语音转文本',
+            stepName: '执行SPARK',
             showNode: true,
             height: 400,
             width: 330
@@ -227,13 +212,13 @@ const workflowNodes = [
     {
         id: '1012',
         name: "TEXT_TO_SPEECH",
-        label: "文本转语音",
+        label: "执行PYTHON",
         description: "将文本通过语音合成模型转换为音频",
-        type: "text_to_speech",
+        type: "python",
         properties: {
             icon: 'fa-solid fa-volume-high',
             color: "#FFB300",
-            stepName: '文本转语音',
+            stepName: '执行PYTHON',
             showNode: true,
             height: 390,
             width: 330
@@ -242,13 +227,13 @@ const workflowNodes = [
     {
         id: '1013',
         name: "function",
-        label: "脚本功能",
+        label: "执行GROOVY",
         description: "使用Groovy脚本进行编辑开发",
         type: "function",
         properties: {
             icon: 'fas fa-file-signature',
             color: "#424242",
-            stepName: '脚本功能',
+            stepName: '执行GROOVY',
             showNode: true,
             height: 540,
             width: 330
@@ -257,13 +242,13 @@ const workflowNodes = [
     {
         id: '1014',
         name: "HTTP_API",
-        label: "Http调用",
+        label: "调用HTTP",
         description: "开发来实现Http接口的调用。",
         type: "http_api",
         properties: {
             icon: 'fa-solid fa-feather',
             color: "#424242",
-            stepName: 'Http调用',
+            stepName: '调用HTTP',
             showNode: true,
             height: 540,
             width: 330
