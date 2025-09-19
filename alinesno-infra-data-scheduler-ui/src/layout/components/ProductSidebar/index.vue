@@ -57,7 +57,7 @@ const menuItems = ref([
 
 // 底部菜单
 const footerMenuItems = ref([
-  {id: '13', icon: 'fa-solid fa-robot', link: '/smart/assistant/llmModel/index', desc: '大模型'},
+  {id: '13', icon: 'fa-solid fa-robot', link: '/data/scheduler/llmModel/index', desc: '大模型'},
   {id:'10' , icon:'fa-solid fa-cog' , link:'/data/scheduler/configuration/index' , desc:' 系统配置'},
 ])
 
