@@ -124,16 +124,15 @@
                   </template>
                </el-table-column>
 
-               <el-table-column label="执行周期" align="left" prop="addTime" v-if="columns[6].visible" width="200">
+               <el-table-column label="执行周期" align="center" prop="addTime" v-if="columns[6].visible" width="200">
                   <template #default="scope">
-                     <div>
-                        <el-tooltip placement="top" v-if="scope.row.processId !== 1">
-                           {{ scope.row.scheduleCron?scope.row.scheduleCron:'未设置' }}
-                        </el-tooltip>
-                     </div>
-                     <div style="font-size: 13px;color: #a5a5a5;cursor: pointer;" v-copyText="scope.row.promptId">
-                        上次: {{ parseTime(scope.row.addTime) }}
-                     </div>
+                     <!-- 
+                     <el-button type="warning" text bg>  
+                        <i class="fa-solid fa-clock"></i> &nbsp;
+                        {{ scope.row.scheduleCron?scope.row.scheduleCron:'未设置' }}
+                     </el-button> 
+                     -->
+                      <CronButton v-model:expression="scope.row.scheduleCron" @fill="onCronFill"></CronButton >
                   </template>
                </el-table-column>
 
@@ -239,8 +238,7 @@
                <el-col :span="24">
                   <el-form-item label="任务状态" prop="status">
                      <el-radio-group v-model="form.status">
-                        <el-radio v-for="dict in sys_normal_disable" :key="dict.value" :label="dict.value">{{ dict.label
-                           }}</el-radio>
+                        <el-radio v-for="dict in sys_normal_disable" :key="dict.value" :label="dict.value">{{ dict.label}}</el-radio>
                      </el-radio-group>
                   </el-form-item>
                </el-col>
@@ -248,8 +246,7 @@
                <el-col :span="24">
                   <el-form-item label="是否公开" prop="isPublic">
                      <el-radio-group v-model="form.isPublic">
-                        <el-radio v-for="dict in sys_normal_disable" :key="dict.value" :label="dict.value">{{ dict.label
-                           }}</el-radio>
+                        <el-radio v-for="dict in sys_normal_disable" :key="dict.value" :label="dict.value">{{ dict.label}}</el-radio>
                      </el-radio-group>
                   </el-form-item>
                </el-col>
@@ -294,6 +291,7 @@ import {
    changStatusField
 } from "@/api/data/scheduler/processDefinition";
 
+import CronButton from './components/CronButton.vue'
 import ListInstance from '@/views/data/scheduler/processInstance/listInstance.vue'
 import { nextTick } from "vue";
 
@@ -314,6 +312,9 @@ const dateRange = ref([]);
 const openCron = ref(false);
 const expression = ref("");
 const deptOptions = ref(undefined);
+
+// 定时任务表达式
+const cronExpression = ref('') // 初始为空，表示未设置
 
 // 是否打开配置文档
 const processDefinitionRef = ref(null);
