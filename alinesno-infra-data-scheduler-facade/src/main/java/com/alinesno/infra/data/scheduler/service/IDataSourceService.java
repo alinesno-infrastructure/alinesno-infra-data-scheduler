@@ -1,9 +1,12 @@
 package com.alinesno.infra.data.scheduler.service;
 
 import com.alibaba.druid.pool.DruidDataSource;
+import com.alinesno.infra.common.facade.datascope.PermissionQuery;
 import com.alinesno.infra.common.facade.services.IBaseService;
 import com.alinesno.infra.data.scheduler.api.CheckDbConnectResult;
 import com.alinesno.infra.data.scheduler.entity.DataSourceEntity;
+
+import java.util.List;
 
 public interface IDataSourceService extends IBaseService<DataSourceEntity> {
 
@@ -21,4 +24,10 @@ public interface IDataSourceService extends IBaseService<DataSourceEntity> {
      */
     DruidDataSource getDataSource(long dataSourceId);
 
+    /**
+     * 获取可用数据源
+     * @param query
+     * @return
+     */
+    List<DataSourceEntity> listAvailableDataSources(PermissionQuery query);
 }
