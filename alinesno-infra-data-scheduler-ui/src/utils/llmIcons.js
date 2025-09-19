@@ -17,6 +17,27 @@ const getLlmIconPath = (providerCode) => {
   return new URL(`/src/assets/icons/llm/${fileName}`, import.meta.url).href;
 };
 
+// 获取数据源图标
+const getDatasourceIconPath = (datasourceCode) => {
+ 
+  const iconMap = {
+    'clickhouse': 'clickhouse.png',
+    'doris': 'doris.png',
+    'elasticsearch': 'elasticsearch.png',
+    'ftp': 'ftp.png',
+    'hive': 'hive.png',
+    'kafka': 'kafka.png',
+    'minio': 'minio.png',
+    'mysql': 'mysql.png',
+    'postgresql': 'postgresql.png',
+    'qiniu': 'qiniu.png',
+    's3file': 's3file.jpeg'
+  };
+
+  const fileName = iconMap[datasourceCode] || 'doris.png';
+  return new URL(`/src/assets/icons/datasources/${fileName}`, import.meta.url).href;
+}
+
 const getAipStyle = (type) => {
   const iconMap = {
     'dark': 'dark.png',
@@ -57,5 +78,6 @@ export {
   getLlmIconPath,
   getAipStyle, 
   getAgentIconPath,
+  getDatasourceIconPath,
   getOutlineSvg
 };
