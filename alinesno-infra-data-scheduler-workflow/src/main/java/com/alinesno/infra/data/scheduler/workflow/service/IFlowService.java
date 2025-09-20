@@ -56,4 +56,11 @@ public interface IFlowService extends IBaseService<FlowEntity> {
      */
     CompletableFuture<String> runRoleFlow(Long processDefinitionId);
 
+    /**
+     * 尝试运行工作流
+     *
+     * @param processDefinitionId
+     * @return
+     */
+    CompletableFuture<String> tryRun(Long processDefinitionId);
 }
