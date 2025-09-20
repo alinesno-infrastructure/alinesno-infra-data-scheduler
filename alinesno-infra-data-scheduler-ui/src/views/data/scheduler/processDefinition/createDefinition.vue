@@ -107,7 +107,9 @@ const handlePublishedFlow = () => {
 /** 初始化数据 */
 onMounted(() => {
   console.log('onMounted');
-  getProcessDefinitionInfo();
+  nextTick(() => {
+    getProcessDefinitionInfo();
+  })
 })
 
 </script>
