@@ -1,5 +1,6 @@
 package com.alinesno.infra.data.scheduler.workflow.nodes.variable;
 
+import com.alinesno.infra.common.core.utils.StringUtils;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -44,7 +45,7 @@ public class GlobalVariables {
         LocalDateTime now = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         this.time = now.format(formatter);
-        this.preContent = preContent;
+        this.preContent = StringUtils.isBlank(preContent) ? "" : preContent;
         this.channelId = channelId;
         this.historyContent = historyContent;
     }
