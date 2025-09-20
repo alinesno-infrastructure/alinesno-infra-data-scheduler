@@ -2,9 +2,11 @@
 package com.alinesno.infra.data.scheduler.workflow.nodes;
 
 import com.agentsflex.core.llm.Llm;
+import com.agentsflex.core.message.AiMessage;
+import com.agentsflex.core.message.MessageStatus;
+import com.agentsflex.core.util.StringUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.alinesno.infra.data.scheduler.llm.service.ILlmModelService;
-import com.alinesno.infra.data.scheduler.workflow.FlowExpertService;
 import com.alinesno.infra.data.scheduler.workflow.WorkflowManage;
 import com.alinesno.infra.data.scheduler.workflow.constants.AgentConstants;
 import com.alinesno.infra.data.scheduler.workflow.dto.FlowNodeDto;
@@ -77,10 +79,10 @@ public abstract class AbstractFlowNode implements FlowNode {
      */
     protected Map<String, Object> output;
 
-    /**
-     * 流程专家服务，提供流程相关的业务逻辑处理服务
-     */
-    protected FlowExpertService flowExpertService;
+//    /**
+//     * 流程专家服务，提供流程相关的业务逻辑处理服务
+//     */
+//    protected FlowExpertService flowExpertService;
 
     /**
      * 节点类型
@@ -105,8 +107,9 @@ public abstract class AbstractFlowNode implements FlowNode {
         workflowManage = new WorkflowManage(node, flowNodes);
         boolean isPrintContent = isPrintContent(node);
         node.setPrint(isPrintContent);
-        flowExpertService.setNode(node);
-        flowExpertService.setOutputContent(outputContent);
+
+//        flowExpertService.setNode(node);
+//        flowExpertService.setOutputContent(outputContent);
 
         // 设置成员变量（同步操作）
         this.setNode(node);
@@ -127,9 +130,9 @@ public abstract class AbstractFlowNode implements FlowNode {
             this.setGlobalVariables(globalVariables);
             // 填充全局变量到 output（同步操作）
             output.put("global.time", globalVariables.getTime());
-            output.put("global.pre_content", globalVariables.getPreContent());
-            output.put("global.channelId", globalVariables.getChannelId());
-            output.put("global.history_content", String.join(",", globalVariables.getHistoryContent()));
+//            output.put("global.pre_content", globalVariables.getPreContent());
+//            output.put("global.channelId", globalVariables.getChannelId());
+//            output.put("global.history_content", String.join(",", globalVariables.getHistoryContent()));
 //            output.put("global.datasetKnowledgeDocument", StringUtils.hasLength(taskInfo.getDatasetKnowledgeDocument()) ? taskInfo.getDatasetKnowledgeDocument() : "");
 
 //            if (taskInfo.getAttachments() != null && !taskInfo.getAttachments().isEmpty()) {
@@ -272,30 +275,30 @@ public abstract class AbstractFlowNode implements FlowNode {
     protected CompletableFuture<String> getAiChatResultAsync(Llm llm, String prompt) {
         final CompletableFuture<String> future = new CompletableFuture<>();
 
-//        try {
-//            llm.chatStream(prompt, (context, response) -> {
-//                try {
-//                    AiMessage message = response.getMessage();
-//                    if (message == null) {
-//                        return;
-//                    }
-//
-//                    // 实时片段推送（与之前逻辑一致）
-//                    if (StringUtil.hasText(message.getReasoningContent())) {
+        try {
+            llm.chatStream(prompt, (context, response) -> {
+                try {
+                    AiMessage message = response.getMessage();
+                    if (message == null) {
+                        return;
+                    }
+
+                    // 实时片段推送（与之前逻辑一致）
+                    if (StringUtil.hasText(message.getReasoningContent())) {
 //                        taskInfo.setReasoningText(null);
-//                        eventNodeMessage(null , message.getReasoningContent());
-//                    }
-//
-//                    // 实时片段推送（与之前逻辑一致）
-//                    if (StringUtil.hasText(message.getContent())) {
+                        eventNodeMessage(null , message.getReasoningContent());
+                    }
+
+                    // 实时片段推送（与之前逻辑一致）
+                    if (StringUtil.hasText(message.getContent())) {
 //                        taskInfo.setReasoningText(null);
-//                        eventNodeMessage(message.getContent());
-//                    }
-//
-//                    // 终止时完成 future
-//                    if (message.getStatus() == MessageStatus.END) {
-//                        String full = message.getFullContent();
-//                        // 持久化最终消息（保持之前行为）
+                        eventNodeMessage(message.getContent());
+                    }
+
+                    // 终止时完成 future
+                    if (message.getStatus() == MessageStatus.END) {
+                        String full = message.getFullContent();
+                        // 持久化最终消息（保持之前行为）
 //                        MessageEntity entity = new MessageEntity();
 //                        entity.setTraceBusId(taskInfo.getTraceBusId());
 //                        entity.setId(IdUtil.getSnowflakeNextId());
@@ -315,16 +318,16 @@ public abstract class AbstractFlowNode implements FlowNode {
 //                        } catch (Exception ex) {
 //                            log.warn("保存消息实体异常: {}", ex.getMessage(), ex);
 //                        }
-//
-//                        future.complete(full);
-//                    }
-//                } catch (Exception ex) {
-//                    future.completeExceptionally(ex);
-//                }
-//            });
-//        } catch (Exception e) {
-//            future.completeExceptionally(e);
-//        }
+
+                        future.complete(full);
+                    }
+                } catch (Exception ex) {
+                    future.completeExceptionally(ex);
+                }
+            });
+        } catch (Exception e) {
+            future.completeExceptionally(e);
+        }
 
         // 为避免无限等待，可在调用处或这里设置超时
         // 例如：return future.orTimeout(120, TimeUnit.SECONDS);
