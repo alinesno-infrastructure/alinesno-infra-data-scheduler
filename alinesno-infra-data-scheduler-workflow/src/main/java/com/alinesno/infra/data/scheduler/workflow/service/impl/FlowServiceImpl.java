@@ -792,4 +792,17 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
                 .toList();
     }
 
+    /**
+     * 尝试运行工作流
+     *
+     * @param processDefinitionId
+     * @return
+     */
+    @SneakyThrows
+    @Override
+    public CompletableFuture<String> tryRun(Long processDefinitionId) {
+        log.debug("尝试运行工作流: {}", processDefinitionId);
+        return runRoleFlow(processDefinitionId);
+    }
+
 }
