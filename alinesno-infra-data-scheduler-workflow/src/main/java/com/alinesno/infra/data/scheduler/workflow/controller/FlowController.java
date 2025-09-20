@@ -10,6 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.async.DeferredResult;
+
+import java.util.concurrent.CompletableFuture;
 
 /**
  * 流程控制
@@ -27,10 +30,44 @@ public class FlowController {
 
     @PostMapping("/processAndSave")
     public AjaxResult processAndSave(@RequestBody WorkflowRequestDto flowDto, @RequestParam Long processDefinitionId) {
-
         flowService.saveRoleFlow(processDefinitionId, flowDto);  // 保存工作流
-
         return AjaxResult.success();
+    }
+
+    @GetMapping("/tryRun")
+    public DeferredResult<AjaxResult> tryRun(@RequestParam Long processDefinitionId) {
+        // 设置超时时间（毫秒），根据业务调整
+        long timeout = 300_000L;
+        DeferredResult<AjaxResult> deferred = new DeferredResult<>(timeout);
+
+        // 后端异步任务
+        CompletableFuture<String> future = flowService.tryRun(processDefinitionId);
+
+        // 当 future 完成时设置 DeferredResult
+        future.whenComplete((result, ex) -> {
+            if (ex != null) {
+                // 记录日志、包装错误信息
+                // logger.error("tryRun failed", ex);
+                deferred.setErrorResult(AjaxResult.error("流程试运行失败: " + ex.getMessage()));
+            } else {
+                // 可以把 result 放到 AjaxResult 的 data 中，或按需处理
+                deferred.setResult(AjaxResult.success("流程试运行成功", result));
+            }
+        });
+
+        // 超时处理
+        deferred.onTimeout(() -> {
+            // 可取消底层任务，避免无意义的资源占用
+            future.completeExceptionally(new java.util.concurrent.TimeoutException("执行超时"));
+            deferred.setErrorResult(AjaxResult.error("请求超时，请稍后重试"));
+        });
+
+        // 可选：完成时的清理逻辑
+        deferred.onCompletion(() -> {
+            // 比如记录完成、释放自定义资源等
+        });
+
+        return deferred;
     }
 
     /**
