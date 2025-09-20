@@ -2,10 +2,10 @@
 package com.alinesno.infra.data.scheduler.workflow.nodes.step;
 
 import com.agentsflex.core.llm.Llm;
-import com.agentsflex.llm.qwen.QwenLlm;
-import com.agentsflex.llm.qwen.QwenLlmConfig;
+import com.agentsflex.core.llm.LlmConfig;
 import com.alibaba.fastjson.JSONObject;
 import com.alinesno.infra.common.core.utils.StringUtils;
+import com.alinesno.infra.data.scheduler.adapter.service.ILLmAdapterService;
 import com.alinesno.infra.data.scheduler.llm.entity.LlmModelEntity;
 import com.alinesno.infra.data.scheduler.workflow.constants.FlowConst;
 import com.alinesno.infra.data.scheduler.workflow.nodes.AbstractFlowNode;
@@ -14,6 +14,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
@@ -32,6 +33,8 @@ import java.util.concurrent.TimeUnit;
 @EqualsAndHashCode(callSuper = true)
 public class AiChatNode extends AbstractFlowNode {
 
+    @Autowired
+    private ILLmAdapterService adapterService;
 
     /**
      * 构造函数，初始化节点类型为 "ai_chat"。
@@ -58,11 +61,13 @@ public class AiChatNode extends AbstractFlowNode {
         }
 
         // 2. 构建 LLM 客户端（同步逻辑，轻量级操作）
-        QwenLlmConfig config = new QwenLlmConfig();
+        LlmConfig config = new LlmConfig() ;
+
         config.setEndpoint(llmModel.getApiUrl());
-        config.setApiKey(llmModel.getApiKey());
-        config.setModel(llmModel.getModel());
-        Llm llm = new QwenLlm(config);
+        config.setApiKey(llmModel.getApiKey()) ;
+        config.setModel(llmModel.getModel()) ;
+
+        Llm llm = adapterService.getLlm(llmModel.getProviderCode(), config);
 
         // 3. 替换占位符（同步逻辑）
         String prompt = replacePlaceholders(nodeData.getPrompt());
