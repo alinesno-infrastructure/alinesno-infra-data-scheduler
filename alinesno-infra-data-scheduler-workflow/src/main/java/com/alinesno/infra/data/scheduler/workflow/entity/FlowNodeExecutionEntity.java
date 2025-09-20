@@ -50,12 +50,36 @@ public class FlowNodeExecutionEntity extends InfraBaseEntity {
     private String stepId;
 
     /**
+     * 节点名称
+     */
+    @TableField(value = "node_name")
+    @ColumnType(value = MySqlTypeConstant.VARCHAR, length = 100)
+    @ColumnComment("节点名称")
+    private String nodeName;
+
+    /**
+     * 执行信息
+     */
+    @TableField(value = "execute_info")
+    @ColumnType(value = MySqlTypeConstant.VARCHAR , length = 500)
+    @ColumnComment("执行信息")
+    private String executeInfo ;
+
+    /**
      * 节点类型
      */
     @TableField(value = "node_type")
     @ColumnType(value = MySqlTypeConstant.VARCHAR, length = 50)
     @ColumnComment("节点类型")
     private String nodeType;
+
+    /**
+     * 执行进度按最高100进行表示，0-100之间
+     */
+    @TableField(value = "progress")
+    @ColumnType(value = MySqlTypeConstant.INT)
+    @ColumnComment("执行进度按最高100进行表示，0-100之间")
+    private Integer progress;
 
     /**
      * 节点的属性，采用键值对的形式存储额外信息
