@@ -16,7 +16,16 @@ var managerUrl = {
     getLatestPublishedFlow: prefix + "latestPublished",  // 获取最新版本已发布流程
     getUnpublishedFlow: prefix + "unpublished",  // 获取未发布流程
     publishedFlow: prefix + "published", // 发布流程 
-    getLatestFlow: prefix + "latest"  // 获取最新流程
+    getLatestFlow: prefix + "latest" ,  // 获取最新流程
+    tryRun: prefix + "tryRun",  // 尝试运行
+}
+
+// 尝试运行
+export function tryRun(processDefinitionId) {
+    return request({
+        url: managerUrl.tryRun + "?processDefinitionId=" + parseStrEmpty(processDefinitionId),
+        method: 'get'
+    })
 }
 
 // 发布流程
