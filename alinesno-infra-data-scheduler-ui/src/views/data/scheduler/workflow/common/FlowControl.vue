@@ -103,8 +103,8 @@
             <el-drawer 
                 v-model="showDebugRunDialog" 
                 :modal="false" 
-                size="40%" 
-                style="max-width: 700px;position: absolute;" 
+                size="50%" 
+                style="max-width: 800px;position: absolute;" 
                 title="预览与调试"
                 :with-header="true">
                 <div style="margin-top: 0px;">
@@ -119,17 +119,16 @@
                 v-model="showParamsDialog" 
                 v-if="showParamsDialog" 
                 :modal="false" 
-                size="40%" 
-                style="position: absolute; max-width: 600px;" 
+                size="50%" 
+                style="position: absolute; max-width: 700px;" 
                 title="流程参数配置"
                 :with-header="true">
                 <div style="margin-top: 0px;padding:0px !important" class="agent-chat-box  agent-inference-container">
-                    <!-- <ParamsConfigPanel ref="paramsConfigRef" :diffHeight="295" /> -->
-                    <ParamsConfigPanel ref="paramsConfigRef" @submitModelConfig="submitModelConfig" :diffHeight="295" />
+                    <FlowConfig ref="paramsConfigRef" @submitModelConfig="submitModelConfig" :diffHeight="295" />
                 </div> 
                 <div class="config-form-footer">
                     <div class="button-group">
-                        <el-button :loading="loading" type="primary" size="large" text bg @click="submitModelConfig">保存配置</el-button>
+                        <el-button :loading="loading" type="primary" @click="submitModelConfig">保存配置</el-button>
                     </div>
                 </div>
             </el-drawer>
@@ -154,6 +153,7 @@ const { proxy } = getCurrentInstance();
 
 import NodeComponents from '@/views/data/scheduler/workflow/components/NodeComponents.vue'
 import DebuggerProcessFlowPanel from '@/views/data/scheduler/workflow/components/DebuggerProcessFlowPanel.vue'
+import FlowConfig from '@/views/data/scheduler/workflow/components/FlowConfig.vue'
 
 // import ParamsConfigPanel from '@/views/data/scheduler/workflow/components/ParamsConfigPanel.vue';
 // import ParamsConfigPanel from '@/views/smart/assistant/role/ParamsConfigPanel.vue';
