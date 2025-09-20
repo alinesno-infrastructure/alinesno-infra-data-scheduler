@@ -34,7 +34,7 @@ public class StartNode extends AbstractFlowNode {
             String message = null ; // FlowExpertService.clearMessage(taskInfo.getText());
 
             // 设置参数到 output（与原逻辑一致）
-            output.put(node.getStepName() + ".message", message);
+//            output.put(node.getStepName() + ".message", message);
 
             // 轻量操作：直接返回已完成的 Future
             return CompletableFuture.completedFuture(null);
