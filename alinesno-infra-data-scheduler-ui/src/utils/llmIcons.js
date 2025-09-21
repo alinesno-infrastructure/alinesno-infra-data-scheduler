@@ -17,6 +17,12 @@ const getLlmIconPath = (providerCode) => {
   return new URL(`/src/assets/icons/llm/${fileName}`, import.meta.url).href;
 };
 
+// 获取TaskIcon图标
+const getTaskIconPath = (taskCode) => {
+  const fileName = taskCode + '.png' ;
+  return new URL(`/src/assets/task-icons/${fileName}`, import.meta.url).href;
+}
+
 // 获取数据源图标
 const getDatasourceIconPath = (datasourceCode) => {
  
@@ -78,6 +84,7 @@ export {
   getLlmIconPath,
   getAipStyle, 
   getAgentIconPath,
+  getTaskIconPath,
   getDatasourceIconPath,
   getOutlineSvg
 };
