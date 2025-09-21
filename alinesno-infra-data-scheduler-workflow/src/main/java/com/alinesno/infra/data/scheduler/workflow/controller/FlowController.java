@@ -2,6 +2,7 @@ package com.alinesno.infra.data.scheduler.workflow.controller;
 
 import com.alinesno.infra.common.facade.response.AjaxResult;
 import com.alinesno.infra.data.scheduler.workflow.dto.FlowDto;
+import com.alinesno.infra.data.scheduler.workflow.dto.LastExecuteFlowDto;
 import com.alinesno.infra.data.scheduler.workflow.dto.WorkflowRequestDto;
 import com.alinesno.infra.data.scheduler.workflow.entity.FlowEntity;
 import com.alinesno.infra.data.scheduler.workflow.service.IFlowService;
@@ -118,6 +119,36 @@ public class FlowController {
             return AjaxResult.success(flowEntity);
         }
         return AjaxResult.error("未找到指定角色的最新已发布流程");
+    }
+
+    /**
+     * 获取到最后运行的流程执行节点
+     */
+    @GetMapping("/lastExecutedFlowNodes")
+    public AjaxResult lastExecutedFlowNodes(@RequestParam Long processDefinitionId) {
+
+        LastExecuteFlowDto flowNodeExecutionDtos = flowService.getLastExecutedFlow(processDefinitionId , null) ;
+
+        AjaxResult result = AjaxResult.success(flowNodeExecutionDtos.getFlowNode()) ;
+        result.put("status" , flowNodeExecutionDtos.getStatus());
+
+        return result ;
+
+    }
+
+    /**
+     * 获取到最后运行的流程执行节点
+     */
+    @GetMapping("/executedFlowNodes")
+    public AjaxResult executedFlowNodes(@RequestParam Long processDefinitionId , @RequestParam Long executeId) {
+
+        LastExecuteFlowDto flowNodeExecutionDtos = flowService.getLastExecutedFlow(processDefinitionId , executeId) ;
+
+        AjaxResult result = AjaxResult.success(flowNodeExecutionDtos.getFlowNode()) ;
+        result.put("status" , flowNodeExecutionDtos.getStatus());
+
+        return result ;
+
     }
 
     /**
