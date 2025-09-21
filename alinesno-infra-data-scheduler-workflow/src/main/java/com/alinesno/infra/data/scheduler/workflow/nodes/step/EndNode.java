@@ -43,6 +43,8 @@ public class EndNode extends AbstractFlowNode {
             // 设置参数到 output（与原逻辑一致）
             output.put(node.getStepName() + ".output", answer);
 
+            outputContent.append("节点运行结束.") ;
+
             // 轻量操作：直接返回已完成的 Future
             return CompletableFuture.completedFuture(null);
         } catch (Exception ex) {
