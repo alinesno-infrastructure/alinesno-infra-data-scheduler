@@ -63,7 +63,10 @@ public class QuartzJob extends QuartzJobBean {
         }
 
         taskDefinitionList.forEach(taskDefinition -> resourceIds.add(taskDefinition.getResourceId()));
-        List<ResourceEntity> resourceList = resourceService.lambdaQuery().in(ResourceEntity::getId, resourceIds).list();
+        List<ResourceEntity> resourceList = new ArrayList<>() ;
+        if(!resourceIds.isEmpty()){
+            resourceList = resourceService.lambdaQuery().in(ResourceEntity::getId, resourceIds).list();
+        }
 
         return new Result(processDefinitionService, processDefinition, taskDefinitionList, environment, resourceList);
     }
