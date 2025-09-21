@@ -363,6 +363,21 @@ const submitModelConfig = async() => {
 
 }
 
+
+watch(showDebugRunDialog, async (visible) => {
+  // 等待子组件挂载并渲染
+  await nextTick()
+  const comp = debuggerProcessFlowPanelRef.value
+  if (!comp) return
+  if (visible) {
+    // 打开抽屉时开始轮询
+    comp.startPolling && comp.startPolling()
+  } else {
+    // 关闭抽屉时停止轮询
+    comp.stopPolling && comp.stopPolling()
+  }
+})
+
 onMounted(() => {
     // console.log('props.lf = ' + JSON.stringify(props.lf))
     processDefinitionId.value = router.currentRoute.value.query.processDefinitionId;
