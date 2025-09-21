@@ -23,7 +23,8 @@
                 <el-col :span="12" v-for="item in filteredWorkflowNodes" :key="item.name" >
                     <div class="node-components-content" @click="clickNode(item)">
                         <div class="node-components-icon">
-                            <i :class="item.properties.icon" />
+                            <!-- <i :class="item.properties.icon" /> -->
+                             <img :src="getTaskIconPath(item.properties.icon)" />
                         </div>
                         <div class="node-info">
                             <span>{{ item.label }}</span>
@@ -69,7 +70,7 @@ const workflowNodes = [
         description: "与 AI 大模型进行对话",
         type: "ai_chat",
         properties: {
-            icon: 'fa-solid fa-comments',
+            icon: 'chatgpt' , 
             color: "#2962FF",
             stepName: 'AI对话',
             showNode: true,
@@ -84,7 +85,7 @@ const workflowNodes = [
         description: "识别出图片中的对象、场景等信息回答用户问题",
         type: "image_understand",
         properties: {
-            icon: 'fa-solid fa-image',
+            icon: 'mr',
             color: "#388E3C",
             stepName: '图片理解',
             showNode: true,
@@ -96,10 +97,10 @@ const workflowNodes = [
         id: '1003',
         name: "IMAGE_GENERATE",
         label: "执行SHELL",
-        description: "根据提供的文本内容生成图片",
+        description: "通过Shell执行系统命令，支持标准输出与错误信息返回",
         type: "shell",
         properties: {
-            icon: 'fa-solid fa-palette',
+            icon: 'shell' , 
             color: "#F57C00",
             stepName: '执行SHELL',
             showNode: true,
@@ -111,10 +112,10 @@ const workflowNodes = [
         id: '1005',
         name: "FLINK",
         label: "执行FLINK",
-        description: "使用重排模型对多个知识库的检索结果进行二次召回",
+        description: "提交并运行Apache Flink任务，返回执行状态与结果",
         type: "flink",
         properties: {
-            icon: 'fa-solid fa-magnifying-glass-chart',
+            icon: 'flink' , 
             color: "#616161",
             stepName: '执行FLINK',
             showNode: true,
@@ -129,7 +130,7 @@ const workflowNodes = [
         description: "根据不同条件执行不同的节点",
         type: "condition",
         properties: {
-            icon: 'fa-solid fa-question',
+            icon: 'conditions' , 
             color: "#303F9F",
             stepName: '判断器',
             showNode: true,
@@ -153,10 +154,10 @@ const workflowNodes = [
         id: '1007',
         name: "SQL",
         label: "运行SQL",
-        description: "运行SQL内容，引用变量会转换为字符串进行输出",
+        description: "执行SQL查询，变量转字符串处理后输出结果集",
         type: "sql",
         properties: {
-            icon: 'fa-solid fa-reply',
+            icon: 'sql' , 
             color: "#FF9800",
             stepName: '运行SQL',
             showNode: true,
@@ -168,10 +169,10 @@ const workflowNodes = [
         id: '1009',
         name: "NOTICE",
         label: "IM通知",
-        description: "根据历史聊天记录优化完善当前问题，更利于匹配知识库分段",
+        description: "通过 IM 渠道发送通知消息，支持文本内容推送",
         type: "notice",
         properties: {
-            icon: 'fa-solid fa-pencil',
+            icon: 'dinky',
             color: "#F4511E",
             stepName: 'IM通知',
             showNode: true,
@@ -186,7 +187,7 @@ const workflowNodes = [
         description: "提取文档中的内容",
         type: "document_extract",
         properties: {
-            icon: 'fa-solid fa-file-lines',
+            icon: 'chunjun' , 
             color: "#8E24AA",
             stepName: '文档内容提取',
             showNode: true,
@@ -196,12 +197,12 @@ const workflowNodes = [
     },
     {
         id: '1011',
-        name: "SPEECH_TO_TEXT",
+        name: "SPARK",
         label: "执行SPARK",
-        description: "将音频通过语音识别模型转换为文本",
+        description: "提交并执行 Apache Spark 作业，处理分布式数据计算任务",
         type: "spark",
         properties: {
-            icon: 'fa-solid fa-masks-theater',
+            icon: 'spark',
             color: "#00ACC1",
             stepName: '执行SPARK',
             showNode: true,
@@ -211,12 +212,12 @@ const workflowNodes = [
     },
     {
         id: '1012',
-        name: "TEXT_TO_SPEECH",
+        name: "PYTHON",
         label: "执行PYTHON",
-        description: "将文本通过语音合成模型转换为音频",
+        description: "执行 Python 程序，支持标准输出与错误信息返回",
         type: "python",
         properties: {
-            icon: 'fa-solid fa-volume-high',
+            icon: 'python' , 
             color: "#FFB300",
             stepName: '执行PYTHON',
             showNode: true,
@@ -231,7 +232,7 @@ const workflowNodes = [
         description: "使用Groovy脚本进行编辑开发",
         type: "function",
         properties: {
-            icon: 'fas fa-file-signature',
+            icon: 'groovy',
             color: "#424242",
             stepName: '执行GROOVY',
             showNode: true,
@@ -246,7 +247,7 @@ const workflowNodes = [
         description: "开发来实现Http接口的调用。",
         type: "http_api",
         properties: {
-            icon: 'fa-solid fa-feather',
+            icon: 'http' , 
             color: "#424242",
             stepName: '调用HTTP',
             showNode: true,
@@ -262,7 +263,7 @@ const workflowNodes = [
         description: "结束流程",
         type: "end",
         properties: {
-            icon: 'fa-solid fa-flag-checkered',
+            icon: 'sqoop' , 
             color: "#424242",
             stepName: '结束节点',
             showNode: true,
@@ -371,13 +372,19 @@ defineExpose({ clickNode });
     .node-components-icon {
         width: 35px;
         height: 35px;
-        background: #1d75b0;
+        background: #fff;
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
         color: rgb(255, 255, 255);
+        // padding: 2px;
         border-radius: 5px;
+        
+        img{
+            width: 100%;
+            // height: 100%;
+        }
     }
 
     .node-components-content {
