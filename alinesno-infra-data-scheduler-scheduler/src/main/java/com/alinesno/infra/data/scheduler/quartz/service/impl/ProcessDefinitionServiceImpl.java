@@ -19,6 +19,7 @@ import com.alinesno.infra.data.scheduler.quartz.mapper.ProcessDefinitionMapper;
 import com.alinesno.infra.data.scheduler.quartz.utils.ProcessUtils;
 import com.alinesno.infra.data.scheduler.scheduler.IQuartzSchedulerService;
 import com.alinesno.infra.data.scheduler.service.*;
+import com.alinesno.infra.data.scheduler.workflow.service.IFlowService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -77,17 +78,14 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
     @Override
     public void runProcess(TaskInfoBean task, List<TaskDefinitionEntity> taskDefinition) {
 
+        IFlowService flowService = SpringUtils.getBean(IFlowService.class);
+
         // 任务实例运行
         ProcessDefinitionEntity process = task.getProcess();
-        process.setRunCount(process.getRunCount() + 1);
-        updateById(process);
+        log.debug("ProcessDefinitionServiceImpl.runProcess Start:{}", process.getId());
 
-        // 执行运行实例及任务
-        runProcessInstance(task, taskDefinition, process);
-
-        // 更新流程运行成功次数
-        process.setSuccessCount(process.getSuccessCount() + 1);
-        updateById(process);
+        flowService.runRoleFlow(process.getId());
+        log.debug("ProcessDefinitionServiceImpl.runProcess Finish:{}", process.getId());
     }
 
     /**
@@ -321,6 +319,10 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
         ProcessDefinitionEntity processDefinition = ProcessUtils.fromSaveDtoToEntity(dto);
         processDefinition.setOnline(false);
         this.saveOrUpdate(processDefinition);
+
+        // 生成job任务
+        long processId = processDefinition.getId();
+        distSchedulerService.addJob(String.valueOf(processId), null);
     }
 
 }
