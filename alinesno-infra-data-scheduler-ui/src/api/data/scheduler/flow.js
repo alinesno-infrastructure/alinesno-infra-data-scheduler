@@ -18,6 +18,24 @@ var managerUrl = {
     publishedFlow: prefix + "published", // 发布流程 
     getLatestFlow: prefix + "latest" ,  // 获取最新流程
     tryRun: prefix + "tryRun",  // 尝试运行
+    getLastExecutedFlowNodes: prefix + "lastExecutedFlowNodes", // 获取最近一次执行的流程节点
+    getExecutedFlowNodes: prefix + "executedFlowNodes", // 获取流程节点情况
+}
+
+// 获取流程节点情况
+export function getExecutedFlowNodes(processDefinitionId , executeId) {
+    return request({
+        url: managerUrl.getExecutedFlowNodes + "?processDefinitionId=" + parseStrEmpty(processDefinitionId) + "&executeId=" + parseStrEmpty(executeId),
+        method: 'get'
+    })
+}
+
+// 获取最近一次执行的流程节点
+export function getLastExecutedFlowNodes(processDefinitionId) {
+    return request({
+        url: managerUrl.getLastExecutedFlowNodes + "?processDefinitionId=" + parseStrEmpty(processDefinitionId),
+        method: 'get'
+    })
 }
 
 // 尝试运行
