@@ -55,6 +55,8 @@ public class FunctionNode extends AbstractFlowNode {
             String nodeOutput = executeGroovyScript(scriptText);
 
             log.debug("handleNode nodeOutput : {}", nodeOutput);
+            outputContent.append("脚本执行结果:").append(nodeOutput);
+
             // 触发节点事件消息
             eventNodeMessage(nodeOutput);
 
