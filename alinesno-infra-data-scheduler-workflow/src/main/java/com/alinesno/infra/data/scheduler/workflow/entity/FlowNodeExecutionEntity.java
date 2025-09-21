@@ -61,7 +61,7 @@ public class FlowNodeExecutionEntity extends InfraBaseEntity {
      * 执行信息
      */
     @TableField(value = "execute_info")
-    @ColumnType(value = MySqlTypeConstant.VARCHAR , length = 500)
+    @ColumnType(value = MySqlTypeConstant.TEXT)
     @ColumnComment("执行信息")
     private String executeInfo ;
 
