@@ -14,7 +14,7 @@ import { ref, onMounted, onUnmounted , computed } from 'vue'
 
 import LogicFlow from '@logicflow/core'
 import '@logicflow/extension/lib/style/index.css'
-import "@logicflow/core/lib/style/index.css";
+import "@logicflow/core/dist/style/index.css";
 
 import Dagre from './plugins/dagre.js'
 import AppEdge from './common/edge'
@@ -186,7 +186,7 @@ const setWorkflowGraphData = (data) => {
       nodes:[{
         type: 'start',
         properties: {
-          icon: 'fa-solid fa-paper-plane',
+          icon: 'kubeflow' , 
           color: "#2962FF",
           stepName: '开始',
           showNode: true,
