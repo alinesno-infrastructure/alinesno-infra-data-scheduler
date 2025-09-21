@@ -42,4 +42,17 @@ public class FlowEntity extends InfraBaseEntity {
     @ColumnType(value = MySqlTypeConstant.VARCHAR, length = 20)
     @ColumnComment("发布状态，未发布、已发布")
     private String publishStatus; // 发布状态
+
+   // 运行次数
+   @TableField(value = "run_times")
+   @ColumnType(value = MySqlTypeConstant.INT, length = 5)
+   @ColumnComment("运行次数")
+   private Integer runTimes;
+
+   // 运行唯一号
+    @TableField(value = "run_unique_number")
+    @ColumnType(value = MySqlTypeConstant.VARCHAR, length = 50)
+    @ColumnComment("运行唯一号")
+    private String runUniqueNumber;
+
 }
