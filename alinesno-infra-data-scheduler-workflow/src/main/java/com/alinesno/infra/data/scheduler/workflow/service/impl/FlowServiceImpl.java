@@ -1,11 +1,13 @@
 package com.alinesno.infra.data.scheduler.workflow.service.impl;
 
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alinesno.infra.common.core.service.impl.IBaseServiceImpl;
-import com.alinesno.infra.data.scheduler.workflow.dto.FlowDto;
-import com.alinesno.infra.data.scheduler.workflow.dto.FlowNodeDto;
-import com.alinesno.infra.data.scheduler.workflow.dto.WorkflowRequestDto;
+import com.alinesno.infra.data.scheduler.entity.ProcessDefinitionEntity;
+import com.alinesno.infra.data.scheduler.service.IProcessDefinitionService;
+import com.alinesno.infra.data.scheduler.workflow.dto.*;
 import com.alinesno.infra.data.scheduler.workflow.entity.FlowEntity;
 import com.alinesno.infra.data.scheduler.workflow.entity.FlowExecutionEntity;
 import com.alinesno.infra.data.scheduler.workflow.entity.FlowNodeEntity;
@@ -56,6 +58,9 @@ import static com.alinesno.infra.data.scheduler.workflow.constants.FlowConst.FLO
 public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> implements IFlowService {
 
     @Autowired
+    private IProcessDefinitionService processDefinitionService;
+
+    @Autowired
     private IFlowNodeService flowNodeService;  // 流程定义
 
     @Autowired
@@ -80,19 +85,38 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
     @Override
     public CompletableFuture<String> runRoleFlow(Long processDefinitionId) {
 
+        ProcessDefinitionEntity processDefinitionEntity = processDefinitionService.getById(processDefinitionId) ;
+        processDefinitionEntity.setRunCount(processDefinitionEntity.getRunCount() + 1) ;
+        processDefinitionService.updateById(processDefinitionEntity) ;
+
+        FlowEntity flowEntity = getLatestPublishedFlowByProcessDefinitionId(processDefinitionId);
+        Assert.notNull(flowEntity, "未发布角色流程");
+
+        // 更新运行版本号
+        flowEntity.setRunTimes(flowEntity.getRunTimes() == null ? 1 : flowEntity.getRunTimes() + 1);
+        flowEntity.setRunUniqueNumber(IdUtil.nanoId(10));  // 记录最后执行的流程号
+
+        update(flowEntity);
+
+        FlowExecutionEntity flowExecutionEntity = new FlowExecutionEntity();
+        flowExecutionEntity.setFlowId(flowEntity.getId()) ;
+        flowExecutionEntity.setProcessDefinitionId(processDefinitionId);
+
+        flowExecutionEntity.setRunUniqueNumber(flowEntity.getRunUniqueNumber()) ;
+
+        flowExecutionEntity.setExecutionStatus(FlowExecutionStatus.EXECUTING.getCode());
+        flowExecutionEntity.setRunTimes(processDefinitionEntity.getRunCount());
+        flowExecutionEntity.setExecuteTime(new Date());
+
+        // 创建流程实例
+        flowExecutionEntity.setOrgId(processDefinitionEntity.getOrgId());
+        flowExecutionEntity.setOperatorId(processDefinitionEntity.getOperatorId());
+        flowExecutionEntity.setDepartmentId(processDefinitionEntity.getDepartmentId()) ;
+
+        flowExecutionService.save(flowExecutionEntity);
+
         return CompletableFuture.supplyAsync(() -> {
             try {
-
-                FlowEntity flowEntity = getLatestPublishedFlowByProcessDefinitionId(processDefinitionId);
-                Assert.notNull(flowEntity, "未发布角色流程");
-
-                FlowExecutionEntity flowExecutionEntity = new FlowExecutionEntity();
-                flowExecutionEntity.setFlowId(flowEntity.getId()) ;
-
-                flowExecutionEntity.setExecutionStatus(FlowExecutionStatus.EXECUTING.getCode());
-                flowExecutionEntity.setExecuteTime(new Date());
-
-                flowExecutionService.save(flowExecutionEntity);
 
                 // 执行节点实例
                 WorkflowRequestDto dto = JSONObject.parseObject(flowEntity.getFlowGraphJson() , WorkflowRequestDto.class) ;
@@ -127,6 +151,10 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
                 });
 
                 future.get() ;
+
+                // 更新流程定义成功次数
+                processDefinitionEntity.setSuccessCount(processDefinitionEntity.getSuccessCount() + 1) ;
+                processDefinitionService.updateById(processDefinitionEntity) ;
 
                 return null ; // taskInfo.getFullContent() ;
             } catch (Exception e) {
@@ -429,6 +457,7 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
             flowNodeExecutionService.save(flowNodeExecutionEntity);
 
             // 执行节点_开始
+            outputContent.setLength(0);
             AbstractFlowNode abstractFlowNode = SpringUtil.getBean(FLOW_STEP_NODE + node.getType());
             abstractFlowNode.setFlowNodes(nodes);
             CompletableFuture<Void>  future =  abstractFlowNode.executeNode(node ,
@@ -441,9 +470,11 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
             } catch (InterruptedException | ExecutionException e) {
                 throw new RuntimeException(e);
             }
+            flowNodeExecutionEntity.setExecuteInfo(outputContent.toString());
             // 执行节点_结束
             flowNodeExecutionEntity.setExecutionStatus(FlowExecutionStatus.COMPLETED.getCode());
             flowNodeExecutionEntity.setFinishTime(new Date());
+            flowNodeExecutionEntity.setProgress(100);
             flowNodeExecutionService.update(flowNodeExecutionEntity);
 
         } , chatThreadPool) ;
@@ -803,6 +834,55 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
     public CompletableFuture<String> tryRun(Long processDefinitionId) {
         log.debug("尝试运行工作流: {}", processDefinitionId);
         return runRoleFlow(processDefinitionId);
+    }
+
+    @Override
+    public LastExecuteFlowDto getLastExecutedFlow(Long processDefinitionId, Long executeId) {
+
+        LastExecuteFlowDto lastExecuteFlowDto = new LastExecuteFlowDto() ;
+
+        FlowEntity lastExecutedFlow = null ;
+        FlowExecutionEntity flowExecutionEntity = null ;
+        if(executeId != null) {
+            flowExecutionEntity = flowExecutionService.getById(executeId) ;
+        }else{
+            lastExecutedFlow = getLatestPublishedFlowByProcessDefinitionId(processDefinitionId) ;
+            String runUniqueNumber = lastExecutedFlow.getRunUniqueNumber() ;
+
+            LambdaQueryWrapper<FlowExecutionEntity> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(FlowExecutionEntity::getRunUniqueNumber, runUniqueNumber) ;
+            queryWrapper.eq(FlowExecutionEntity::getFlowId, lastExecutedFlow.getId()) ;
+
+            // 获取到流程实例
+            flowExecutionEntity = flowExecutionService.getOne(queryWrapper) ;
+        }
+
+
+        if(flowExecutionEntity == null){
+            lastExecuteFlowDto.setStatus(FlowExecutionStatus.NOT_RUN.getCode());
+            return lastExecuteFlowDto ;
+        }
+
+        lastExecuteFlowDto.setStatus(flowExecutionEntity.getExecutionStatus());
+
+        // 获取到实例的节点
+        LambdaQueryWrapper<FlowNodeExecutionEntity> queryNodeWrapper = new LambdaQueryWrapper<>();
+        queryNodeWrapper.eq(FlowNodeExecutionEntity::getFlowExecutionId, flowExecutionEntity.getId()) ;
+        List<FlowNodeExecutionEntity> flowNodeExecutionEntities = flowNodeExecutionService.list(queryNodeWrapper) ;
+
+        List<FlowNodeExecutionDto> flowNodeExecutionDtos =  flowNodeExecutionEntities.stream().map(item -> {
+            FlowNodeExecutionDto dto = new FlowNodeExecutionDto() ;
+            BeanUtils.copyProperties(item , dto) ;
+
+            JSONObject jsonNode = JSON.parseObject(item.getProperties()) ;
+            dto.setNode(jsonNode) ;
+
+            return dto ;
+        }).toList();
+
+        lastExecuteFlowDto.setFlowNode(flowNodeExecutionDtos);
+
+        return lastExecuteFlowDto ;
     }
 
 }
