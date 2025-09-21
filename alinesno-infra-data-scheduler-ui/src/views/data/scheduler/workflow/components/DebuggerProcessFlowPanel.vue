@@ -1,7 +1,7 @@
 <template>
   <div>
-  <el-scrollbar style="height:calc(100vh - 230px)">
-    <div class="debugger-process-flow-panel">
+  <el-scrollbar style="height:calc(100vh - 230px)" ref="scrollbarRef" >
+    <div class="debugger-process-flow-panel" ref="innerRef">
       <div
         class="flow-panel-item"
         v-for="(item, index) in nodes"
@@ -9,29 +9,31 @@
       >
         <div class="left">
           <div class="index">{{ index + 1 }}</div>
-          <div class="icon">
-            <i class="arrow">→</i>
-          </div>
+            <!-- 运行中显示 loading 图标 -->
+            <el-button v-if="item.executionStatus === 'executing'" type="warning" text bg size="large" circle loading>
+            </el-button>
+            <el-button v-if="item.executionStatus === 'completed'" type="success" text bg  size="large" circle>
+              <i class="fa-solid fa-check"></i>
+            </el-button>
           <div class="meta">
-            <div class="flow-panel-item-title">{{ item.title }}</div>
-            <div class="node">节点: {{ item.node }}</div>
+            <div class="flow-panel-item-title">
+              <span class="flow-panel-item-title-icon">
+                <!-- <i :class="item.node.icon"></i> -->
+                <img :src="getTaskIconPath(item.node.icon)" />
+              </span>
+              {{ item.node.stepName }}
+            </div>
+            <!-- <div class="node">节点: {{ item.node }}</div> -->
           </div>
 
           <div class="right">
-            <div class="time">{{ item.time }}</div>
+            <div class="time" >
+              <span v-if="item.executeTime && item.finishTime">
+                ({{ usageTime(item.executeTime, item.finishTime)?.text}})
+              </span>
+              {{ item.addTime }}
+            </div>
 
-            <!-- 运行中显示 loading 图标 -->
-            <el-icon
-              v-if="item.status === '运行中'"
-              class="status-loading-icon"
-              aria-hidden="true"
-            >
-              <Loading />
-            </el-icon>
-
-            <el-tag :type="statusTagType(item.status)" size="mini">
-              {{ item.status }}
-            </el-tag>
 
             <div class="log" @click="openLog(item)">查看日志</div>
           </div>
@@ -39,8 +41,8 @@
 
         <div class="center">
           <div class="debugger-message">
-            <el-text line-clamp="2">
-              {{ item.message }}
+            <el-text line-clamp="2" style="line-height: 1.5rem;">
+              {{ item.executeInfo ? item.executeInfo: '暂时未有运行日志'  }}
             </el-text>
           </div>
 
@@ -59,11 +61,10 @@
   </el-scrollbar>
 
   <div style="margin-top:15px;">
-    <el-button type="primary" @click="handleTryRun()"> 
+    <el-button type="primary" 
+        :loading="!isCompleted"
+        @click="handleTryRun()"> 
       <i class="fa-solid fa-paper-plane"></i> &nbsp; 开始执行 
-    </el-button>
-    <el-button type="danger"> 
-      <i class="fa-solid fa-circle-stop"></i> &nbsp; 停止 
     </el-button>
   </div>
 
@@ -73,153 +74,37 @@
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
+import { reactive, ref, onMounted, onUnmounted, watch, getCurrentInstance, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
 import {
-  tryRun
+  tryRun,
+  getLastExecutedFlowNodes
 } from '@/api/data/scheduler/flow'
 
 import LogViewer from './LogViewer.vue' // 请根据实际路径调整
 
+const innerRef = ref(null); // 滚动条的处理_starter
+const scrollbarRef = ref(null);
+
 const router = useRouter();
 const currentProcessDefinitionId = ref(router.currentRoute.value.query.processDefinitionId);
 
-const nodes = reactive([
-  {
-    id: 1,
-    title: '开始处理批次 #20210809-01',
-    node: '提取数据源',
-    message: '成功提取 15,428 行数据，准备进入清洗阶段',
-    status: '成功',
-    time: '2021-08-09 10:05:05',
-    progress: 100,
-    log: '提取完成，耗时 12s，行数：15428\n详细：source=db1.table_a; filter=enabled=1'
-  },
-  {
-    id: 2,
-    title: '数据清洗',
-    node: '清洗',
-    message: '清洗中：发现空值 124 行，已做填充处理',
-    status: '运行中',
-    time: '2021-08-09 10:05:20',
-    progress: 65,
-    log: '清洗进度 65%。替换 null、标准化日期格式。\n示例：col_birth: 2020-01-01 -> 2020-01-01'
-  },
-  {
-    id: 3,
-    title: '字段映射与转换',
-    node: '转换',
-    message: '字段映射规则应用完成，部分记录触发类型转换警告',
-    status: '成功',
-    time: '2021-08-09 10:06:12',
-    progress: 100,
-    log: '转换完成，警告：年龄字段 3 条非数值，已置为默认值 0\nrowIds: 1101, 1145, 1189'
-  },
-  {
-    id: 4,
-    title: '数据校验',
-    node: '验证',
-    message: '校验失败：发现主键冲突 2 条，需要人工确认',
-    status: '异常',
-    time: '2021-08-09 10:06:50',
-    progress: null,
-    log: '校验错误：主键重复 id=1001, id=1002\n建议：人工合并或跳过重复记录'
-  },
-  {
-    id: 5,
-    title: '加载至临时表',
-    node: '加载',
-    message: '正在写入临时表，写入速率 1200 rows/s',
-    status: '运行中',
-    time: '2021-08-09 10:07:05',
-    progress: 45,
-    log: '加载中，当前写入 7,000 / 15,428\n目标表: tmp_etl_20210809'
-  },
-  {
-    id: 6,
-    title: '聚合统计',
-    node: '聚合',
-    message: '聚合任务排队，等待上一个节点完成后执行',
-    status: '开始',
-    time: '2021-08-09 10:07:20',
-    progress: null,
-    log: '聚合已加入队列，规则：按 region 分组计算 sum/avg'
-  },
-  {
-    id: 7,
-    title: '建立索引',
-    node: '索引',
-    message: '索引构建任务已触发，预计耗时 30s',
-    status: '开始',
-    time: '2021-08-09 10:07:35',
-    progress: null,
-    log: '索引任务已创建，字段: user_id_idx'
-  },
-  {
-    id: 8,
-    title: '质量回滚检查',
-    node: '回滚检查',
-    message: '检查通过，无需回滚',
-    status: '成功',
-    time: '2021-08-09 10:07:50',
-    progress: 100,
-    log: '数据完整性检查 OK，checksum 对比通过'
-  },
-  {
-    id: 6,
-    title: '聚合统计',
-    node: '聚合',
-    message: '聚合任务排队，等待上一个节点完成后执行',
-    status: '开始',
-    time: '2021-08-09 10:07:20',
-    progress: null,
-    log: '聚合已加入队列，规则：按 region 分组计算 sum/avg'
-  },
-  {
-    id: 7,
-    title: '建立索引',
-    node: '索引',
-    message: '索引构建任务已触发，预计耗时 30s',
-    status: '开始',
-    time: '2021-08-09 10:07:35',
-    progress: null,
-    log: '索引任务已创建，字段: user_id_idx'
-  },
-  {
-    id: 8,
-    title: '质量回滚检查',
-    node: '回滚检查',
-    message: '检查通过，无需回滚',
-    status: '成功',
-    time: '2021-08-09 10:07:50',
-    progress: 100,
-    log: '数据完整性检查 OK，checksum 对比通过'
-  },
-  {
-    id: 9,
-    title: '归档历史数据',
-    node: '归档',
-    message: '归档中：已处理 2 / 5 个分区',
-    status: '运行中',
-    time: '2021-08-09 10:08:05',
-    progress: 40,
-    log: '归档过程，中间文件 3 个，目标路径: s3://company/archive/2021-08-09/'
-  },
-  {
-    id: 10,
-    title: '完成通知',
-    node: '通知',
-    message: '等待所有节点完成后发送通知',
-    status: '开始',
-    time: '2021-08-09 10:08:20',
-    progress: null,
-    log: '通知服务已就绪，通知目标：ops@example.com'
-  }
-])
+const nodes = ref([])
 
 const logDialogVisible = ref(false)
 const currentLog = ref('')
 const currentTitle = ref('')
+
+function initChatBoxScroll() {
+
+  nextTick(() => {
+    const element = innerRef.value;  // 获取滚动元素
+    const scrollHeight = element.scrollHeight;
+
+    scrollbarRef.value.setScrollTop(scrollHeight);
+  })
+
+}
 
 function openLog(item) {
   currentTitle.value = `${item.node} - ${item.title}`
@@ -227,26 +112,161 @@ function openLog(item) {
   logDialogVisible.value = true
 }
 
-function statusTagType(status) {
-  switch (status) {
-    case '开始':
-      return '' // default
-    case '运行中':
-      return 'warning'
-    case '异常':
-      return 'danger'
-    case '成功':
-      return 'success'
-    default:
-      return ''
+const usageTime = (executeTime, finishTime) => {
+  // 支持两种调用方式：xxx({ executeTime, finishTime }) 或 xxx(executeTime, finishTime)
+  if (typeof executeTime === 'object' && executeTime !== null) {
+    finishTime = executeTime.finishTime;
+    executeTime = executeTime.executeTime;
   }
+
+  if (!executeTime || !finishTime) return null;
+
+  const start = new Date(executeTime);
+  const end = new Date(finishTime);
+  if (isNaN(start.getTime()) || isNaN(end.getTime())) return null;
+
+  // 计算差值（毫秒）
+  let diffMs = end.getTime() - start.getTime();
+  // 若结束时间早于开始时间，取绝对值（可根据需要改为返回 null）
+  if (diffMs < 0) diffMs = Math.abs(diffMs);
+
+  // 秒（四舍五入到整数秒）
+  const seconds = Math.round(diffMs / 1000);
+
+  // 分钟（保留最多两位小数，去掉多余的0）
+  const rawMinutes = seconds / 60;
+  const minutes = parseFloat(rawMinutes.toFixed(2)); // 例如 1.5 -> 1.5；2.00 -> 2
+
+  const text = seconds < 60 ? `${seconds}秒` : `${minutes}分钟`;
+
+  return { seconds, minutes, text };
+};
+
+// ---------- 轮询逻辑 ----------
+let timer = null
+const isCompleted = ref(true)
+const pollingInterval = 2000
+const isPolling = ref(false)
+
+async function fetchNodes() {
+  if (!currentProcessDefinitionId.value) {
+    return
+  }
+
+    getLastExecutedFlowNodes(currentProcessDefinitionId.value).then(resp => {
+
+      let dataList = []
+      if (!resp || resp.status === 'no_run') {
+        // nothing
+        return
+      }
+
+      console.log('getLastExecutedFlowNodes = ' + JSON.stringify(resp))
+
+      // 如果已经结束则停止轮询
+      if (resp.status === 'completed') {
+        console.log('任务已结束，停止轮询')
+        // stopPolling();
+      }
+
+      if (Array.isArray(resp.data)) {
+        dataList = resp.data 
+      } else if (Array.isArray(resp.data)) {
+        dataList = resp.data
+      } else if (Array.isArray(resp.result)) {
+        dataList = resp.result
+      } else {
+        // 如果数据在 ajax 本体的某个字段，请根据实际后端返回结构调整这里
+        // 不存在数组则直接返回
+        return
+      }
+
+      nodes.value = dataList ;
+
+      initChatBoxScroll();
+    })
+
+  // try {
+  //   const resp = await getLastExecutedFlowNodes(currentProcessDefinitionId.value)
+
+  //   let dataList = []
+  //   if (!resp || resp.status === 'no_run') {
+  //     // nothing
+  //     return
+  //   }
+
+  //   console.log('getLastExecutedFlowNodes = ' + JSON.stringify(resp))
+
+  //   // 如果已经结束则停止轮询
+  //   if (resp.status === 'completed') {
+  //     console.log('任务已结束，停止轮询')
+  //     // stopPolling();
+  //   }
+
+  //   if (Array.isArray(resp.data)) {
+  //     dataList = resp.data 
+  //   } else if (Array.isArray(resp.data)) {
+  //     dataList = resp.data
+  //   } else if (Array.isArray(resp.result)) {
+  //     dataList = resp.result
+  //   } else {
+  //     // 如果数据在 ajax 本体的某个字段，请根据实际后端返回结构调整这里
+  //     // 不存在数组则直接返回
+  //     return
+  //   }
+
+  //   nodes.value = dataList ;
+  // } catch (error) {
+  //   // 可以选择在出错时停止轮询或仅打印错误
+  //   console.error('fetchNodes error:', error)
+  // }
+
+}
+
+function startPolling() {
+  if (isPolling.value) return
+  isPolling.value = true
+  // 立即执行一次
+  fetchNodes()
+  timer = setInterval(() => {
+    fetchNodes()
+  }, pollingInterval)
+}
+
+function stopPolling() {
+  if (timer) {
+    clearInterval(timer)
+    timer = null
+  }
+  isPolling.value = false
 }
 
 const handleTryRun = () => {
+  isCompleted.value = false ;
+
   tryRun(currentProcessDefinitionId.value).then(response => {
-    ElMessage.success('开始执行成功');
+
+    isCompleted.value = true;
+    ElMessage.success('任务执行结束');
+
+  }).catch(error => {
+    isCompleted.value = true;
   })
 }
+
+
+// 当组件卸载时清除定时器
+onUnmounted(() => {
+  stopPolling()
+})
+
+// 建议父组件通过 ref 显式控制（drawer 打开/关闭时），因此暴露 start/stop 方法
+defineExpose({
+  startPolling,
+  stopPolling,
+  fetchNodes,
+  isPolling
+})
 
 </script>
 
@@ -354,7 +374,7 @@ const handleTryRun = () => {
       margin-left: auto;
 
       .time {
-        font-size: 12px;
+        font-size: 14px;
         color: #999;
       }
 
@@ -385,5 +405,11 @@ const handleTryRun = () => {
 @keyframes spin {
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
+}
+
+.flow-panel-item-title-icon{
+  img {
+    width: 30px;
+  }
 }
 </style>
