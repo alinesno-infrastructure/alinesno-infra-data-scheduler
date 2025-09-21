@@ -1,12 +1,15 @@
 package com.alinesno.infra.data.scheduler.workflow.nodes.step;
 
 import com.alibaba.fastjson.JSONObject;
+import com.alinesno.infra.data.scheduler.entity.DataSourceEntity;
+import com.alinesno.infra.data.scheduler.service.IDataSourceService;
 import com.alinesno.infra.data.scheduler.workflow.constants.FlowConst;
 import com.alinesno.infra.data.scheduler.workflow.nodes.AbstractFlowNode;
 import com.alinesno.infra.data.scheduler.workflow.nodes.variable.step.SqlNodeData;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +27,9 @@ import java.util.concurrent.CompletableFuture;
 @EqualsAndHashCode(callSuper = true)
 public class SqlNode extends AbstractFlowNode {
 
+    @Autowired
+    private IDataSourceService dataSourceService;
+
     /**
      * 构造函数，初始化节点类型为 "reply"。
      */
@@ -37,6 +43,12 @@ public class SqlNode extends AbstractFlowNode {
             SqlNodeData nodeData = getNodeData();
             log.debug("nodeData = {}" , nodeData);
             log.debug("node type = {} output = {}" , node.getType() , output);
+
+            Long datasourceId = nodeData.getDataSourceId();
+            DataSourceEntity dataSourceEntity = dataSourceService.getById(datasourceId)  ;
+
+            outputContent.append("数据源ID：").append(datasourceId).append("\r\n")  ;
+            outputContent.append("数据源名称：").append(dataSourceEntity.getReaderDesc()).append("\r\n") ;
 
             String sqlContent = nodeData.getSqlContent();
 
