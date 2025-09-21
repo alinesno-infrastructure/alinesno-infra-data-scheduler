@@ -28,6 +28,7 @@ import './permission' // permission control
 
 import { useDict } from '@/utils/dict'
 import { parseTime, resetForm, imagePath , addDateRange, handleTree, selectDictLabel, selectDictLabels } from '@/utils/ruoyi'
+import { getTaskIconPath } from '@/utils/llmIcons'
 
 // 分页组件
 import Pagination from '@/components/Pagination'
@@ -56,6 +57,7 @@ app.config.globalProperties.$echarts = echarts
 // 全局方法挂载
 app.config.globalProperties.useDict = useDict
 app.config.globalProperties.download = download
+app.config.globalProperties.getTaskIconPath = getTaskIconPath
 app.config.globalProperties.parseTime = parseTime
 app.config.globalProperties.resetForm = resetForm
 app.config.globalProperties.imagePath = imagePath 
