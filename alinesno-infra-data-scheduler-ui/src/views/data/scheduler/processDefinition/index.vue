@@ -86,7 +86,7 @@
                <el-table-column label="运行次数" align="center" key="jobDesc" prop="jobDesc" v-if="columns[1].visible">
                   <template #default="scope">
                      <div style="margin-top: 5px;">
-                        <router-link :to="{ path: '/data/scheduler/processInstance/index', query: { processId: scope.row.id , fromWhere: 'process' } }">
+                        <router-link :to="{ path: '/data/scheduler/processInstance/index', query: { processDefinitionId: scope.row.id , fromWhere: 'process' } }">
                            <el-button type="primary" text> 
                               <i class="fa-solid fa-truck-fast" style="margin-right:5px;"></i>
                               次数: {{ scope.row.runCount }}({{ scope.row.successCount }}) 条 
