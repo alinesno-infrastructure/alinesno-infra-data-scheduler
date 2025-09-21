@@ -72,6 +72,8 @@ public class AiChatNode extends AbstractFlowNode {
         // 3. 替换占位符（同步逻辑）
         String prompt = replacePlaceholders(nodeData.getPrompt());
 
+        outputContent.append("对话生成中，指令:").append(prompt);
+
         // 4. 异步调用 LLM 接口（核心异步逻辑，使用 llmExecutor）
         return getAiChatResultAsync(llm, prompt)
                 .orTimeout(120, TimeUnit.SECONDS) // 设置超时（必加！避免永久阻塞）
@@ -79,6 +81,10 @@ public class AiChatNode extends AbstractFlowNode {
                     // 5. 处理 LLM 结果（异步回调，使用 orchestratorExecutor 处理短任务）
                     output.put(node.getStepName() + ".answer", chatResult);
                     output.put(node.getStepName() + ".reasoning_content", chatResult);
+
+                    // AI对话内容
+                    outputContent.append("AI对话内容").append(chatResult);
+
                     // 打印内容到输出（若配置）
                     if (node.isPrint()) {
                         try {
