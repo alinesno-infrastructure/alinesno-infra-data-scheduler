@@ -42,7 +42,8 @@
       <div class="node-title">
         <div class="node-title-label">
           <span class="node-icon">
-            <i :class="props.properties.icon"></i>
+            <!-- <i :class="props.properties.icon"></i> -->
+            <img :src="getTaskIconPath(props.properties.icon)" />
           </span>
           <span class="node-name" v-if="showEditorName()">
             <FlowEditorStepPanel
@@ -95,6 +96,7 @@ import { set } from 'lodash'
 import { computed } from 'vue';
 import { ElMessage } from 'element-plus';
 import { copyClick } from '@/utils/clipboard'
+import { getTaskIconPath } from '@/utils/llmIcons'
 
 import { useWorkflowStore } from '@/store/modules/workflowStore'; // 导入 Pinia Store
 import { initDefaultShortcut } from '@/views/data/scheduler/workflow/common/shortcut'; // 替换为实际的模块路径
