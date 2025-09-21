@@ -12,6 +12,11 @@ import lombok.Getter;
 public enum FlowExecutionStatus {
 
     /**
+     * 未运行
+     */
+    NOT_RUN("not_run", "未运行"),
+
+    /**
      * 表示流程正在执行的状态。
      * 对应的代码为 "executing"，标签为 "执行中"。
      */
