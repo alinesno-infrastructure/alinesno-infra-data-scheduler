@@ -91,13 +91,13 @@ export const constantRoutes = [
       },
 
       // ->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-      {
-        path: '/data/scheduler/project/index',
-        name: 'data.scheduler.project.index',
-        hidden: true,
-        component: () => import('@/views/data/scheduler/project/index'),
-        meta: { title: '项目管理', icon: 'fa-solid fa-feather', affix: true }
-      },
+      // {
+      //   path: '/data/scheduler/project/index',
+      //   name: 'data.scheduler.project.index',
+      //   hidden: true,
+      //   component: () => import('@/views/data/scheduler/project/index'),
+      //   meta: { title: '项目管理', icon: 'fa-solid fa-feather', affix: true }
+      // },
       {
         path: '/data/scheduler/processDefinition/index',
         name: 'data.scheduler.processDefinition.index',
