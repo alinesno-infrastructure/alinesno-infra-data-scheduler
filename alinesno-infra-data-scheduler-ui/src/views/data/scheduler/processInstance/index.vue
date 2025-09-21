@@ -11,8 +11,14 @@
       </el-page-header>
 
       <el-row :gutter="20">
+
          <!--应用数据-->
-         <el-col :span="24" :xs="24">
+         <el-col :span="10" :xs="24">
+            <LeftProcessDefinitionPanel />
+         </el-col>
+
+         <!--应用数据-->
+         <el-col :span="14" :xs="24">
             <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="100px">
                <el-form-item label="应用名称" prop="dbName">
                   <el-input v-model="queryParams.dbName" placeholder="请输入应用名称" clearable style="width: 240px"
@@ -36,53 +42,44 @@
             <el-table v-loading="loading" :data="ProcessInstanceList" @selection-change="handleSelectionChange">
                <el-table-column type="selection" width="50" align="center" />
 
+               <el-table-column label="图标" align="center" key="projectName" prop="projectName" width="50" v-if="columns[0].visible"
+                  :show-overflow-tooltip="true">
+                  <template #default="scope">
+                     <i class="fa-solid fa-sun" style="font-size:17px;margin-right:5px"></i>
+                  </template>
+               </el-table-column>
+
                <!-- 业务字段-->
                <el-table-column label="任务名称" align="left" key="projectName" prop="projectName" v-if="columns[0].visible"
                   :show-overflow-tooltip="true">
                   <template #default="scope">
                      <div>
-                        <i class="fa-solid fa-sun" style="font-size:17px;margin-right:5px"></i> {{ scope.row.name }}
+                        {{ scope.row.name }}#{{ scope.row.runTimes }}
                      </div>
-                     <div style="font-size: 13px;margin-left:25px;color: #a5a5a5;cursor: pointer;"
+                     <div style="font-size: 13px;color: #a5a5a5;cursor: pointer;"
                         v-copyText="scope.row.promptId">
-                        耗时: <span>{{ getTimeDifference(scope.row.startTime, scope.row.endTime).seconds }} 秒</span>
+                        耗时: <span>{{ getTimeDifference(scope.row.executeTime , scope.row.finishTime).seconds }} 秒</span>
                      </div>
                   </template>
                </el-table-column>
 
-               <el-table-column label="当前流程节点" width="250" align="center" key="jobDesc" prop="jobDesc"
-                  v-if="columns[1].visible">
-                  <template #default="scope">
-                     <div style="margin-top: 5px;">
-                        <el-button type="primary" text> <i class="fa-solid fa-truck-fast"
-                              style="margin-right:2px;"></i></el-button>
-                        <i class="fa-solid fa-angles-right" style="font-size:0.8rem;margin-top:10px"></i>
-                        <el-button type="success" text> <i class="fa-solid fa-feather"
-                              style="margin-right:2px"></i></el-button>
-                        <i class="fa-solid fa-angles-right" style="font-size:0.8rem;margin-top:10px"></i>
-                        <el-button type="success" text> <i class="fa-solid fa-feather"
-                              style="margin-right:2px"></i></el-button>
-                     </div>
-                  </template>
-               </el-table-column>
-
-               <el-table-column label="流程任务" width="130" align="center" key="jobDesc" prop="jobDesc"
+               <el-table-column label="流程任务" width="100" align="center" key="jobDesc" prop="jobDesc"
                   v-if="columns[1].visible">
                   <template #default="scope">
                      <div style="margin-top: 5px;">
                         <el-button type="primary" text @click="handleProcessTaskInstance(scope.row)">
-                           <i class="fa-solid fa-truck-fast" style="margin-right:5px"></i> 流程任务
+                           <i class="fa-solid fa-truck-fast" style="margin-right:5px"></i> 流程
                         </el-button>
                      </div>
                   </template>
                </el-table-column>
 
-               <el-table-column label="日志" width="130" align="center" key="jobDesc" prop="jobDesc"
+               <el-table-column label="日志" width="100" align="center" key="jobDesc" prop="jobDesc"
                   v-if="columns[1].visible">
                   <template #default="scope">
                      <div style="margin-top: 5px;">
                         <el-button type="primary" text @click="handleProcessInstanceLog(scope.row)">
-                           <i class="fa-solid fa-ferry" style="margin-right:5px"></i> 运行日志
+                           <i class="fa-solid fa-ferry" style="margin-right:5px"></i> 日志
                         </el-button>
                      </div>
                   </template>
@@ -91,34 +88,33 @@
                <el-table-column label="运行状态" align="center" width="140" key="projectCode" prop="projectCode"
                   v-if="columns[2].visible" :show-overflow-tooltip="true">
                   <template #default="scope">
-                     <el-button type="primary" v-if="scope.row.state == 1" text loading>
-                        <i class="fa-solid fa-file-signature"></i>运行中
+                     <el-button type="primary" v-if="scope.row.executionStatus == 'executing'" text loading>
+                        <i class="fa-solid fa-file-signature"></i> 
+                        {{ scope.row.executionStatusLabel }}
                      </el-button>
-                     <el-button type="danger" v-if="scope.row.state == 3" text>
-                        <i class="fa-solid fa-file-circle-xmark"></i>失败
+                     <el-button type="danger" v-if="scope.row.executionStatus == 'error'" text>
+                        <i class="fa-solid fa-file-circle-xmark"></i> &nbsp; 
+                        {{ scope.row.executionStatusLabel }}
                      </el-button>
-                     <el-button type="success" v-if="scope.row.state == 4" text>
-                        <i class="fa-solid fa-file-shield"></i> 结束
+                     <el-button type="success" v-if="scope.row.executionStatus == 'completed'" text>
+                        <i class="fa-solid fa-file-shield"></i> &nbsp; 
+                        {{ scope.row.executionStatusLabel }}
                      </el-button>
                   </template>
                </el-table-column>
 
-               <el-table-column label="开始时间" align="left" width="180" key="documentType" prop="documentType"
+               <el-table-column label="起止时间" align="left" width="180" key="documentType" prop="documentType"
                   v-if="columns[1].visible" :show-overflow-tooltip="true">
                   <template #default="scope">
-                     <div>{{ parseTime(scope.row.startTime) }}</div>
-                  </template>
-               </el-table-column>
-
-               <el-table-column label="结束时间" align="left" width="180" key="hasStatus" prop="hasStatus"
-                  v-if="columns[1].visible" :show-overflow-tooltip="true">
-                  <template #default="scope">
-                     <div>{{ parseTime(scope.row.endTime) }}</div>
+                     <div>
+                        <div>{{ parseTime(scope.row.executeTime) }}</div>
+                        <div>{{ parseTime(scope.row.finishTime) }}</div>
+                     </div>
                   </template>
                </el-table-column>
 
                <!-- 操作字段  -->
-               <el-table-column label="操作" align="center" width="150" class-name="small-padding fixed-width">
+               <el-table-column label="操作" align="center" width="100" class-name="small-padding fixed-width">
                   <template #default="scope">
                      <el-tooltip content="修改" placement="top" v-if="scope.row.ProcessInstanceId !== 1">
                         <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)"
@@ -138,9 +134,26 @@
       </el-row>
 
       <!-- 任务实例列表 -->
+      <!-- 
       <el-drawer v-model="openTaskInstanceDialog" :size="'50%'" :title="processDefinitionTitle" :direction="'rtl'">
          <ListInstance ref="processTaskDefinitionRef" />
-      </el-drawer>
+      </el-drawer>                               
+      -->
+
+      <!-- 试运行窗口 -->
+      <div class="aip-flow-drawer">
+         <el-drawer 
+               v-model="showDebugRunDialog" 
+               :modal="false" 
+               size="50%" 
+               style="max-width: 800px;position: absolute;" 
+               :title="executeInstanceTitle"
+               :with-header="true">
+               <div style="margin-top: 0px;">
+                  <DebuggerProcessFlowPanel ref="debuggerProcessFlowPanelRef" />
+               </div>
+         </el-drawer>
+      </div>
 
       <!-- 任务实例日志 -->
       <el-drawer v-model="openProcessInstanceLogDialog" class="process-instance-log-drawer" :with-header="false"
@@ -163,9 +176,11 @@ import {
    changStatusField
 } from "@/api/data/scheduler/processInstance";
 
+import LeftProcessDefinitionPanel from "@/views/data/scheduler/processDefinition/leftPanel.vue"
+import DebuggerProcessFlowPanel from './DebuggerProcessFlowPanel.vue'
 import ListInstance from '@/views/data/scheduler/taskInstance/listInstance.vue'
 import ProcessInstanceLog from './processInstanceLog.vue'
-import { onMounted } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { getParam } from "@/utils/ruoyi";
 
 const router = useRouter();
@@ -185,12 +200,20 @@ const title = ref("");
 const dateRange = ref([]);
 
 const fromWhere = ref(route.query.fromWhere);
+const processDefinitionId = computed(() => route.query.processDefinitionId);
+
 const headerContent = ref('实例运行列表');
 
+// 流程运行状态实例弹
+const debuggerProcessFlowPanelRef = ref(null);
+const showDebugRunDialog = ref(false);
+
 // 是否打开配置文档
-const processTaskDefinitionRef = ref(null);
-const openTaskInstanceDialog = ref(false);
-const processDefinitionTitle = ref('')
+// const processTaskDefinitionRef = ref(null);
+// const openTaskInstanceDialog = ref(false);
+// const processDefinitionTitle = ref('')
+
+const executeInstanceTitle = ref('');
 
 const processInstanceLogRef = ref(null)
 const openProcessInstanceLogDialog = ref(false);
@@ -340,10 +363,17 @@ function handleConfigType(id, documentType) {
 
 /** 打开任务实例界面 */
 function handleProcessTaskInstance(row) {
-   openTaskInstanceDialog.value = true
-   processDefinitionTitle.value = row.name
+   // openTaskInstanceDialog.value = true
+   // processDefinitionTitle.value = row.name
+   // nextTick(() => {
+   //    processTaskDefinitionRef.value.getList(row.id);
+   // })
+
+   executeInstanceTitle.value = row.name + '#' + row.runTimes ;
+
+   showDebugRunDialog.value = true;
    nextTick(() => {
-      processTaskDefinitionRef.value.getList(row.id);
+      debuggerProcessFlowPanelRef.value.getList(row.processDefinitionId , row.id);
    })
 }
 
@@ -415,12 +445,63 @@ function goBack() {
    }
 }
 
+const trialRun = () => {
+    console.log('试运行操作');
+    showDebugRunDialog.value = true;
+};
+
+watch(showDebugRunDialog, async (visible) => {
+  // 等待子组件挂载并渲染
+  await nextTick()
+  const comp = debuggerProcessFlowPanelRef.value
+  if (!comp) return
+  if (visible) {
+    // 打开抽屉时开始轮询
+    comp.startPolling && comp.startPolling()
+  } else {
+    // 关闭抽屉时停止轮询
+    comp.stopPolling && comp.stopPolling()
+  }
+})
+
+// 修改监听方式，直接监听路由变化
+watch(
+  () => route.query.processDefinitionId,
+  async (newVal, oldVal) => {
+    if (newVal && newVal !== oldVal) { // 确保值变化且不为空
+      queryParams.value.processDefinitionId = newVal;
+      queryParams.value.pageNum = 1; // 重置页码
+      getList();
+    }
+  },
+  { immediate: true } // 初始加载时执行一次
+);
+
+/**
+ * 页面加载时
+ */
 onMounted(() => {
-   const processId = getParam('processId')
-   if (processId) {
-      queryParams.value.processId = processId
-   }
-   getList();
+  // 简化初始化逻辑，由watch的immediate选项处理
+  getList();
 });
 
 </script>
+
+<style>
+.flow-control-panel .el-card__body {
+    padding: 13px !important
+}
+
+.aip-flow-drawer .el-drawer.ltr,
+.aip-flow-drawer .el-drawer.rtl {
+    height: 93%;
+    bottom: 10px;
+    top: auto;
+    right: 10px;
+    border-radius: 8px;
+}
+
+.aip-flow-drawer .el-drawer__header {
+    margin-bottom: 0px;
+}
+</style>
