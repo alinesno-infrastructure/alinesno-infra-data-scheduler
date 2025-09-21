@@ -2,6 +2,7 @@ package com.alinesno.infra.data.scheduler.workflow.service;
 
 import com.alinesno.infra.common.facade.services.IBaseService;
 import com.alinesno.infra.data.scheduler.workflow.dto.FlowDto;
+import com.alinesno.infra.data.scheduler.workflow.dto.LastExecuteFlowDto;
 import com.alinesno.infra.data.scheduler.workflow.dto.WorkflowRequestDto;
 import com.alinesno.infra.data.scheduler.workflow.entity.FlowEntity;
 
@@ -63,4 +64,13 @@ public interface IFlowService extends IBaseService<FlowEntity> {
      * @return
      */
     CompletableFuture<String> tryRun(Long processDefinitionId);
+
+    /**
+     * 获取最近一次执行工作流
+     *
+     * @param processDefinitionId
+     * @param executeId
+     * @return
+     */
+    LastExecuteFlowDto getLastExecutedFlow(Long processDefinitionId, Long executeId);
 }
