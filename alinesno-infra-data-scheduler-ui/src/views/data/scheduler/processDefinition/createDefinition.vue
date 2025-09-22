@@ -22,7 +22,7 @@
 
       <div class="page-header-btn-container">
         <el-button type="primary" icon="Position" size="large" text bg @click="handlePublishedFlow">
-          发布角色
+          发布流程
         </el-button>
       </div>
     </div>
@@ -31,7 +31,7 @@
     <el-row>
       <el-col :span="24" v-loading="loading" element-loading-text="任务正在生成中，请勿刷新 ..." :element-loading-spinner="svg">
         <div class="workflow-main-panel" id="workflowMainPanelId">
-          <flowPanel ref="workflowRef" />
+          <flowPanel ref="workflowRef" @saveFlow="saveFlow" />
         </div>
       </el-col>
     </el-row>
@@ -96,8 +96,19 @@ const handleGetLastFlow = () => {
   });
 }
 
+/** 保存流程 */
+const saveFlow = (flowId) => { 
+  console.log('saveFlow = ' + flowId)
+  currentFlow.value.id = flowId;
+}
+
 /** 发布当前节点 */
 const handlePublishedFlow = () => {
+  if(!currentFlow.value.id){
+    ElMessage.error('请先保存流程');
+    return;
+  }
+
   publishedFlow(currentFlow.value.id).then(response => {
     ElMessage.success('发布成功');
     handleGetLastFlow();
