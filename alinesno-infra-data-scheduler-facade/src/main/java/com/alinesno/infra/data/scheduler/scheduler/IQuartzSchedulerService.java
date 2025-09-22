@@ -1,5 +1,8 @@
 package com.alinesno.infra.data.scheduler.scheduler;
 
+import com.alinesno.infra.data.scheduler.enums.JobStatusEnums;
+import lombok.SneakyThrows;
+
 import java.io.IOException;
 import java.sql.SQLException;
 
@@ -22,4 +25,13 @@ public interface IQuartzSchedulerService {
      */
     void addJob(String id, String jobCron);
 
+    /**
+     * 更新任务
+     * @param jobId
+     * @param newCron
+     */
+    void updateJobCron(String jobId, String newCron);
+
+    @SneakyThrows
+    JobStatusEnums getJobStatus(String jobId);
 }
