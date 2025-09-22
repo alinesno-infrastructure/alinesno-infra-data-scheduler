@@ -1,5 +1,15 @@
 <template>
   <div>
+      <div style="
+    padding: 10px;
+    font-weight: bold;
+    margin-left: 10px;
+    color: #333;
+    font-size: 17px;
+    margin-bottom: 18px;">
+    <i class="fa-solid fa-truck"></i>
+    {{ currentProcess?.name }} 运行实例列表
+      </div>
 
      <el-row :gutter="20">
         <!--应用数据-->
@@ -20,41 +30,40 @@
               <el-table-column label="任务名称" align="left" key="projectName" prop="projectName" v-if="columns[0].visible" :show-overflow-tooltip="true">
                  <template #default="scope">
                      <div>
-                        {{ scope.row.name}}
+                        {{ scope.row.name}}#{{ scope.row.runTimes }}
                      </div>
                   </template>
               </el-table-column>
 
-              <el-table-column label="状态" align="center" width="120" key="projectCode" prop="projectCode" v-if="columns[2].visible" :show-overflow-tooltip="true">
-                 <template #default="scope">
-                     <el-button type="primary" v-if="scope.row.state == 1" text loading>
-                        <i class="fa-solid fa-file-signature"></i>运行中
+               <el-table-column label="运行状态" align="center" width="140" key="projectCode" prop="projectCode"
+                  v-if="columns[2].visible" :show-overflow-tooltip="true">
+                  <template #default="scope">
+                     <el-button type="primary" v-if="scope.row.executionStatus == 'executing'" text loading>
+                        <i class="fa-solid fa-file-signature"></i> 
+                        {{ scope.row.executionStatusLabel }}
                      </el-button>
-                     <el-button type="danger" v-if="scope.row.state == 3" text>
-                        <i class="fa-solid fa-file-circle-xmark"></i>失败
+                     <el-button type="danger" v-if="scope.row.executionStatus == 'error'" text>
+                        <i class="fa-solid fa-file-circle-xmark"></i> &nbsp; 
+                        {{ scope.row.executionStatusLabel }}
                      </el-button>
-                     <el-button type="success" v-if="scope.row.state == 4" text>
-                        <i class="fa-solid fa-file-shield"></i> 结束
+                     <el-button type="success" v-if="scope.row.executionStatus == 'completed'" text>
+                        <i class="fa-solid fa-file-shield"></i> &nbsp; 
+                        {{ scope.row.executionStatusLabel }}
                      </el-button>
                   </template>
-              </el-table-column>
+               </el-table-column>
 
               <el-table-column label="用时" align="center" width="120" key="documentType" prop="documentType" v-if="columns[1].visible" :show-overflow-tooltip="true" >
                  <template #default="scope">
-                        <span>{{ getTimeDifference(scope.row.startTime , scope.row.endTime).seconds }} 秒</span>
+                        <span>{{ getTimeDifference(scope.row.executeTime , scope.row.finishTime).seconds }} 秒</span>
                  </template>
               </el-table-column>
 
               <el-table-column label="运行时间" align="center" width="280" key="hasStatus" prop="hasStatus" v-if="columns[1].visible" :show-overflow-tooltip="true" >
                  <template #default="scope">
-                     <div style="margin-top: 5px;">
-                        <el-button type="primary" text> 
-                           <i class="fa-solid fa-truck-fast" style="margin-right:5px;"></i>开始: {{ parseTime(scope.row.startTime) }} 
-                        </el-button>
-                        <br />
-                        <el-button type="danger" text> 
-                           <i class="fa-solid fa-feather" style="margin-right:5px"></i> 结束: {{ parseTime(scope.row.endTime) }} 
-                        </el-button>
+                     <div>
+                        <div>开始:  {{ parseTime(scope.row.executeTime) }}</div>
+                        <div>结束: {{ parseTime(scope.row.finishTime) }}</div>
                      </div>
                  </template>
               </el-table-column>
@@ -104,6 +113,7 @@ const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
 const dateRange = ref([]);
+const currentProcess = ref(null);
 
 // 是否打开配置文档
 const openDocumentTypeDialog = ref(false);
@@ -141,10 +151,11 @@ const data = reactive({
 const { queryParams, form, rules } = toRefs(data);
 
 /** 查询应用列表 */
-function getList(processId) {
+function getList(process) {
   loading.value = true;
+  currentProcess.value = process;
 
-  queryParams.value.processId = processId;
+  queryParams.value.processDefinitionId = process.id;
 
   listProcessInstance(proxy.addDateRange(queryParams.value, dateRange.value)).then(res => {
      loading.value = false;
@@ -274,32 +285,25 @@ function submitDocumentTypeForm(){
   // TODO 待保存应用文档类型
 }
 
+
 /** 计算两个时间间隔 */
 function getTimeDifference(startTime, endTime) {
+   // 解析ISO 8601格式的时间字符串为Date对象
+   const start = new Date(startTime);
+   const end = new Date(endTime);
 
-   if(!endTime){
-      return {
-         milliseconds: '-',
-         seconds: '-'
-      } 
-   }
+   // 计算时间差（以毫秒为单位）
+   const diffInMilliseconds = end - start;
 
-    // 解析ISO 8601格式的时间字符串为Date对象
-    const start = new Date(startTime);
-    const end = new Date(endTime);
+   // 可选：转换成更易读的格式，比如秒或分钟
+   const diffInSeconds = diffInMilliseconds / 1000;
+   const diffInMinutes = diffInSeconds / 60;
 
-    // 计算时间差（以毫秒为单位）
-    const diffInMilliseconds = end - start;
-
-    // 可选：转换成更易读的格式，比如秒或分钟
-    const diffInSeconds = diffInMilliseconds / 1000;
-    const diffInMinutes = diffInSeconds / 60;
-
-    // 返回所需的时间差单位，这里我们返回毫秒和秒两种形式
-    return {
-        milliseconds: diffInMilliseconds,
-        seconds: diffInSeconds
-    };
+   // 返回所需的时间差单位，这里我们返回毫秒和秒两种形式
+   return {
+      milliseconds: diffInMilliseconds,
+      seconds: diffInSeconds
+   };
 }
 
 // getList();
