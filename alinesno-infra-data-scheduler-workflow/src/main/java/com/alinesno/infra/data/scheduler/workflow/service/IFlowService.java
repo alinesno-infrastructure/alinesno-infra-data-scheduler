@@ -19,10 +19,12 @@ public interface IFlowService extends IBaseService<FlowEntity> {
 
     /**
      * 保存角色工作流信息
+     *
      * @param processDefinitionId
      * @param flowDto
+     * @return
      */
-    void saveRoleFlow(Long processDefinitionId, WorkflowRequestDto flowDto);
+    FlowEntity saveRoleFlow(Long processDefinitionId, WorkflowRequestDto flowDto);
 
     /**
      * 发布工作流
