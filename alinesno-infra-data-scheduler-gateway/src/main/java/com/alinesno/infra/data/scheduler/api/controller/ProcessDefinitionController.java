@@ -15,6 +15,7 @@ import com.alinesno.infra.common.web.adapter.rest.BaseController;
 import com.alinesno.infra.data.scheduler.api.*;
 import com.alinesno.infra.data.scheduler.constants.PipeConstants;
 import com.alinesno.infra.data.scheduler.entity.ProcessDefinitionEntity;
+import com.alinesno.infra.data.scheduler.scheduler.IQuartzSchedulerService;
 import com.alinesno.infra.data.scheduler.service.ICategoryService;
 import com.alinesno.infra.data.scheduler.service.IProcessDefinitionService;
 import io.swagger.annotations.Api;
@@ -52,6 +53,9 @@ public class ProcessDefinitionController extends BaseController<ProcessDefinitio
     private IProcessDefinitionService service;
 
     @Autowired
+    private IQuartzSchedulerService quartzSchedulerService ;
+
+    @Autowired
     private ICategoryService catalogService ;
 
     @Autowired
@@ -70,13 +74,8 @@ public class ProcessDefinitionController extends BaseController<ProcessDefinitio
     @PostMapping("/datatables")
     public TableDataInfo datatables(HttpServletRequest request, Model model, DatatablesPageBean page) {
         log.debug("page = {}", ToStringBuilder.reflectionToString(page));
-
-//        CurrentProjectSession.filterProject(page);
-
         return this.toPage(model, this.getFeign(), page);
     }
-
-
 
     /**
      * 查询详情getProcessDefinitionByDto
@@ -143,11 +142,7 @@ public class ProcessDefinitionController extends BaseController<ProcessDefinitio
     @DataPermissionSave
     @PostMapping("/saveProcessDefinition")
     public AjaxResult saveProcessDefinition(@RequestBody @Validated ProcessDefinitionSaveDto dto){
-
-        log.debug("dto = {}", dto);
-
         service.saveProcessDefinition(dto) ;
-
         return ok() ;
     }
 
@@ -157,16 +152,12 @@ public class ProcessDefinitionController extends BaseController<ProcessDefinitio
     @DataPermissionSave
     @PostMapping("/updateProcessDefinition")
     public AjaxResult updateProcessDefinition(@RequestBody ProcessDefinitionDto dto){
-        log.debug("dto = {}", dto);
-
         if("node".equals(dto.getType())){
             dto.setContext(null); // 清空上下文信息，只更新节点
         }
 
         List<ProcessTaskDto> taskFlow = dto.getTaskFlow() ;
         Assert.isTrue(taskFlow.size() > 1 , "流程定义为空,请定义流程.");
-
-//        dto.setProjectId(CurrentProjectSession.get().getId());
 
         service.updateProcessDefinition(dto) ;
         return AjaxResult.success() ;
@@ -179,12 +170,9 @@ public class ProcessDefinitionController extends BaseController<ProcessDefinitio
     @DataPermissionSave
     @PostMapping("/commitProcessDefinition")
     public AjaxResult commitProcessDefinition(@RequestBody ProcessDefinitionDto dto){
-        log.debug("dto = {}", dto);
 
         List<ProcessTaskDto> taskFlow = dto.getTaskFlow() ;
         Assert.isTrue(taskFlow.size() > 1 , "流程定义为空,请定义流程.");
-
-//        dto.setProjectId(CurrentProjectSession.get().getId());
 
         long processId = service.commitProcessDefinition(dto) ;
         return AjaxResult.success("success" , processId) ;
@@ -197,6 +185,12 @@ public class ProcessDefinitionController extends BaseController<ProcessDefinitio
      */
     @PostMapping("pauseTrigger")
     public AjaxResult pauseTrigger(String jobId) throws SchedulerException {
+
+        // 更新online状态
+        ProcessDefinitionEntity entity = service.getById(jobId) ;
+        entity.setOnline(false);
+        service.updateById(entity) ;
+
         scheduler.pauseTrigger(TriggerKey.triggerKey(jobId , PipeConstants.TRIGGER_GROUP_NAME));
         return AjaxResult.success();
     }
@@ -222,6 +216,12 @@ public class ProcessDefinitionController extends BaseController<ProcessDefinitio
      */
     @PostMapping("startJob")
     public AjaxResult startJob(String jobId) throws SchedulerException {
+
+        // 更新online状态
+        ProcessDefinitionEntity entity = service.getById(jobId) ;
+        entity.setOnline(true);
+        service.updateById(entity) ;
+
         scheduler.resumeTrigger(TriggerKey.triggerKey(jobId , PipeConstants.TRIGGER_GROUP_NAME));//恢复Trigger
         return AjaxResult.success();
     }
@@ -233,6 +233,12 @@ public class ProcessDefinitionController extends BaseController<ProcessDefinitio
      */
     @PostMapping("unscheduleJob")
     public AjaxResult unscheduleJob(String jobId) throws SchedulerException {
+
+        // 更新online状态
+        ProcessDefinitionEntity entity = service.getById(jobId) ;
+        entity.setOnline(false);
+        service.updateById(entity) ;
+
         scheduler.unscheduleJob(TriggerKey.triggerKey(jobId , PipeConstants.TRIGGER_GROUP_NAME));//移除触发器
         return AjaxResult.success();
     }
@@ -244,7 +250,35 @@ public class ProcessDefinitionController extends BaseController<ProcessDefinitio
      */
     @PostMapping("resumeTrigger")
     public AjaxResult resumeTrigger(String jobId) throws SchedulerException {
+
+        // 更新online状态
+        ProcessDefinitionEntity entity = service.getById(jobId) ;
+        entity.setOnline(true);
+        service.updateById(entity) ;
+
         scheduler.resumeTrigger(TriggerKey.triggerKey(jobId , PipeConstants.TRIGGER_GROUP_NAME)) ;
+        return AjaxResult.success();
+    }
+
+    /**
+     * 更新updateProcessDefineCron
+     * @return
+     */
+    @PostMapping("updateProcessDefineCron")
+    public AjaxResult updateProcessDefineCron(@RequestBody @Validated ProcessDefineCronDto dto) throws SchedulerException {
+        service.updateProcessDefineCron(dto) ;
+        return AjaxResult.success() ;
+    }
+
+    /**
+     * 删除任务
+     * @return
+     */
+    @DeleteMapping("deleteJob")
+    public AjaxResult deleteJob(@RequestParam String jobId) throws SchedulerException {
+
+        service.deleteJob(jobId);
+
         return AjaxResult.success();
     }
 
