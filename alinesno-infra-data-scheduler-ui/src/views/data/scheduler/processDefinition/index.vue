@@ -74,7 +74,7 @@
                <!-- 业务字段-->
                <el-table-column label="任务名称" align="left" key="name" prop="name" v-if="columns[0].visible">
                   <template #default="scope">
-                     <div @click="openProcessInstance(scope.row)" style="cursor: pointer;">
+                     <div @click="openProcessInstance(scope.row)" style="cursor: pointer;color: #3b5998;">
                         {{ scope.row.name }}
                      </div>
                      <div style="font-size: 13px;color: #a5a5a5;cursor: pointer;" class="text-overflow"
@@ -99,10 +99,10 @@
                   v-if="columns[2].visible">
                   <template #default="scope">
                      <div style="margin-top: 5px;">
-                        {{ parseTime(scope.row.addTime) }}
+                        {{ scope.row.updateTime? parseTime(scope.row.updateTime):'Na/A' }}
                      </div>
                      <div style="font-size: 13px;color: #a5a5a5;cursor: pointer;" v-copyText="scope.row.promptId">
-                        上次: 5分钟前
+                        上次: {{ formatRelativeTime(scope.row.updateTime) }}
                      </div>
                   </template>
                </el-table-column>
@@ -119,20 +119,20 @@
                <el-table-column label="开启" align="center" width="120" key="hasStatus" prop="hasStatus"
                   v-if="columns[1].visible" :show-overflow-tooltip="true">
                   <template #default="scope">
-                     <el-switch v-model="scope.row.hasStatus" :active-value="0" :inactive-value="1"
-                        @change="handleChangStatusField('hasStatus', scope.row.hasStatus, scope.row.id)" />
+                     <el-switch 
+                        disabled 
+                        v-model="scope.row.online" 
+                        :active-value="true" 
+                        :inactive-value="false"/>
                   </template>
                </el-table-column>
 
                <el-table-column label="执行周期" align="center" prop="addTime" v-if="columns[6].visible" width="200">
                   <template #default="scope">
-                     <!-- 
-                     <el-button type="warning" text bg>  
-                        <i class="fa-solid fa-clock"></i> &nbsp;
-                        {{ scope.row.scheduleCron?scope.row.scheduleCron:'未设置' }}
-                     </el-button> 
-                     -->
-                      <CronButton v-model:expression="scope.row.scheduleCron" @fill="onCronFill"></CronButton >
+                      <CronButton 
+                        v-model:expression="scope.row.scheduleCron" 
+                        :rowId="scope.row.id"
+                        @fill="onCronFill"></CronButton >
                   </template>
                </el-table-column>
 
@@ -162,8 +162,8 @@
                                     v-hasPermi="['monitor:job:changeStatus']">恢复任务</el-dropdown-item>
                                  <el-dropdown-item command="handleView" icon="View" style="font-size:13px"
                                     v-hasPermi="['monitor:job:query']">任务详细</el-dropdown-item>
-                                 <el-dropdown-item command="handleProcessDefinitionLog" icon="Operation"
-                                    style="font-size:13px" v-hasPermi="['monitor:job:query']">调度日志</el-dropdown-item>
+                                 <!-- <el-dropdown-item command="handleProcessDefinitionLog" icon="Operation"
+                                    style="font-size:13px" v-hasPermi="['monitor:job:query']">调度日志</el-dropdown-item> -->
                               </el-dropdown-menu>
                            </template>
                         </el-dropdown>
@@ -269,7 +269,7 @@
       </el-dialog>
 
       <!-- 实例列表 -->
-      <el-drawer v-model="openInstanceDialog" :size="'50%'" :title="processDefinitionTitle" :direction="'rtl'">
+      <el-drawer v-model="openInstanceDialog" :size="'50%'" :with-header="false" :title="processDefinitionTitle"  :direction="'rtl'">
          <ListInstance ref="processDefinitionRef" />
       </el-drawer>
 
@@ -288,12 +288,14 @@ import {
    resumeTrigger,
    catalogTreeSelect,
    pauseTrigger,
-   changStatusField
+   changStatusField,
+   updateProcessDefineCron
 } from "@/api/data/scheduler/processDefinition";
 
 import CronButton from './components/CronButton.vue'
 import ListInstance from '@/views/data/scheduler/processInstance/listInstance.vue'
 import { nextTick } from "vue";
+import { get } from "@logicflow/core";
 
 const router = useRouter();
 const { proxy } = getCurrentInstance();
@@ -380,6 +382,14 @@ function handleNodeClick(data) {
   queryParams.value.categoryId = data.id;
   console.log('data.id = ' + data.id)
   getList();
+}
+
+const onCronFill = (rowId , expr) => {
+   console.log('onCronFill cron expression = ' + expr + ' rowId = ' + rowId)
+   updateProcessDefineCron(rowId, expr).then(res => {
+      getList();
+      proxy.$modal.msgSuccess("定时任务运行策略更新成功")
+   })
 }
 
 /** 重置按钮操作 */
@@ -545,7 +555,7 @@ function openProcessInstance(row) {
    processDefinitionTitle.value = row.name
    // processDefinitionId.value = row.id
    nextTick(() => {
-      processDefinitionRef.value.getList(row.id);
+      processDefinitionRef.value.getList(row);
    })
 }
 
@@ -574,9 +584,11 @@ function handleCommand(command, row) {
          break;
       case "handlePauseTrigger":
          handlePauseTrigger(row);
+         getList();
          break;
       case "handleResumeTrigger":
          handleResumeTrigger(row);
+         getList();
          break;
       case "handleView":
          handleView(row);
@@ -587,6 +599,58 @@ function handleCommand(command, row) {
       default:
          break;
    }
+}
+
+// 将各种可能的时间格式统一为毫秒时间戳
+const normalizeToMs = (ts) => {
+   if (!ts) return null;
+   // 如果已经是 Date 对象
+   if (ts instanceof Date) return ts.getTime();
+   // 如果是数字字符串或数字
+   if (!isNaN(ts)) {
+   const n = Number(ts);
+   // 如果看起来像秒（小于 1e12），则乘 1000 转为毫秒
+   return n < 1e12 ? n * 1000 : n;
+   }
+   // 最后尝试用 Date.parse
+   const parsed = Date.parse(ts);
+   return isNaN(parsed) ? null : parsed;
+}
+
+// 返回相对时间字符串：秒、分钟、小时、天等
+const formatRelativeTime = (time) => {
+   const t = normalizeToMs(time);
+   if (!t) return 'N/A';
+
+   const diffSec = Math.floor((Date.now() - t) / 1000);
+   if (diffSec < 0) return '刚刚'; // 未来时间，按刚刚处理
+
+   if (diffSec < 60) {
+   return diffSec <= 0 ? '刚刚' : `${diffSec}秒前`;
+   }
+
+   const diffMin = Math.floor(diffSec / 60);
+   if (diffMin < 60) {
+   return `${diffMin}分钟前`;
+   }
+
+   const diffHour = Math.floor(diffMin / 60);
+   if (diffHour < 24) {
+   return `${diffHour}小时前`;
+   }
+
+   const diffDay = Math.floor(diffHour / 24);
+   if (diffDay < 30) {
+   return `${diffDay}天前`;
+   }
+
+   const diffMonth = Math.floor(diffDay / 30);
+   if (diffMonth < 12) {
+   return `${diffMonth}个月前`;
+   }
+
+   const diffYear = Math.floor(diffMonth / 12);
+   return `${diffYear}年前`;
 }
 
 getDeptTree();
