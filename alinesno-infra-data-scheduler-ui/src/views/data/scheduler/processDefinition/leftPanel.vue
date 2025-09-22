@@ -1,5 +1,5 @@
 <template>
-   <div class="app-container">
+   <div>
 
       <el-row :gutter="20">
          <!--类型数据-->
