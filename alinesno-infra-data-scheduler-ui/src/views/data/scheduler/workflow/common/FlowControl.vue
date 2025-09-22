@@ -161,7 +161,7 @@ import FlowConfig from '@/views/data/scheduler/workflow/components/FlowConfig.vu
 import { ElMessage, ElLoading } from "element-plus";
 import { onMounted, onUnmounted, ref } from "vue";
 
-const emits = defineEmits(['clickNode'])
+const emits = defineEmits(['clickNode' , 'saveFlow'])
 
 let escKeydownListener = null;
 
@@ -303,6 +303,7 @@ const save = () => {
     processAndSave(workflowData, processDefinitionId.value).then(response => {
         ElMessage.success('保存成功');
         loading.close();
+        emits('saveFlow', response.data)
     }).catch(error => {
         loading.close();
     })
