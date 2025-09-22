@@ -3,6 +3,7 @@
   <Control 
     class="workflow-control" 
     @clickNode="clickNode"
+    @saveFlow="saveFlow"
     v-if="lf" 
     :lf="lf">
   </Control>
@@ -24,6 +25,8 @@ import Control from './common/FlowControl.vue'
 const nodes = import.meta.glob('./nodes/**/index.js', { eager: true })
 
 import { initDefaultShortcut } from './common/shortcut';
+
+const emits = defineEmits(['saveFlow'])
 
 // 初始化 Pinia Store
 const workflowStore = useWorkflowStore();
@@ -209,6 +212,11 @@ const setWorkflowGraphData = (data) => {
   }
 
   renderGraphData(data);
+};
+
+// 保存流程
+const saveFlow = (flowId) => { 
+  emits('saveFlow', flowId)
 };
 
 onMounted(() => {
