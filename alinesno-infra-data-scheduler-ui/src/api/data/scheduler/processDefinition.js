@@ -18,7 +18,7 @@ var managerUrl = {
     statusUrl: prefix +"changeStatus" ,
     cleanUrl: prefix + "clean",
     detailUrl: prefix +"detail",
-    removeUrl: prefix + "delete" ,
+    removeUrl: prefix + "deleteJob" ,
     exportUrl: prefix + "exportExcel",
     runOneTime: prefix + "runOneTime", // 立即执行一次job
     pauseTrigger: prefix + "pauseTrigger", // 暂停trigger
@@ -33,6 +33,20 @@ var managerUrl = {
     getProcessDefinitionByDto: prefix + "getProcessDefinitionByDto",
     downloadfile: prefix + "downloadfile" , 
     saveProcessDefinition:  prefix + "saveProcessDefinition",
+    updateProcessDefineCron: prefix + "updateProcessDefineCron",
+}
+
+// 更新cron表达式
+export function updateProcessDefineCron(rowId , cron){
+  var data = {
+    processDefineId: rowId,
+    cron: cron
+  }
+  return request({
+    url: managerUrl.updateProcessDefineCron ,
+    method: 'post',
+    data: data
+  })
 }
 
 // 用户保存流程
@@ -181,9 +195,9 @@ export function addProcessDefinition(data) {
 // }
 
 // 删除数据库
-export function delProcessDefinition(databaseId) {
+export function delProcessDefinition(jobId) {
   return request({
-    url: managerUrl.removeUrl + '/' + parseStrEmpty(databaseId),
+    url: managerUrl.removeUrl + '?jobId=' + parseStrEmpty(jobId),
     method: 'delete'
   })
 }
