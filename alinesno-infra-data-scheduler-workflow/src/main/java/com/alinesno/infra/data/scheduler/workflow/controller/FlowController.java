@@ -31,8 +31,8 @@ public class FlowController {
 
     @PostMapping("/processAndSave")
     public AjaxResult processAndSave(@RequestBody WorkflowRequestDto flowDto, @RequestParam Long processDefinitionId) {
-        flowService.saveRoleFlow(processDefinitionId, flowDto);  // 保存工作流
-        return AjaxResult.success();
+        FlowEntity  flowEntity = flowService.saveRoleFlow(processDefinitionId, flowDto);  // 保存工作流
+        return AjaxResult.success("保存成功." , flowEntity.getId());
     }
 
     @GetMapping("/tryRun")
