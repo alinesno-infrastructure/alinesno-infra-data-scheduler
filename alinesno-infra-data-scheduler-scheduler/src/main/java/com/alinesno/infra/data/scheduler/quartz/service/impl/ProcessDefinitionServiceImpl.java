@@ -4,9 +4,11 @@ import cn.hutool.core.util.IdUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.alinesno.infra.common.core.service.impl.IBaseServiceImpl;
 import com.alinesno.infra.common.facade.datascope.PermissionQuery;
+import com.alinesno.infra.common.facade.response.AjaxResult;
 import com.alinesno.infra.common.web.log.utils.SpringUtils;
 import com.alinesno.infra.data.scheduler.adapter.CloudStorageConsumer;
 import com.alinesno.infra.data.scheduler.api.*;
+import com.alinesno.infra.data.scheduler.constants.PipeConstants;
 import com.alinesno.infra.data.scheduler.entity.ProcessDefinitionEntity;
 import com.alinesno.infra.data.scheduler.entity.ProcessInstanceEntity;
 import com.alinesno.infra.data.scheduler.entity.TaskDefinitionEntity;
@@ -16,6 +18,7 @@ import com.alinesno.infra.data.scheduler.enums.ProcessStatusEnums;
 import com.alinesno.infra.data.scheduler.executor.IExecutorService;
 import com.alinesno.infra.data.scheduler.executor.bean.TaskInfoBean;
 import com.alinesno.infra.data.scheduler.quartz.mapper.ProcessDefinitionMapper;
+import com.alinesno.infra.data.scheduler.quartz.utils.CronConverter;
 import com.alinesno.infra.data.scheduler.quartz.utils.ProcessUtils;
 import com.alinesno.infra.data.scheduler.scheduler.IQuartzSchedulerService;
 import com.alinesno.infra.data.scheduler.service.*;
@@ -26,6 +29,9 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.quartz.JobKey;
+import org.quartz.Scheduler;
+import org.quartz.TriggerKey;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,6 +43,7 @@ import org.springframework.util.Assert;
 import java.io.File;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
@@ -68,6 +75,9 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
     protected String localPath;
 
     @Autowired
+    private Scheduler scheduler ;
+
+    @Autowired
     private IResourceService resourceService;
 
 
@@ -84,8 +94,20 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
         ProcessDefinitionEntity process = task.getProcess();
         log.debug("ProcessDefinitionServiceImpl.runProcess Start:{}", process.getId());
 
-        flowService.runRoleFlow(process.getId());
-        log.debug("ProcessDefinitionServiceImpl.runProcess Finish:{}", process.getId());
+        CompletableFuture<String> flowFuture = flowService.runRoleFlow(process.getId());
+        // 当 future 完成时设置 DeferredResult
+        flowFuture.whenComplete((result, ex) -> {
+            ProcessDefinitionEntity finishProcess = getById(process.getId());
+            if (ex != null) {
+                // 记录日志、包装错误信息
+                log.error("ProcessDefinitionServiceImpl.runProcess Failed:{} , error:{}", process.getId() ,  ex.getMessage());
+            } else {
+                log.debug("ProcessDefinitionServiceImpl.runProcess Finish:{}", process.getId());
+                finishProcess.setUpdateTime(new Date());
+                update(finishProcess);
+            }
+        });
+
     }
 
     /**
@@ -323,6 +345,29 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
         // 生成job任务
         long processId = processDefinition.getId();
         distSchedulerService.addJob(String.valueOf(processId), null);
+    }
+
+    @Override
+    public void updateProcessDefineCron(ProcessDefineCronDto dto) {
+
+        ProcessDefinitionEntity processDefinition = this.getById(dto.getProcessDefineId()) ;
+
+        String cron = CronConverter.toQuartzCron(dto.getCron()) ;
+
+        processDefinition.setScheduleCron(cron) ;
+        this.saveOrUpdate(processDefinition);
+
+        distSchedulerService.updateJobCron(String.valueOf(processDefinition.getId()), cron);
+    }
+
+    @SneakyThrows
+    @Override
+    public void deleteJob(String jobId) {
+        removeById(jobId);
+
+        scheduler.pauseTrigger(TriggerKey.triggerKey(jobId, PipeConstants.TRIGGER_GROUP_NAME));//暂停触发器
+        scheduler.unscheduleJob(TriggerKey.triggerKey(jobId, PipeConstants.TRIGGER_GROUP_NAME));//移除触发器
+        scheduler.deleteJob(JobKey.jobKey(jobId, PipeConstants.JOB_GROUP_NAME));//删除Job
     }
 
 }
