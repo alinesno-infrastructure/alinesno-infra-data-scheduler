@@ -1,6 +1,6 @@
 <template>
   <div>
-  <el-scrollbar style="height:calc(100vh - 230px)" ref="scrollbarRef" >
+  <el-scrollbar style="height:calc(100vh - 200px)" ref="scrollbarRef" >
     <div class="debugger-process-flow-panel" ref="innerRef">
       <div
         class="flow-panel-item"
@@ -56,6 +56,9 @@
             <div class="progress-text">{{ item.progress }}%</div>
           </div>
         </div>
+      </div>
+      <div v-if="nodes.length == 0" style="margin-top:13vh">
+        <el-empty description="当前流程未运行,暂时无数据,请点击下面的按键执行任务" ></el-empty>
       </div>
     </div>
   </el-scrollbar>
