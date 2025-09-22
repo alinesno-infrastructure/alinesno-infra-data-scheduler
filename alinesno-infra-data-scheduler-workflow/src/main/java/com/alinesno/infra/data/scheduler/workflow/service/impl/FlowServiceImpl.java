@@ -670,12 +670,14 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
 
     /**
      * 每次保存之后，版本号加1
+     *
      * @param processDefinitionId
      * @param flowDto
+     * @return
      */
     @Override
     @Transactional
-    public void saveRoleFlow(Long processDefinitionId, WorkflowRequestDto flowDto) {
+    public FlowEntity saveRoleFlow(Long processDefinitionId, WorkflowRequestDto flowDto) {
         // 查询角色的流程
         LambdaQueryWrapper<FlowEntity> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(FlowEntity::getProcessDefinitionId, processDefinitionId);
@@ -721,6 +723,8 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
 
         // 保存节点信息
         flowNodeService.saveBatch(nodeEntities);
+
+        return flowEntity ;
     }
 
     /**
@@ -847,6 +851,12 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
             flowExecutionEntity = flowExecutionService.getById(executeId) ;
         }else{
             lastExecutedFlow = getLatestPublishedFlowByProcessDefinitionId(processDefinitionId) ;
+
+            if(lastExecutedFlow == null){
+                lastExecuteFlowDto.setStatus(FlowExecutionStatus.NOT_RUN.getCode());
+                return lastExecuteFlowDto ;
+            }
+
             String runUniqueNumber = lastExecutedFlow.getRunUniqueNumber() ;
 
             LambdaQueryWrapper<FlowExecutionEntity> queryWrapper = new LambdaQueryWrapper<>();
