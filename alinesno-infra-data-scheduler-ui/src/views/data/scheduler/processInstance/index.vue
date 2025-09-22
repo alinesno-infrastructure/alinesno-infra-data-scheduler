@@ -103,15 +103,15 @@
                   </template>
                </el-table-column>
 
-               <el-table-column label="起止时间" align="left" width="180" key="documentType" prop="documentType"
+               <el-table-column label="起止时间" align="center" width="200" key="documentType" prop="documentType"
                   v-if="columns[1].visible" :show-overflow-tooltip="true">
                   <template #default="scope">
                      <div>
-                        <div>{{ parseTime(scope.row.executeTime) }}</div>
-                        <div>{{ parseTime(scope.row.finishTime) }}</div>
+                        <div>开始:  {{ parseTime(scope.row.executeTime) }}</div>
+                        <div>结束: {{ parseTime(scope.row.finishTime) }}</div>
                      </div>
                   </template>
-               </el-table-column>
+               </el-table-column> 
 
                <!-- 操作字段  -->
                <el-table-column label="操作" align="center" width="100" class-name="small-padding fixed-width">
@@ -177,7 +177,7 @@ import {
 } from "@/api/data/scheduler/processInstance";
 
 import LeftProcessDefinitionPanel from "@/views/data/scheduler/processDefinition/leftPanel.vue"
-import DebuggerProcessFlowPanel from './DebuggerProcessFlowPanel.vue'
+import DebuggerProcessFlowPanel from './instanceProcessFlowPanel.vue'
 import ListInstance from '@/views/data/scheduler/taskInstance/listInstance.vue'
 import ProcessInstanceLog from './processInstanceLog.vue'
 import { onMounted, ref, watch } from "vue";
