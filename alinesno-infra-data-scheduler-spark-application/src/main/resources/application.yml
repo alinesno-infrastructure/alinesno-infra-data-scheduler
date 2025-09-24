@@ -1,0 +1,11 @@
+logging:
+    level:
+        com:
+            example: DEBUG
+        org:
+            apache:
+                spark: WARN
+            spark_project: WARN
+            springframework: INFO
+server:
+    port: 8080
