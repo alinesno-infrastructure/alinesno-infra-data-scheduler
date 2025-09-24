@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.alinesno.infra.common</groupId>
         <artifactId>alinesno-infra-platform-parent</artifactId>
-        <version>1.1.0-SNAPSHOT</version>
+        <version>1.2.0-SNAPSHOT</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <packaging>pom</packaging>
@@ -17,7 +17,7 @@
 
     <properties>
         <revision>2.1.0-SNAPSHOT</revision>
-        <alinesno.infra.common.version>1.1.0-SNAPSHOT</alinesno.infra.common.version>
+        <alinesno.infra.common.version>1.2.0-SNAPSHOT</alinesno.infra.common.version>
 
         <!-- 版本号 -->
         <spring.file.storage.version>2.0.0</spring.file.storage.version>
@@ -37,7 +37,7 @@
         <module>alinesno-infra-data-scheduler-llm</module> <!-- 大模型层 -->
 
         <module>alinesno-infra-data-scheduler-workflow</module> <!--  工作流层次 -->
-        <module>alinesno-infra-data-scheduler-scheduler</module>  <!-- 定时任务 -->
+        <module>alinesno-infra-data-scheduler-quartz</module>  <!-- 定时任务 -->
         <module>alinesno-infra-data-scheduler-domain</module>  <!-- 领域服务 -->
         <module>alinesno-infra-data-scheduler-gateway</module>  <!-- 接口服务 -->
 
