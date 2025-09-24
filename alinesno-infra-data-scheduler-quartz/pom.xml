@@ -1,0 +1,81 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+    	<groupId>com.alinesno.infra.data</groupId>
+    	<artifactId>alinesno-infra-data-scheduler-parent</artifactId>
+		<version>${revision}</version>
+		<relativePath>../pom.xml</relativePath>
+	</parent>
+
+	<artifactId>alinesno-infra-data-scheduler-quartz</artifactId>
+	<packaging>jar</packaging>
+
+	<dependencies>
+
+		<!-- 引用公共门面服务 -->
+		<dependency>
+			<groupId>com.alinesno.infra.data</groupId>
+			<artifactId>alinesno-infra-data-scheduler-facade</artifactId>
+			<version>${revision}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.alinesno.infra.data</groupId>
+			<artifactId>alinesno-infra-data-scheduler-adapter</artifactId>
+			<version>${revision}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.alinesno.infra.data</groupId>
+			<artifactId>alinesno-infra-data-scheduler-workflow</artifactId>
+			<version>${revision}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.github.kagkarlsson</groupId>
+			<artifactId>db-scheduler</artifactId>
+			<version>12.4.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-quartz</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.hsqldb</groupId>
+			<artifactId>hsqldb</artifactId>
+			<scope>test</scope>
+			<version>2.7.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.mysql</groupId>
+			<artifactId>mysql-connector-j</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+        <dependency>
+            <groupId>com.alinesno.infra.common</groupId>
+            <artifactId>alinesno-infra-common-core</artifactId>
+            <version>${alinesno.infra.common.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+            <version>6.0.11</version>
+        </dependency>
+
+    </dependencies>
+
+</project>
