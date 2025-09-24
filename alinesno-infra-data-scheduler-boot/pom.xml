@@ -34,7 +34,7 @@
 
 		<dependency>
 			<groupId>com.alinesno.infra.data</groupId>
-			<artifactId>alinesno-infra-data-scheduler-scheduler</artifactId>
+			<artifactId>alinesno-infra-data-scheduler-quartz</artifactId>
 			<version>${revision}</version>
 		</dependency>
 
