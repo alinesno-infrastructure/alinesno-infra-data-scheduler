@@ -1,11 +1,48 @@
+# application.yaml
+spring:
+  application:
+    name: data-scheduler
+
+# Spark配置
+spark:
+  master: spark://localhost:7077
+  app-name: "alinesno-infra-data-scheduler-spark-api"
+  driver:
+    bind-address: "0.0.0.0"
+  sql:
+    warehouse-dir: "file:///tmp/spark-warehouse"
+    default-catalog: "aip_catalog"
+
+  # Iceberg Catalog配置
+  catalog:
+    className: "org.apache.iceberg.spark.SparkCatalog"
+    warehouse: "oss://alinesno-datalake"
+    type: "jdbc"
+    uri: "jdbc:mysql://localhost:3306/dev_alinesno_infra_data_lake_v100?serverTimezone=GMT%2B8&zeroDateTimeBehavior=CONVERT_TO_NULL"
+    jdbc:
+      verify-server-certificate: false
+      use-ssl: false
+      user: "root"
+      password: "adminer"
+      driver: "com.mysql.cj.jdbc.Driver"
+
+  # OSS配置 - 通过-D参数传递
+  hadoop:
+    oss:
+      impl: "org.apache.hadoop.fs.aliyun.oss.AliyunOSSFileSystem"
+      endpoint: "${oss.endpoint:}"
+      access-key-id: "${oss.accessKeyId:}"
+      access-key-secret: "${oss.accessKeySecret:}"
+
+# 日志配置
 logging:
-    level:
-        com:
-            example: DEBUG
-        org:
-            apache:
-                spark: WARN
-            spark_project: WARN
-            springframework: INFO
+  level:
+    com:
+      alinesno: DEBUG
+    org:
+      apache:
+        spark: WARN
+      springframework: INFO
+
 server:
-    port: 8080
+  port: 43361
