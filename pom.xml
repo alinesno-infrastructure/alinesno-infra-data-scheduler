@@ -16,7 +16,7 @@
     <version>${revision}</version>
 
     <properties>
-        <revision>2.1.0-SNAPSHOT</revision>
+        <revision>2.2.0-SNAPSHOT</revision>
         <alinesno.infra.common.version>1.2.0-SNAPSHOT</alinesno.infra.common.version>
 
         <!-- 版本号 -->
@@ -44,8 +44,8 @@
         <module>alinesno-infra-data-scheduler-executor</module>  <!-- 任务执行器 -->
         <module>alinesno-infra-data-scheduler-boot</module>  <!-- 启动服务 -->
 
-        <!-- 前端服务
-        <module>alinesno-infra-data-scheduler-ui</module>
+        <!-- Spark服务
+        <module>alinesno-infra-data-scheduler-spark-application</module>
         -->
     </modules>
 
