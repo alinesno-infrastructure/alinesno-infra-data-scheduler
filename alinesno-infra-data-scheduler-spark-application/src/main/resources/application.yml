@@ -5,11 +5,23 @@ spring:
 
 # Spark配置
 spark:
-  master: spark://localhost:7077
+  defaultParallelism: 200
+  admin-users:
+  master: spark://127.0.0.1:7077
+  spark-home: "${user.home}/spark-3.5.6-bin-hadoop3"
   app-name: "alinesno-infra-data-scheduler-spark-api"
+  upload-sql-to-oss: true
+  executor:
+    instances: 5        # 对齐spark-sql命令的Executor数量
+    cores: 1
+    memory: 1g
+    memoryOverhead: 512m
   driver:
     bind-address: "0.0.0.0"
   sql:
+    shufflePartitions: 200  # 根据数据量调整Shuffle分区数
+    maxStatements: 100
+    maxSqlLength: 100000
     warehouse-dir: "file:///tmp/spark-warehouse"
     default-catalog: "aip_catalog"
 
@@ -27,22 +39,12 @@ spark:
       driver: "com.mysql.cj.jdbc.Driver"
 
   # OSS配置 - 通过-D参数传递
-  hadoop:
-    oss:
-      impl: "org.apache.hadoop.fs.aliyun.oss.AliyunOSSFileSystem"
-      endpoint: "${oss.endpoint:}"
-      access-key-id: "${oss.accessKeyId:}"
-      access-key-secret: "${oss.accessKeySecret:}"
-
-# 日志配置
-logging:
-  level:
-    com:
-      alinesno: DEBUG
-    org:
-      apache:
-        spark: WARN
-      springframework: INFO
+  oss:
+    impl: "org.apache.hadoop.fs.aliyun.oss.AliyunOSSFileSystem"
+    bucket-name: "alinesno-datalake"
+    endpoint: "${oss.endpoint:}"
+    access-key-id: "${oss.accessKeyId:}"
+    access-key-secret: "${oss.accessKeySecret:}"
 
 server:
   port: 43361
