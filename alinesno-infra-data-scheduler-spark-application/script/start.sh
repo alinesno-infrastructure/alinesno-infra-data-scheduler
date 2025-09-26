@@ -1,17 +1,12 @@
 #!/bin/bash
 APP_HOME=$(cd "$(dirname "$0")/.." && pwd)
-LIB_DIR="$APP_HOME/lib"
+LIB_DIR="/lib"
 
-# 找最近修改的 jar（如果只有一个也适用）
-JAR=$(ls -1t "$LIB_DIR"/*.jar 2>/dev/null | head -n1)
+mkdir -p "$APP_HOME/logs"
+mkdir -p "$APP_HOME/run"
 
-# 或者按模式匹配（如果你知道 artifactId-version 格式）
-# JAR=$(echo "$LIB_DIR"/my-artifact-*.jar | awk '{print $1}')
-
-if [ -z "$JAR" ] || [ ! -f "$JAR" ]; then
-  echo "ERROR: no jar found in $LIB_DIR"
-  exit 1
-fi
+# 应用Jar包
+JAR=${APP_HOME}${LIB_DIR}/${JAR_NAME}
 
 # Java启动参数
 JAVA_OPTS="-XX:+IgnoreUnrecognizedVMOptions \
@@ -30,17 +25,17 @@ JAVA_OPTS="-XX:+IgnoreUnrecognizedVMOptions \
 --add-opens=java.base/sun.security.action=ALL-UNNAMED \
 --add-opens=java.base/sun.util.calendar=ALL-UNNAMED \
 -Djdk.reflect.useDirectMethodHandle=false \
-
+-Dspark.executor-jar.spark-sql-job-jar=${SPARK_SQL_EXECUTOR_JAR} \
+-Dspark.spark-home=${SPARK_HOME} \
+-Dspark-sql.admin-users=${SPARK_ADMIN_USERS} \
 -Dspark.master=${SPARK_MASTER} \
-
 -Doss.endpoint=${OSS_ENDPOINT} \
 -Doss.accessKeyId=${OSS_ACCESS_KEY_ID} \
 -Doss.accessKeySecret=${OSS_ACCESS_KEY_SECRET} \
-
--Dspark.catalog.uri= jdbc:mysql:///${DB_MYSQL_URL}/dev_alinesno_infra_data_lake_v100?characterEncoding=UTF-8&serverTimezone=GMT%2B8&allowMultiQueries=true \
+-Dspark.catalog.uri=jdbc:mysql://${DB_MYSQL_URL}/dev_alinesno_infra_data_lake_v100?characterEncoding=UTF-8&serverTimezone=GMT%2B8&allowMultiQueries=true \
 -Dspark.catalog.jdbc.user=${DB_MYSQL_USRENAME} \
--Dspark.catalog.jdbc.password=${DB_MYSQL_PASSWORD}}"
+-Dspark.catalog.jdbc.password=${DB_MYSQL_PASSWORD}"
 
 echo "Using JAR: $JAR"
-nohup java $JAVA_OPTS -Xms512m -Xmx1g -jar "$JAR" >> "$APP_HOME/logs/app.log" 2>&1 &
+nohup java $JAVA_OPTS -Xms1g -Xmx2g -jar "$JAR" >> "$APP_HOME/logs/app.log" 2>&1 &
 echo $! > "$APP_HOME/run/app.pid"
