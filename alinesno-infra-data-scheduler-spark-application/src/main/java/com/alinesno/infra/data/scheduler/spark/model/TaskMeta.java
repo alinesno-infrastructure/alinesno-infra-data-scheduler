@@ -22,6 +22,8 @@ public class TaskMeta {
     // 原始 SQL
     private String sql;
 
+    private String uploadedSqlObjectKey ;
+
     // 任务状态
     private TaskStatus status;
 
