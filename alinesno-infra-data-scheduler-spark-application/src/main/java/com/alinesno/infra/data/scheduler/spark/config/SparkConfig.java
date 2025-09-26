@@ -1,44 +1,36 @@
 package com.alinesno.infra.data.scheduler.spark.config;
 
-import org.apache.spark.sql.SparkSession;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.apache.spark.launcher.SparkLauncher;
 
-@Configuration
 public class SparkConfig {
 
-    @Autowired
-    private SparkProperties sparkProperties;
-
-    @Bean
-    public SparkSession sparkSession() {
-        SparkSession.Builder builder = SparkSession.builder()
-                .appName(sparkProperties.getAppName())
-                .master(sparkProperties.getMaster())
-                .config("spark.driver.bindAddress", sparkProperties.getDriver().getBindAddress())
-                .config("spark.sql.warehouse.dir", sparkProperties.getSql().getWarehouseDir())
-                .config("spark.sql.defaultCatalog", sparkProperties.getSql().getDefaultCatalog());
+    public static void sparkSession(SparkLauncher launcher , SparkProperties sparkProperties) {
+        launcher.setConf("spark.executor.memory", sparkProperties.getExecutor().getMemory());
+        launcher.setConf("spark.driver.memory", sparkProperties.getExecutor().getMemory());
+        launcher.setConf("spark.driver.bindAddress", sparkProperties.getDriver().getBindAddress());
+        launcher.setConf("spark.sql.warehouse.dir", sparkProperties.getSql().getWarehouseDir());
+        launcher.setConf("spark.sql.defaultCatalog", sparkProperties.getSql().getDefaultCatalog());
 
         // Iceberg Catalog配置
         SparkProperties.Catalog catalog = sparkProperties.getCatalog();
-        builder.config("spark.sql.catalog.aip_catalog", catalog.getClassName())
-                .config("spark.sql.catalog.aip_catalog.warehouse", catalog.getWarehouse())
-                .config("spark.sql.catalog.aip_catalog.type", catalog.getType())
-                .config("spark.sql.catalog.aip_catalog.uri", catalog.getUri())
-                .config("spark.sql.catalog.aip_catalog.jdbc.verifyServerCertificate", String.valueOf(catalog.getJdbc().isVerifyServerCertificate()))
-                .config("spark.sql.catalog.aip_catalog.jdbc.useSSL", String.valueOf(catalog.getJdbc().isUseSsl()))
-                .config("spark.sql.catalog.aip_catalog.jdbc.user", catalog.getJdbc().getUser())
-                .config("spark.sql.catalog.aip_catalog.jdbc.password", catalog.getJdbc().getPassword())
-                .config("spark.sql.catalog.aip_catalog.jdbc.driver", catalog.getJdbc().getDriver());
+        launcher.setConf("spark.sql.catalog.aip_catalog", catalog.getClassName());
+        launcher.setConf("spark.sql.catalog.aip_catalog.warehouse", catalog.getWarehouse());
+        launcher.setConf("spark.sql.catalog.aip_catalog.type", catalog.getType());
+        launcher.setConf("spark.sql.catalog.aip_catalog.uri", catalog.getUri());
+        launcher.setConf("spark.sql.catalog.aip_catalog.jdbc.verifyServerCertificate", String.valueOf(catalog.getJdbc().isVerifyServerCertificate()));
+        launcher.setConf("spark.sql.catalog.aip_catalog.jdbc.useSSL", String.valueOf(catalog.getJdbc().isUseSsl()));
+        launcher.setConf("spark.sql.catalog.aip_catalog.jdbc.user", catalog.getJdbc().getUser());
+        launcher.setConf("spark.sql.catalog.aip_catalog.jdbc.password", catalog.getJdbc().getPassword());
+        launcher.setConf("spark.sql.catalog.aip_catalog.jdbc.driver", catalog.getJdbc().getDriver());
 
         // OSS配置
-        SparkProperties.Oss oss = sparkProperties.getHadoop().getOss();
-        builder.config("spark.hadoop.fs.oss.impl", oss.getImpl())
-                .config("spark.hadoop.fs.oss.endpoint", oss.getEndpoint())
-                .config("spark.hadoop.fs.oss.accessKeyId", oss.getAccessKeyId())
-                .config("spark.hadoop.fs.oss.accessKeySecret", oss.getAccessKeySecret());
+        SparkProperties.Oss oss = sparkProperties.getOss();
+        launcher.setConf("spark.hadoop.fs.oss.impl", oss.getImpl());
+        launcher.setConf("spark.hadoop.fs.oss.endpoint", oss.getEndpoint());
+        launcher.setConf("spark.hadoop.fs.oss.accessKeyId", oss.getAccessKeyId());
+        launcher.setConf("spark.hadoop.fs.oss.accessKeySecret", oss.getAccessKeySecret());
 
-        return builder.getOrCreate();
     }
+
+
 }
