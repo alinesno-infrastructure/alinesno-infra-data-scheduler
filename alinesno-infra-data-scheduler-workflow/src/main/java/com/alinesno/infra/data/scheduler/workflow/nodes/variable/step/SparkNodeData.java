@@ -11,11 +11,10 @@ import lombok.EqualsAndHashCode;
 @Data
 public class SparkNodeData extends NodeData {
 
-    // 添加 llmModelId 字段，用于存储大语言模型的 ID
-    private String llmModelId;
-
-    // 添加 prompt 字段，用于存储提示信息
-    private String prompt;
+    private String runType;  // 运行类型(spark-sql,pyspark)
+    private String sqlContent;  // sql 内容
+    private String pysparkContent;  // pyspark 内容
+    private boolean isAsync;  // 是否异步执行
 
 }
 
