@@ -1,15 +1,21 @@
 package com.alinesno.infra.data.scheduler.workflow.nodes.step;
 
 import com.alibaba.fastjson.JSONObject;
+import com.alinesno.infra.data.scheduler.adapter.SparkSqlConsumer;
+import com.alinesno.infra.data.scheduler.entity.ComputeEngineEntity;
+import com.alinesno.infra.data.scheduler.service.IComputeEngineService;
 import com.alinesno.infra.data.scheduler.workflow.constants.FlowConst;
 import com.alinesno.infra.data.scheduler.workflow.nodes.AbstractFlowNode;
 import com.alinesno.infra.data.scheduler.workflow.nodes.variable.step.SparkNodeData;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -24,32 +30,36 @@ import java.util.concurrent.CompletableFuture;
 @EqualsAndHashCode(callSuper = true)
 public class SparkNode extends AbstractFlowNode {
 
+    @Autowired
+    private IComputeEngineService computeEngineService ;
+
     public SparkNode() {
         setType("spark");
     }
 
     @Override
     protected CompletableFuture<Void> handleNode() {
+
+        ComputeEngineEntity computeEngine = computeEngineService.getCurrentConfig(flowExecution.getOrgId());
+
         try {
             SparkNodeData nodeData = getNodeData();
             log.debug("nodeData = {}", nodeData);
             log.debug("node type = {} output = {}", node.getType(), output);
 
-            // TODO: 调用真实的图片生成服务，基于 nodeData 构造请求
-            String answer = "图片生成内容";
-            String image = "图片生成地址";
+            String sqlContent = nodeData.getSqlContent();
 
-            // 将结果写入输出上下文
-            output.put(node.getStepName() + ".answer", answer);
-            output.put(node.getStepName() + ".image", image);
+            // 2. 创建 SparkSqlConsumer
+            SparkSqlConsumer consumer = new SparkSqlConsumer(computeEngine);
 
-            // 触发节点事件（例如用于日志或下游处理）
-            eventNodeMessage(answer);
+            long waitMs = 600_000L; // 等待 600 秒
+            Map<String, Object> params = new HashMap<>();
 
-            // 根据节点配置决定是否回显给用户
-            if (node.isPrint()) {
-                eventMessageCallbackMessage(answer);
-            }
+            JSONObject syncResp = consumer.submitSync(sqlContent , params, computeEngine.getAdminUser(), waitMs);
+            System.out.println("同步提交响应: " + syncResp.toJSONString());
+
+            // TODO 获取到执行完成的文件并解析下载
+            output.put(node.getStepName() + ".result", syncResp.toJSONString());
 
             return CompletableFuture.completedFuture(null);
         } catch (Exception ex) {
