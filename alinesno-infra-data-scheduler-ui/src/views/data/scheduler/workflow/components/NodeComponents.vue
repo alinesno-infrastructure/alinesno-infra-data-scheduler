@@ -206,7 +206,7 @@ const workflowNodes = [
             color: "#00ACC1",
             stepName: '执行SPARK',
             showNode: true,
-            height: 400,
+            height: 563,
             width: 330
         }
     },
