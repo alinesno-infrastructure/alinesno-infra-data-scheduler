@@ -9,22 +9,10 @@
         <span>
           节点设置 
         </span>
-          <!-- <el-select v-model="formData.replayType" size="small" placeholder="回复方式" style="margin-right:8px;width:100px">
-            <el-option
-              v-for="item in options"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            />
-          </el-select> -->
       </div>
       <!-- 节点设置表单区域 -->
       <div class="settings-form">
         <el-form :model="formData" label-width="auto" label-position="top">
-
-          <!-- <el-form-item label="输入参数" v-if="formData.replayType === 'link'">
-            <FlowCascader :nodeModel="props.nodeModel" v-model="formData.replayParams" />
-          </el-form-item> -->
 
           <el-form-item label="运行SQL语句">
             <div class="function-CodemirrorEditor mb-8" style="height: 120px;width:100%">
