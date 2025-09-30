@@ -17,11 +17,11 @@
     <dependencies>
 
         <!-- config-agent_start -->
-        <dependency>
-            <groupId>com.alinesno.infra.data</groupId>
-            <artifactId>alinesno-infra-data-scheduler-agent</artifactId>
-            <version>${revision}</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.alinesno.infra.data</groupId>-->
+<!--            <artifactId>alinesno-infra-data-scheduler-agent</artifactId>-->
+<!--            <version>${revision}</version>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>com.alinesno.infra.common</groupId>
             <artifactId>alinesno-infra-common-config</artifactId>
