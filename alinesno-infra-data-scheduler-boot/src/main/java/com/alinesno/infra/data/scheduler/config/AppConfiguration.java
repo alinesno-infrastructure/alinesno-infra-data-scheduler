@@ -4,7 +4,6 @@ import com.alinesno.infra.common.extend.datasource.enable.EnableInfraDataScope;
 import com.alinesno.infra.common.facade.enable.EnableActable;
 import com.alinesno.infra.common.web.adapter.sso.enable.EnableInfraSsoApi;
 import com.alinesno.infra.common.web.log.aspect.LogAspect;
-import com.alinesno.infra.data.scheduler.executor.handle.StartFlowExecutor;
 import com.alinesno.infra.data.scheduler.service.ICategoryService;
 import com.dtflys.forest.springboot.annotation.ForestScan;
 import lombok.extern.slf4j.Slf4j;
@@ -38,8 +37,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class AppConfiguration implements CommandLineRunner {
 
-    @Autowired
-    private StartFlowExecutor startFlowExecutor ;
+//    @Autowired
+//    private StartFlowExecutor startFlowExecutor ;
 
     @Autowired
     private ICategoryService categoryService ;
@@ -51,7 +50,7 @@ public class AppConfiguration implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        log.debug("alinesnoDataScheduler appConfiguration run ...:{},categoryService:{}" , startFlowExecutor,categoryService);
+        log.debug("alinesnoDataScheduler appConfiguration run ...,categoryService:{}" ,categoryService);
     }
 
 }
