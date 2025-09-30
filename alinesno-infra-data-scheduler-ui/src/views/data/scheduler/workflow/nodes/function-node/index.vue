@@ -69,6 +69,14 @@
             </div>
           </el-form-item>
 
+          <el-form-item label="选择读取数据源">
+            <DatasourceSelector :nodeModel="props.nodeModel" v-model="formData.readerDataSourceId" />
+          </el-form-item>
+
+          <el-form-item label="选择写入数据源">
+            <DatasourceSelector :nodeModel="props.nodeModel" v-model="formData.sinkDataSourceId" />
+          </el-form-item>
+
           <el-form-item label="返回内容">
             <el-switch v-model="formData.isPrint" size="small" />
           </el-form-item>
@@ -123,6 +131,8 @@ import FlowContainer from '@/views/data/scheduler/workflow/common/FlowContainer'
 import ScriptEditorPanel from '@/views/data/scheduler/workflow/components/ScriptEditor'
 import ScriptEditorFullPanel from '@/views/data/scheduler/workflow/components/ScriptEditorFull'
 import FlowCascader from '@/views/data/scheduler/workflow/common/FlowCascader'
+
+import DatasourceSelector from '@/views/data/scheduler/workflow/components/DatasourceSelector'
 
 const props = defineProps({
   properties: {
