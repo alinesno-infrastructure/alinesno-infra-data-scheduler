@@ -14,6 +14,8 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * AI 分布式计算引擎配置 Service 实现
  *
@@ -31,8 +33,8 @@ public class ComputeEngineServiceImpl extends IBaseServiceImpl<ComputeEngineEnti
         qw.orderByDesc(ComputeEngineEntity::getUpdateTime)
                 .last("LIMIT 1");
 
-        ComputeEngineEntity entity = list(qw) == null ? null : list(qw).get(0) ;
-        return entity == null ? defaultConfig() : entity;
+        List<ComputeEngineEntity> es = list(qw) ;
+        return es == null || es.isEmpty() ? defaultConfig() : es.get(0);
     }
 
     private ComputeEngineEntity defaultConfig() {
