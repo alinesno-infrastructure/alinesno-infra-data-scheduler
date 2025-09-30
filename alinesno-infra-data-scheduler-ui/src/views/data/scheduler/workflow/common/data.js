@@ -299,13 +299,9 @@ const shellNode= {
         config: {
             fields: [
                 {
-                    label: '回答',
-                    value: 'answer'
+                    label: '结果',
+                    value: 'output'
                 },
-                {
-                    label: '图片',
-                    value: 'image'
-                }
             ]
         }
     }
