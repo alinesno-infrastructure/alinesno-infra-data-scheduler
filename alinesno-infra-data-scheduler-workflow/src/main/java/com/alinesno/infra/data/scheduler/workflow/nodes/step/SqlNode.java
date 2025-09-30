@@ -1,5 +1,6 @@
 package com.alinesno.infra.data.scheduler.workflow.nodes.step;
 
+import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.fastjson.JSONObject;
 import com.alinesno.infra.data.scheduler.entity.DataSourceEntity;
 import com.alinesno.infra.data.scheduler.service.IDataSourceService;
@@ -11,8 +12,14 @@ import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.jdbc.datasource.DataSourceUtils;
+import org.springframework.jdbc.datasource.init.ScriptUtils;
 import org.springframework.stereotype.Service;
 
+import javax.lang.exception.RpcServiceRuntimeException;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -45,12 +52,25 @@ public class SqlNode extends AbstractFlowNode {
             log.debug("node type = {} output = {}" , node.getType() , output);
 
             Long datasourceId = nodeData.getDataSourceId();
-            DataSourceEntity dataSourceEntity = dataSourceService.getById(datasourceId)  ;
+            DruidDataSource druidDataSource = dataSourceService.getDataSource(datasourceId)  ;
 
             outputContent.append("数据源ID：").append(datasourceId).append("\r\n")  ;
-            outputContent.append("数据源名称：").append(dataSourceEntity.getReaderDesc()).append("\r\n") ;
+            outputContent.append("数据源名称：").append(druidDataSource.getProperties()).append("\r\n") ;
 
             String sqlContent = nodeData.getSqlContent();
+
+            // 创建一个数据源
+            Connection connection = null;
+            try {
+                connection = druidDataSource.getConnection();
+                // 执行SQL脚本
+                ScriptUtils.executeSqlScript(connection, new ByteArrayResource(sqlContent.getBytes()));
+            } catch (SQLException e) {
+                throw new RpcServiceRuntimeException("获取数据源异常:" + e.getMessage());
+            }finally {
+                DataSourceUtils.releaseConnection(connection, druidDataSource);
+                druidDataSource.close();
+            }
 
             String sqlResult =  sqlContent + "执行结果" ;
             output.put(node.getStepName() + ".sql_result", sqlResult);
