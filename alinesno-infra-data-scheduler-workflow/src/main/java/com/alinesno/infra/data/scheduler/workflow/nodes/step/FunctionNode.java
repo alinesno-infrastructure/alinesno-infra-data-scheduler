@@ -1,7 +1,9 @@
 package com.alinesno.infra.data.scheduler.workflow.nodes.step;
 
+import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.fastjson.JSONObject;
 import com.alinesno.infra.common.core.utils.StringUtils;
+import com.alinesno.infra.data.scheduler.service.IDataSourceService;
 import com.alinesno.infra.data.scheduler.workflow.constants.FlowConst;
 import com.alinesno.infra.data.scheduler.workflow.nodes.AbstractFlowNode;
 import com.alinesno.infra.data.scheduler.workflow.nodes.variable.step.FunctionNodeData;
@@ -9,9 +11,13 @@ import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -25,8 +31,8 @@ import java.util.concurrent.CompletableFuture;
 @EqualsAndHashCode(callSuper = true)
 public class FunctionNode extends AbstractFlowNode {
 
-//    @Autowired
-//    protected IMessageService messageService;
+    @Autowired
+    private IDataSourceService dataSourceService;
 
     /**
      * 构造函数，初始化节点类型为 "function"。
@@ -41,18 +47,13 @@ public class FunctionNode extends AbstractFlowNode {
         FunctionNodeData nodeData = getNodeData();
         log.debug("FunctionNodeData = {}", nodeData);
 
+        assert nodeData != null;
+
         return CompletableFuture.supplyAsync(() -> {
 
-            // 上一个任务节点不为空，执行任务并记录
-//            List<CodeContent> codeContentLis = null;
-//            if (workflowExecution != null) {
-//                String gentContent = workflowExecution.getContent();
-//                codeContentLis = CodeBlockParser.parseCodeBlocks(gentContent);
-//            }
+            String scriptText = nodeData.getRawScript();
 
-            String scriptText = nodeData == null ? null : nodeData.getRawScript();
-
-            String nodeOutput = executeGroovyScript(scriptText);
+            String nodeOutput = executeGroovyScript(scriptText , nodeData , outputContent);
 
             log.debug("handleNode nodeOutput : {}", nodeOutput);
             outputContent.append("脚本执行结果:").append(nodeOutput);
@@ -88,26 +89,55 @@ public class FunctionNode extends AbstractFlowNode {
      * 执行groovy脚本并返回执行结果
      *
      * @param scriptText
+     * @param nodeData
+     * @param outputContent
      * @return
      */
-    private String executeGroovyScript(String scriptText) {
+    private String executeGroovyScript(String scriptText, FunctionNodeData nodeData, StringBuilder outputContent) {
 
-        if (StringUtils.isEmpty(scriptText)) {
-            return "角色脚本执行失败:脚本为空";
-        }
+        PrintStream oldPrintStream = System.out; //将原来的System.out交给printStream 对象保存
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(bos)); //设置新的out
+
+        outputContent.append("脚本执行开始:").append(scriptText);
 
         // 创建 Binding 对象，用于绑定变量到 Groovy 脚本
         Binding binding = new Binding();
 
+        binding.setVariable("executorService", this);
+        binding.setVariable("log", log);
+
+        // 数据源配置
+        if(nodeData.getReaderDataSourceId() != null) {
+            DruidDataSource dataSource = dataSourceService.getDataSource(nodeData.getReaderDataSourceId()) ;
+            if(dataSource != null){
+                JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+                binding.setVariable("readerDataSource", dataSource);
+                binding.setVariable("readerJdbcTemplate", jdbcTemplate);
+            }
+        }
+
+        if(nodeData.getSinkDataSourceId() != null) {
+            DruidDataSource sinkDataSource = dataSourceService.getDataSource(nodeData.getSinkDataSourceId()) ;
+            if(sinkDataSource != null){
+                JdbcTemplate jdbcTemplate = new JdbcTemplate(sinkDataSource);
+                binding.setVariable("sinkDataSource", sinkDataSource);
+                binding.setVariable("sinkJdbcTemplate", jdbcTemplate);
+            }
+        }
+
         // 创建 GroovyShell 实例
-        GroovyShell shell = new GroovyShell(this.getClass().getClassLoader(), binding);
+        GroovyShell shell = new GroovyShell(FunctionNode.class.getClassLoader(), binding);
 
         // 执行 Groovy 脚本
-        try {
-            return String.valueOf(shell.evaluate(scriptText));
-        } catch (Exception e) {
-            return "角色脚本执行失败:" + e.getMessage();
-        }
+        Object resultObj = shell.evaluate(scriptText) ;
+
+        System.setOut(oldPrintStream); //恢复原来的System.out
+        System.out.println(bos); //将bos中保存的信息输出,这就是我们上面准备要输出的内容
+
+        outputContent.append("脚本执行结束:").append(resultObj);
+
+        return resultObj == null ? "" : resultObj.toString() ;
     }
 
 }
