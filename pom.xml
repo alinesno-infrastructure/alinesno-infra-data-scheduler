@@ -41,11 +41,14 @@
         <module>alinesno-infra-data-scheduler-domain</module>  <!-- 领域服务 -->
         <module>alinesno-infra-data-scheduler-gateway</module>  <!-- 接口服务 -->
 
-        <module>alinesno-infra-data-scheduler-executor</module>  <!-- 任务执行器 -->
         <module>alinesno-infra-data-scheduler-boot</module>  <!-- 启动服务 -->
 
         <!-- Spark服务
         <module>alinesno-infra-data-scheduler-spark-application</module>
+        -->
+
+        <!-- 任务执行器
+        <module>alinesno-infra-data-scheduler-executor</module>
         -->
     </modules>
 
