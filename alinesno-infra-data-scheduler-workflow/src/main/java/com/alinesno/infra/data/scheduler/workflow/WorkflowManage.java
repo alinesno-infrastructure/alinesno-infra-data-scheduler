@@ -13,6 +13,8 @@ import java.util.Map;
 @NoArgsConstructor
 public class WorkflowManage {
 
+    private static final String GLOBAL_NODE_ID = "global" ;
+
     private FlowNodeDto flowNode ;
 
     private List<FlowNodeDto> flowNodes ;
