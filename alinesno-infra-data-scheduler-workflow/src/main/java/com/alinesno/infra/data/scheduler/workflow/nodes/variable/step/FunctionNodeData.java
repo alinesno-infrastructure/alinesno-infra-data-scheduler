@@ -18,6 +18,12 @@ public class FunctionNodeData extends NodeData {
     // 参数列表
     private List<NodeParams> params;
 
+    // 读取数据源ID
+    private Long readerDataSourceId ;
+
+    // 写入数据源ID
+    private Long sinkDataSourceId ;
+
     @Data
     public static class NodeParams {
         // 输入数据列表
