@@ -9,12 +9,12 @@
       <!-- 节点设置表单区域 -->
       <div class="settings-form">
         <el-form :model="formData" label-width="auto" label-position="top">
-          <el-form-item label="图片理解模型">
+          <el-form-item label="执行环境">
             <LLMSelector :nodeModel="props.nodeModel" v-model="formData.llmModelId"  :modelType="'image_generation'" />
           </el-form-item>
-          <el-form-item label="提示词">
+          <el-form-item label="Shell脚本">
             <div class="function-CodemirrorEditor mb-8" style="height: 120px;width:100%">
-              <ScriptEditorPanel ref="auditEditorRef" :lang="'markdown'" />
+              <ScriptEditorPanel ref="auditEditorRef" :lang="'python'" />
               <div class="function-CodemirrorEditor__footer">
                 <el-button text @click="openCodemirrorDialog" style="background-color: transparent !important;" class="magnify">
                   <i class="fa-solid fa-up-right-and-down-left-from-center"></i>
@@ -33,19 +33,19 @@
       v-model="dialogVisible"
       :title="'函数内容（Groovy）'"
       append-to-body
-      width="800"
+      fullscreen
     >
       <template #header>
-        <div class="dialog-footer mt-24" style="display: flex;align-items: center; justify-content: space-between; ">
+        <div class="dialog-footer" style="display: flex;align-items: center; justify-content: space-between; ">
           <div>
-            提示词 
+            Shell脚本编写
           </div>
           <div>
             <el-button type="primary" size="large" text bg @click="confirmAndSave"> 确定保存 </el-button>
           </div>
         </div>
       </template>
-      <ScriptEditorFullPanel ref="auditFullEditorRef" :lang="'markdown'" />
+      <ScriptEditorFullPanel ref="auditFullEditorRef" :lang="'python'" />
     </el-dialog>
 
   </FlowContainer>
@@ -86,7 +86,7 @@ const chatDataCode = ref('')
 
 const form = {
   llmModelId: '',
-  prompt: '',
+  shellScript: '',
   dialogue_number: 0,
   isPrint: true
 }
@@ -113,7 +113,7 @@ function confirmAndSave() {
   console.log('auditFullEditorRef.value.getRawScript() = ' + auditFullEditorRef.value.getRawScript())
   dialogVisible.value = false
 
-  formData.value.prompt = chatDataCode.value
+  formData.value.shellScript = chatDataCode.value
 }
 
 // 打开编辑对话框
@@ -126,7 +126,7 @@ function openCodemirrorDialog(type) {
 }
 
 onMounted(() => {
-  auditEditorRef.value.setRawScript(formData.value.prompt)
+  auditEditorRef.value.setRawScript(formData.value.shellScript)
 })
 
 </script>
