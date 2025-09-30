@@ -50,11 +50,11 @@
 			<version>${revision}</version>
 		</dependency>
 
-		<dependency>
-			<groupId>com.alinesno.infra.data</groupId>
-			<artifactId>alinesno-infra-data-scheduler-executor</artifactId>
-			<version>${revision}</version>
-		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>com.alinesno.infra.data</groupId>-->
+<!--			<artifactId>alinesno-infra-data-scheduler-executor</artifactId>-->
+<!--			<version>${revision}</version>-->
+<!--		</dependency>-->
 
         <!-- 工作流与大模型 -->
         <dependency>
