@@ -104,7 +104,7 @@ const workflowNodes = [
             color: "#F57C00",
             stepName: '执行SHELL',
             showNode: true,
-            height: 584,
+            height: 514,
             width: 330
         }
     },
@@ -236,7 +236,7 @@ const workflowNodes = [
             color: "#424242",
             stepName: '执行GROOVY',
             showNode: true,
-            height: 540,
+            height: 657,
             width: 330
         }
     },
