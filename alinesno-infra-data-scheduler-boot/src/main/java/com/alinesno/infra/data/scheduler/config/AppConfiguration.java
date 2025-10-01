@@ -26,7 +26,7 @@ import org.springframework.context.annotation.Configuration;
 @MapperScan({
         "com.alinesno.infra.data.scheduler.quartz.mapper" ,
         "com.alinesno.infra.data.scheduler.mapper",
-
+        "com.alinesno.infra.data.scheduler.im.mapper",
         "com.alinesno.infra.data.scheduler.llm.mapper",
         "com.alinesno.infra.data.scheduler.workflow.mapper"
 })
