@@ -36,8 +36,10 @@
         <module>alinesno-infra-data-scheduler-adapter</module> <!-- 适配层 -->
         <module>alinesno-infra-data-scheduler-llm</module> <!-- 大模型层 -->
 
+        <module>alinesno-infra-data-scheduler-im</module> <!--  IM通知 -->
         <module>alinesno-infra-data-scheduler-workflow</module> <!--  工作流层次 -->
         <module>alinesno-infra-data-scheduler-quartz</module>  <!-- 定时任务 -->
+
         <module>alinesno-infra-data-scheduler-domain</module>  <!-- 领域服务 -->
         <module>alinesno-infra-data-scheduler-gateway</module>  <!-- 接口服务 -->
 
