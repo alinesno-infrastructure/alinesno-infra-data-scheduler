@@ -7,6 +7,10 @@
       <el-tab-pane label="环境管理">
         <EnvironmentManage />
       </el-tab-pane>
+      <!-- 消息通知-->
+       <el-tab-pane label="消息通知">
+        <NotificationManage />
+      </el-tab-pane>
       <el-tab-pane label="账号凭据管理">
         <CredentialManage />
       </el-tab-pane>
@@ -26,5 +30,6 @@ import CredentialManage from './components/credentialManage.vue'
 import SecretsManager from './components/secretsManager.vue'
 import CommandManage from './components/commandManage.vue'
 import NodeManage from './components/nodeManage.vue'
+import NotificationManage from './components/notificationManage.vue'
 
 </script>
