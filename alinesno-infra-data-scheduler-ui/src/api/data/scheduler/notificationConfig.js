@@ -14,10 +14,21 @@ var prefix = '/api/infra/data/scheduler/notificationConfig/' ;
 // 接口管理对象，便于维护
 var managerUrl = {
   datatables: prefix + "datatables",
-  get:        prefix + "getConfig/",
-  save:       prefix + "saveConfig",
-  remove:     prefix + "removeConfig/",
-  list:       prefix + "list"
+  get: prefix + "getConfig/",
+  save: prefix + "saveConfig",
+  remove: prefix + "removeConfig/",
+  list: prefix + "list",
+  listAllIM: prefix + "listAllIM"
+}
+
+/**
+ * 列出所有的IM工具列表
+ */
+export function listAllIM() {
+  return request({
+    url: managerUrl.listAllIM,
+    method: 'get'
+  })
 }
 
 /**
