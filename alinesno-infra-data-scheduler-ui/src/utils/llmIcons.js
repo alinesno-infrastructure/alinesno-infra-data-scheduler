@@ -17,6 +17,17 @@ const getLlmIconPath = (providerCode) => {
   return new URL(`/src/assets/icons/llm/${fileName}`, import.meta.url).href;
 };
 
+const getImIconPath = (providerCode) => {
+  const iconMap = {
+    'EMAIL': 'email.png',
+    'DINGTALK': 'dingtalk.png',
+    'WECHAT_ROBOT': 'wechat.png'
+  };
+  
+  const fileName = iconMap[providerCode] || 'email.png';
+  return new URL(`/src/assets/icons/im/${fileName}`, import.meta.url).href;
+};
+
 // 获取TaskIcon图标
 const getTaskIconPath = (taskCode) => {
   const fileName = taskCode + '.png' ;
@@ -84,6 +95,7 @@ export {
   getLlmIconPath,
   getAipStyle, 
   getAgentIconPath,
+  getImIconPath,
   getTaskIconPath,
   getDatasourceIconPath,
   getOutlineSvg
