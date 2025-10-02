@@ -30,6 +30,11 @@
     <el-table :data="list" stripe style="width: 100%">
       <!-- 序号-->
        <el-table-column type="index" width="50" />
+      <el-table-column prop="icon" align="center" label="图标" width="60">
+        <template #default="{ row }">
+          <img :src="getImIconPath(row.provider)" style="width: 20px;height: 20px;" />
+        </template>
+      </el-table-column>
       <el-table-column prop="name" label="名称" width="220" />
       <el-table-column prop="provider" label="类型" width="140" />
       <el-table-column prop="webhook" label="Webhook" />
@@ -65,6 +70,7 @@
 import { ref, reactive, onMounted } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import NotificationConfigForm from './notificationConfigForm.vue';
+import { getImIconPath } from '@/utils/llmIcons';
 
 // 导入你要求风格的 API（注意路径）
 import { listCredential, removeCredential } from '@/api/data/scheduler/notificationConfig';
