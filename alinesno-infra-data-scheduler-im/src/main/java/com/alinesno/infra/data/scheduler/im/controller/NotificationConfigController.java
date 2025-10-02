@@ -10,7 +10,9 @@ import com.alinesno.infra.common.facade.pageable.TableDataInfo;
 import com.alinesno.infra.common.facade.response.AjaxResult;
 import com.alinesno.infra.common.web.adapter.rest.BaseController;
 import com.alinesno.infra.data.scheduler.entity.NotificationConfigEntity;
+import com.alinesno.infra.data.scheduler.im.dto.NotificationConfigSelectDto;
 import com.alinesno.infra.data.scheduler.im.service.INotificationConfigService;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import io.swagger.annotations.Api;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -77,6 +79,22 @@ public class NotificationConfigController extends BaseController<NotificationCon
     public AjaxResult removeConfig(@PathVariable Serializable id) {
         boolean ok = service.removeById(id);
         return AjaxResult.success("删除成功");
+    }
+
+    /**
+     * 获取所有IM列表
+     */
+    @DataPermissionQuery
+    @GetMapping("/listAllIM")
+    public AjaxResult listAllIM(PermissionQuery  query){
+        LambdaQueryWrapper<NotificationConfigEntity> wrapper = new LambdaQueryWrapper<>() ;
+        wrapper.setEntityClass(NotificationConfigEntity.class) ;
+        query.toWrapper(wrapper);
+
+        List<NotificationConfigEntity> list = service.list(wrapper) ;
+        List<NotificationConfigSelectDto> listDto = NotificationConfigSelectDto.convert(list) ;
+
+        return AjaxResult.success("操作成功", listDto) ;
     }
 
     /**
