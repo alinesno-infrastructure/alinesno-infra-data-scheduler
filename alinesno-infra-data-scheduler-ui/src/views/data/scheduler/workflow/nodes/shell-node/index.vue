@@ -10,7 +10,11 @@
       <div class="settings-form">
         <el-form :model="formData" label-width="auto" label-position="top">
           <el-form-item label="执行环境">
-            <LLMSelector :nodeModel="props.nodeModel" v-model="formData.llmModelId"  :modelType="'image_generation'" />
+            <el-radio-group v-model="formData.environment" size="default">
+              <el-radio label="win">Windows</el-radio>
+              <el-radio label="mac">macOS</el-radio>
+              <el-radio label="linux">Linux</el-radio>
+            </el-radio-group>
           </el-form-item>
           <el-form-item label="Shell脚本">
             <div class="function-CodemirrorEditor mb-8" style="height: 120px;width:100%">
@@ -53,13 +57,11 @@
 
 <script setup>
 import { set } from 'lodash'
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed, nextTick, onMounted } from 'vue'
 
 import FlowContainer from '@/views/data/scheduler/workflow/common/FlowContainer'
 import ScriptEditorPanel from '@/views/data/scheduler/workflow/components/ScriptEditor';
 import ScriptEditorFullPanel from '@/views/data/scheduler/workflow/components/NodeScriptEditor';
-
-import LLMSelector from '@/views/data/scheduler/workflow/components/LLMSelector'
 
 const props = defineProps({
   properties: {
@@ -85,7 +87,7 @@ const dialogVisible = ref(false)
 const chatDataCode = ref('')
 
 const form = {
-  llmModelId: '',
+  environment: 'linux', // 默认值设为linux
   shellScript: '',
   dialogue_number: 0,
   isPrint: true
