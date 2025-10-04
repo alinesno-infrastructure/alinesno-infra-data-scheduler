@@ -1,19 +1,26 @@
+// PythonNode.java
 package com.alinesno.infra.data.scheduler.workflow.nodes.step;
 
+import cn.hutool.core.util.IdUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.alinesno.infra.data.scheduler.workflow.constants.FlowConst;
+import com.alinesno.infra.data.scheduler.workflow.logger.NodeLog;
 import com.alinesno.infra.data.scheduler.workflow.nodes.AbstractFlowNode;
 import com.alinesno.infra.data.scheduler.workflow.nodes.variable.step.PythonNodeData;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
+import java.nio.charset.Charset;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * 文本转语音节点（改为异步链签名）
+ * Python执行节点
  */
 @Slf4j
 @Data
@@ -26,45 +33,111 @@ public class PythonNode extends AbstractFlowNode {
         setType("python");
     }
 
-    /**
-     * 说明：
-     * - 该实现为轻量同步执行并返回已完成的 CompletableFuture，
-     *   因为 executeNode(...) 是由上层在 chatThreadPool 中调用的（FlowServiceImpl.executeFlowNode 已用 chatThreadPool 提交）。
-     * - 若实际 TTS 需要远端调用或耗时合成，请把耗时部分改为异步（CompletableFuture.supplyAsync(..., ttsExecutor)）。
-     */
     @Override
     protected CompletableFuture<Void> handleNode() {
+        File pythonFile = null;
         try {
+            // 1. 解析节点配置
             PythonNodeData nodeData = getNodeData();
-            log.debug("TextToSpeechNode nodeData = {}", nodeData);
-            log.debug("node type = {} output = {}", node.getType(), output);
+            log.debug("PythonNode nodeData = {}", nodeData);
 
-            // 这里示例为轻量处理：生成语音地址（或从配置/外部服务获取）
-            String result = "语音地址"; // TODO: replace with real TTS invocation or URL
+            // 1.1 解析配置日志
+            nodeLogService.append(NodeLog.of(
+                    flowExecution.getId().toString(),
+                    node.getId(),
+                    node.getStepName(),
+                    "INFO",
+                    "Python节点配置解析完成",
+                    Map.of(
+                            "script", nodeData.getPythonScript(),
+                            "scriptPreview", nodeData.getPythonScript() ,
+                            "scriptLength", nodeData.getPythonScript().length(),
+                            "printEnable", node.isPrint()
+                    )
+            ));
 
-            // 将结果写入 output（遵循原有约定）
-            output.put(node.getStepName() + ".result", result);
+            // 2. 生成临时Python文件
+            String pythonScript = nodeData.getPythonScript();
+            pythonFile = new File(getWorkspace(), "python_" + IdUtil.getSnowflakeNextIdStr() + ".py");
+            FileUtils.writeStringToFile(pythonFile, pythonScript, Charset.defaultCharset(), false);
 
-            // 若需要把内容追加到 outputContent（打印输出），可以判断 node.isPrint()
+            // 2.1 文件生成日志
+            nodeLogService.append(NodeLog.of(
+                    flowExecution.getId().toString(),
+                    node.getId(),
+                    node.getStepName(),
+                    "INFO",
+                    "Python脚本文件生成成功",
+                    Map.of(
+                            "filePath", pythonFile.getAbsolutePath(),
+                            "fileSize", pythonFile.length(),
+                            "workspace", getWorkspace().getAbsolutePath()
+                    )
+            ));
+
+            // 3. 执行Python脚本
+            String executeOutput = runCommand("python3 " + pythonFile.getAbsolutePath());
+
+            // 3.1 执行结果日志
+            nodeLogService.append(NodeLog.of(
+                    flowExecution.getId().toString(),
+                    node.getId(),
+                    node.getStepName(),
+                    "INFO",
+                    "Python脚本执行完成",
+                    Map.of(
+                            "output", executeOutput,
+                            "outputLength", executeOutput.length(),
+                            "outputPreview", executeOutput.length() > 500 ? executeOutput.substring(0, 500) + "..." : executeOutput
+                    )
+            ));
+
+            // 4. 处理输出结果
+            output.put(node.getStepName() + ".result", executeOutput);
+            outputContent.append(executeOutput);
+
             if (node.isPrint()) {
-                try {
-                    eventMessageCallbackMessage(result);
-                } catch (Exception e) {
-                    log.warn("追加输出失败: {}", e.getMessage(), e);
-                }
+                eventMessageCallbackMessage(executeOutput);
             }
 
-            // 轻量操作，直接返回已完成的 Future（在父线程池线程执行）
             return CompletableFuture.completedFuture(null);
 
         } catch (Exception ex) {
-            log.error("TextToSpeechNode 执行异常: {}", ex.getMessage(), ex);
-            // 将错误信息放到 output 中，便于后续流程判断
-            output.put(node.getStepName() + ".result", "TTS error: " + ex.getMessage());
-            // 将异常转换为已完成的 future（也可返回 completeExceptionally）
+            // 5. 异常日志
+            String errorMsg = ex.getMessage() != null ? ex.getMessage() : "未知异常";
+            nodeLogService.append(NodeLog.of(
+                    flowExecution.getId().toString(),
+                    node.getId(),
+                    node.getStepName(),
+                    "ERROR",
+                    "Python节点执行失败: " + errorMsg,
+                    Map.of(
+                            "exception", errorMsg,
+                            "filePath", pythonFile != null ? pythonFile.getAbsolutePath() : "N/A"
+                    )
+            ));
+
+            output.put(node.getStepName() + ".result", "Python error: " + errorMsg);
             CompletableFuture<Void> failed = new CompletableFuture<>();
             failed.completeExceptionally(ex);
             return failed;
+
+        } finally {
+            // 6. 文件清理日志
+            if (pythonFile != null && pythonFile.exists()) {
+                boolean deleted = pythonFile.delete();
+                nodeLogService.append(NodeLog.of(
+                        flowExecution.getId().toString(),
+                        node.getId(),
+                        node.getStepName(),
+                        deleted ? "INFO" : "WARN",
+                        deleted ? "临时Python文件清理成功" : "临时Python文件清理失败",
+                        Map.of(
+                                "filePath", pythonFile.getAbsolutePath(),
+                                "size", pythonFile.length()
+                        )
+                ));
+            }
         }
     }
 
