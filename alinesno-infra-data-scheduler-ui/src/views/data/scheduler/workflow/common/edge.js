@@ -123,6 +123,9 @@ class CustomEdge2 extends BezierEdge {
         };
 
         setTimeout(() => {
+
+            console.log('document.getElementById = ' + id);
+
             const s = document.getElementById(id);
             if (s && !this.isMounted) {
                 this.isMounted = true;
