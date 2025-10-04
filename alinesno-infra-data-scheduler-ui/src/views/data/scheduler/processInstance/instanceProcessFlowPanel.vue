@@ -70,7 +70,7 @@
   -->
 
   <!-- 日志弹窗组件 -->
-  <LogViewer v-model:visible="logDialogVisible" :title="currentTitle" :log="currentLog" />
+  <LogViewer ref="logDialogRef" v-model:visible="logDialogVisible" :title="currentTitle" :log="currentLog" />
   </div>
 </template>
 
@@ -94,6 +94,7 @@ const currentExecuteId = ref(null) ;
 const nodes = ref([])
 
 const logDialogVisible = ref(false)
+const logDialogRef = ref(null)
 const currentLog = ref('')
 const currentTitle = ref('')
 
@@ -109,9 +110,16 @@ function initChatBoxScroll() {
 }
 
 function openLog(item) {
-  currentTitle.value = `${item.node} - ${item.title}`
+
+  console.log('openLog', JSON.stringify(item))
+
+  currentTitle.value = `${item.node.stepName}`
   currentLog.value = item.log || '无日志内容'
   logDialogVisible.value = true
+
+  nextTick(() => {
+    logDialogRef.value.settingProcessIdAndNodeId(currentExecuteId.value, item.stepId)
+  })
 }
 
 const usageTime = (executeTime, finishTime) => {
