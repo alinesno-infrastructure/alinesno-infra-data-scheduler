@@ -72,7 +72,7 @@
   </div>
 
   <!-- 日志弹窗组件 -->
-  <LogViewer v-model:visible="logDialogVisible" :title="currentTitle" :log="currentLog" />
+  <LogViewer ref="logDialogRef" v-model:visible="logDialogVisible" :title="currentTitle" :log="currentLog" />
   </div>
 </template>
 
@@ -84,7 +84,7 @@ import {
   getLastExecutedFlowNodes
 } from '@/api/data/scheduler/flow'
 
-import LogViewer from './LogViewer.vue' // 请根据实际路径调整
+import LogViewer from '@/views/data/scheduler/processInstance/LogViewer.vue' // 请根据实际路径调整
 
 const innerRef = ref(null); // 滚动条的处理_starter
 const scrollbarRef = ref(null);
@@ -94,8 +94,10 @@ const currentProcessDefinitionId = ref(router.currentRoute.value.query.processDe
 
 const nodes = ref([])
 
+const logDialogRef = ref(null)
 const logDialogVisible = ref(false)
 const currentLog = ref('')
+const currentExecuteId = ref(null)
 const currentTitle = ref('')
 
 function initChatBoxScroll() {
@@ -110,9 +112,19 @@ function initChatBoxScroll() {
 }
 
 function openLog(item) {
-  currentTitle.value = `${item.node} - ${item.title}`
+  // currentTitle.value = `${item.node} - ${item.title}`
+  // currentLog.value = item.log || '无日志内容'
+  // logDialogVisible.value = true
+
+  console.log('openLog', JSON.stringify(item))
+
+  currentTitle.value = `${item.node.stepName}`
   currentLog.value = item.log || '无日志内容'
   logDialogVisible.value = true
+
+  nextTick(() => {
+    logDialogRef.value.settingProcessIdAndNodeId(currentExecuteId.value, item.stepId)
+  })
 }
 
 const usageTime = (executeTime, finishTime) => {
@@ -158,6 +170,8 @@ async function fetchNodes() {
 
     getLastExecutedFlowNodes(currentProcessDefinitionId.value).then(resp => {
 
+      currentExecuteId.value = resp.executeInstanceId;
+
       let dataList = []
       if (!resp || resp.status === 'no_run') {
         // nothing
@@ -169,7 +183,7 @@ async function fetchNodes() {
       // 如果已经结束则停止轮询
       if (resp.status === 'completed') {
         console.log('任务已结束，停止轮询')
-        // stopPolling();
+        stopPolling();
       }
 
       if (Array.isArray(resp.data)) {
@@ -187,7 +201,12 @@ async function fetchNodes() {
       nodes.value = dataList ;
 
       initChatBoxScroll();
-    })
+    }).catch(error => {
+      console.error('Error fetching nodes:', error);
+      ElMessage.error('获取节点数据失败');
+      // 停止轮询
+      stopPolling();
+    });
 
   // try {
   //   const resp = await getLastExecutedFlowNodes(currentProcessDefinitionId.value)
@@ -251,6 +270,8 @@ const handleTryRun = () => {
 
     isCompleted.value = true;
     ElMessage.success('任务执行结束');
+
+    startPolling();
 
   }).catch(error => {
     isCompleted.value = true;
