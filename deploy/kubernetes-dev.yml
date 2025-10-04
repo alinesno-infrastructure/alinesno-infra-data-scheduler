@@ -46,7 +46,9 @@ spec:
                 -Dspring.datasource.url=jdbc:mysql://${DB_MYSQL_URL}/dev_alinesno_infra_data_scheduler_v100?serverTimezone=GMT%2B8&zeroDateTimeBehavior=CONVERT_TO_NULL
                 -Dspring.datasource.username=${DB_MYSQL_USRENAME}
                 -Dspring.datasource.password=${DB_MYSQL_PASSWORD}
-                
+
+                -Dspring.data.mongodb.uri=mongodb://${MONGODB_URL}/infra_scheduler_logs
+
                 -Dserver.port=8080
           ports:
             - name: http
