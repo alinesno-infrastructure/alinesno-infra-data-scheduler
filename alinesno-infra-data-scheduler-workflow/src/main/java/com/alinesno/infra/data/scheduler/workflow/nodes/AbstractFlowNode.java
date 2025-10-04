@@ -6,14 +6,20 @@ import com.agentsflex.core.message.AiMessage;
 import com.agentsflex.core.message.MessageStatus;
 import com.agentsflex.core.util.StringUtil;
 import com.alibaba.fastjson.JSONObject;
+import com.alinesno.infra.data.scheduler.constants.PipeConstants;
 import com.alinesno.infra.data.scheduler.llm.service.ILlmModelService;
 import com.alinesno.infra.data.scheduler.workflow.WorkflowManage;
 import com.alinesno.infra.data.scheduler.workflow.constants.AgentConstants;
 import com.alinesno.infra.data.scheduler.workflow.dto.FlowNodeDto;
 import com.alinesno.infra.data.scheduler.workflow.entity.FlowExecutionEntity;
 import com.alinesno.infra.data.scheduler.workflow.entity.FlowNodeExecutionEntity;
+import com.alinesno.infra.data.scheduler.workflow.logger.NodeLog;
+import com.alinesno.infra.data.scheduler.workflow.logger.NodeLogService;
 import com.alinesno.infra.data.scheduler.workflow.nodes.variable.GlobalVariables;
 import com.alinesno.infra.data.scheduler.workflow.parse.TextReplacer;
+import com.alinesno.infra.data.scheduler.workflow.utils.OSUtils;
+import com.alinesno.infra.data.scheduler.workflow.utils.StackTraceUtils;
+import com.alinesno.infra.data.scheduler.workflow.utils.shell.ShellHandle;
 import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +50,9 @@ public abstract class AbstractFlowNode implements FlowNode {
     @Autowired
     @Qualifier("chatThreadPool")
     protected ThreadPoolTaskExecutor chatThreadPool;
+
+    @Autowired
+    protected NodeLogService nodeLogService;
 
     /**
      * 工作流管理类，用于管理流程中的节点和数据
@@ -123,21 +133,29 @@ public abstract class AbstractFlowNode implements FlowNode {
 
         // 2. 处理全局变量（仅 start 节点需要，同步逻辑）
         if ("start".equals(node.getType())) {
+
+            // 1. 节点开始执行日志
+            NodeLog startLog = NodeLog.of(
+                    flowExecution.getId().toString(), // taskId：使用流程执行ID（flowExecution.getId() 为 Long 类型）
+                    node.getId(), // nodeId：节点界面ID（node.getId() 为 String 类型）
+                    node.getStepName(), // nodeName：节点名称
+                    "INFO", // 日志级别
+                    "节点开始执行", // 消息摘要
+                    Map.of(
+                            "nodeType", node.getType(), // 节点类型（如 "start"、"llm"等）
+                            "flowExecutionStatus", flowExecution.getExecutionStatus(), // 流程执行状态
+                            "stepId", node.getId(), // 节点界面ID（冗余但便于查询）
+                            "runUniqueNumber", flowExecution.getRunUniqueNumber() // 流程运行唯一号（便于追踪单次执行）
+                    )
+            );
+            nodeLogService.append(startLog); // 调用 NodeLogService 记录日志
+
+
             List<String> messages = new ArrayList<>();
-//            handleHistoryMessage(messages, taskInfo.getChannelId());
-//            String preContent = workflowExecution == null ? "" : workflowExecution.getContent();
             GlobalVariables globalVariables = new GlobalVariables(null , null , messages);
             this.setGlobalVariables(globalVariables);
             // 填充全局变量到 output（同步操作）
             output.put("global.time", globalVariables.getTime());
-//            output.put("global.pre_content", globalVariables.getPreContent());
-//            output.put("global.channelId", globalVariables.getChannelId());
-//            output.put("global.history_content", String.join(",", globalVariables.getHistoryContent()));
-//            output.put("global.datasetKnowledgeDocument", StringUtils.hasLength(taskInfo.getDatasetKnowledgeDocument()) ? taskInfo.getDatasetKnowledgeDocument() : "");
-
-//            if (taskInfo.getAttachments() != null && !taskInfo.getAttachments().isEmpty()) {
-//                output.put("global.document", taskInfo.getAttachments().get(0));
-//            }
 
         }
 
@@ -146,15 +164,75 @@ public abstract class AbstractFlowNode implements FlowNode {
         // 3. 异步执行节点逻辑（核心改造：调用子类异步 handleNode()）
         return handleNode()
                 .thenRun(() -> {
+
+                    // 5. 节点输出结果日志
+                    NodeLog outputLog = NodeLog.of(
+                            flowExecution.getId().toString(),
+                            node.getId(),
+                            node.getStepName(),
+                            "INFO",
+                            "节点输出参数记录",
+                            Map.of(
+                                    "outputKeys", output.keySet().toString(), // 输出参数键列表（如 ["result", "summary"]）
+                                    "outputSize", output.size(),
+                                    "isLastNode", node.isLastNode(), // 是否为最后一个节点
+                                    "contentLength", outputContent.length() // 输出内容总长度
+                            )
+                    );
+                    nodeLogService.append(outputLog);
+
                     // 4. 节点成功后处理（异步回调）
                     log.debug("output = {}", output);
                     eventStepMessage(AgentConstants.STEP_FINISH); // 发送完成事件
                     // 如果是最后节点，异步保存完整输出
                     if (node.isLastNode()) {
                         log.debug("保存完整输出");
+
+                        // 节点执行成功：记录结束日志
+                        long durationMs = System.currentTimeMillis() - flowNodeExecution.getExecuteTime().getTime(); // 计算耗时（假设 executeTime 为节点开始执行时间）
+
+                        NodeLog endLog = NodeLog.of(
+                                flowExecution.getId().toString(),
+                                node.getId(),
+                                node.getStepName(),
+                                "INFO",
+                                "节点执行成功",
+                                Map.of(
+                                        "nodeType", node.getType(),
+                                        "executionStatus", "SUCCESS",
+                                        "durationMs", durationMs, // 耗时（毫秒）
+                                        "outputKeys", output.keySet().toString(), // 输出参数键列表（摘要）
+                                        "outputPreview", outputContent .length() > 200 ?
+                                                outputContent.substring(0, 200) + "..." : outputContent.toString() // 输出内容预览（截断长文本）
+                                )
+                        );
+                        nodeLogService.append(endLog);
+
                     }
                 })
                 .exceptionally(ex -> {
+
+                    // 节点执行异常：记录错误日志
+                    String errorMsg = ex.getMessage() != null ? ex.getMessage() : "未知异常";
+                    String stackTrace = StackTraceUtils.getStackTrace(ex); // 需要工具类获取堆栈（见下方工具类）
+
+                    NodeLog errorLog = NodeLog.of(
+                            flowExecution.getId().toString(),
+                            node.getId(),
+                            node.getStepName(),
+                            "ERROR", // 错误级别
+                            "节点执行失败: " + errorMsg,
+                            Map.of(
+                                    "nodeType", node.getType(),
+                                    "executionStatus", "FAILED",
+                                    "exception", errorMsg,
+                                    "stackTrace", stackTrace.length() > 5000 ? stackTrace.substring(0, 5000) + "..." : stackTrace, // 堆栈截断（避免过大）
+                                    "flowExecutionId", flowExecution.getId(),
+                                    "flowNodeExecutionId", flowNodeExecution.getId() // 节点执行记录ID（便于关联数据库中的执行记录）
+                            )
+                    );
+                    nodeLogService.append(errorLog);
+
                     // 5. 异常处理（异步回调）
                     log.error("节点执行失败:{}", ex.getMessage(), ex);
                     eventStepMessage("节点执行失败: " + ex.getMessage(), AgentConstants.STEP_ERROR);
@@ -275,6 +353,23 @@ public abstract class AbstractFlowNode implements FlowNode {
     protected CompletableFuture<String> getAiChatResultAsync(Llm llm, String prompt) {
         final CompletableFuture<String> future = new CompletableFuture<>();
 
+        long aiStartTime = System.currentTimeMillis(); // AI调用开始时间
+
+        // 4.1 AI调用开始日志
+        NodeLog aiStartLog = NodeLog.of(
+                flowExecution.getId().toString(),
+                node.getId(),
+                node.getStepName(),
+                "INFO",
+                "AI模型调用开始",
+                Map.of(
+                        "llmModel", llm.toString() , // AI模型名称（假设 Llm 类有 getName() 方法）
+                        "promptLength", prompt.length(), // prompt长度（摘要）
+                        "promptPreview", prompt.length() > 100 ? prompt.substring(0, 100) + "..." : prompt // prompt摘要
+                )
+        );
+        nodeLogService.append(aiStartLog);
+
         try {
             llm.chatStream(prompt, (context, response) -> {
                 try {
@@ -285,47 +380,85 @@ public abstract class AbstractFlowNode implements FlowNode {
 
                     // 实时片段推送（与之前逻辑一致）
                     if (StringUtil.hasText(message.getReasoningContent())) {
-//                        taskInfo.setReasoningText(null);
+
+                        NodeLog reasoningLog = NodeLog.of(
+                                flowExecution.getId().toString(),
+                                node.getId(),
+                                node.getStepName(),
+                                "INFO",
+                                "AI推理内容生成",
+                                Map.of(
+                                        "reasoningPreview", message.getReasoningContent().length() > 200 ?
+                                                message.getReasoningContent().substring(0, 200) + "..." : message.getReasoningContent(),
+                                        "status", "STREAMING" // 流式推理中
+                                )
+                        );
+                        nodeLogService.append(reasoningLog);
+
                         eventNodeMessage(null , message.getReasoningContent());
                     }
 
                     // 实时片段推送（与之前逻辑一致）
                     if (StringUtil.hasText(message.getContent())) {
-//                        taskInfo.setReasoningText(null);
                         eventNodeMessage(message.getContent());
                     }
 
                     // 终止时完成 future
                     if (message.getStatus() == MessageStatus.END) {
                         String full = message.getFullContent();
-                        // 持久化最终消息（保持之前行为）
-//                        MessageEntity entity = new MessageEntity();
-//                        entity.setTraceBusId(taskInfo.getTraceBusId());
-//                        entity.setId(IdUtil.getSnowflakeNextId());
-//                        entity.setContent(full);
-//                        entity.setReasoningContent(message.getFullReasoningContent());
-//                        entity.setFormatContent(full);
-//                        entity.setName(role.getRoleName());
-//                        entity.setRoleType("agent");
-//                        entity.setReaderType("html");
-//                        entity.setAddTime(new Date());
-//                        entity.setIcon(role.getRoleAvatar());
-//                        entity.setChannelId(taskInfo.getChannelId());
-//                        entity.setRoleId(role.getId());
-//                        // 保存操作可能是同步的，建议交给 orchestratorExecutor/异步写入以避免阻塞回调线程
-//                        try {
-//                            flowExpertService.getMessageService().save(entity);
-//                        } catch (Exception ex) {
-//                            log.warn("保存消息实体异常: {}", ex.getMessage(), ex);
-//                        }
+
+                        long aiDurationMs = System.currentTimeMillis() - aiStartTime;
+                        NodeLog aiEndLog = NodeLog.of(
+                                flowExecution.getId().toString(),
+                                node.getId(),
+                                node.getStepName(),
+                                "INFO",
+                                "AI模型调用结束",
+                                Map.of(
+                                        "llmModel", llm.toString(),
+                                        "responseLength", message.getFullContent().length(),
+                                        "durationMs", aiDurationMs,
+                                        "status", "COMPLETED"
+                                )
+                        );
+                        nodeLogService.append(aiEndLog);
 
                         future.complete(full);
                     }
                 } catch (Exception ex) {
+
+                    NodeLog aiErrorLog = NodeLog.of(
+                            flowExecution.getId().toString(),
+                            node.getId(),
+                            node.getStepName(),
+                            "ERROR",
+                            "AI模型调用异常: " + ex.getMessage(),
+                            Map.of(
+                                    "llmModel", llm.toString(),
+                                    "exception", ex.getMessage(),
+                                    "stackTrace", StackTraceUtils.getStackTrace(ex).substring(0, 5000) + "..."
+                            )
+                    );
+                    nodeLogService.append(aiErrorLog);
+
                     future.completeExceptionally(ex);
                 }
             });
         } catch (Exception e) {
+
+            NodeLog aiInitErrorLog = NodeLog.of(
+                    flowExecution.getId().toString(),
+                    node.getId(),
+                    node.getStepName(),
+                    "ERROR",
+                    "AI模型调用初始化失败: " + e.getMessage(),
+                    Map.of(
+                            "llmModel", llm.toString(),
+                            "exception", e.getMessage()
+                    )
+            );
+            nodeLogService.append(aiInitErrorLog);
+
             future.completeExceptionally(e);
         }
 
@@ -340,6 +473,111 @@ public abstract class AbstractFlowNode implements FlowNode {
      */
     protected String replacePlaceholders(String text){
        return TextReplacer.replacePlaceholders(text, output);
+    }
+
+    @SneakyThrows
+    protected String runCommand(String command) {
+        File logFile = new File(getWorkspace(), PipeConstants.RUNNING_LOGGER);
+
+        ShellHandle shellHandle;
+        boolean isWindows = OSUtils.isWindows();
+        if (isWindows) {
+            shellHandle = new ShellHandle("cmd.exe", "/C", command);
+        } else {
+            shellHandle = new ShellHandle("/bin/sh", "-c", command);
+        }
+
+        shellHandle.setLogPath(logFile.getAbsolutePath());
+
+        long startTs = System.currentTimeMillis();
+        // 记录开始日志
+        try {
+            nodeLogService.append(NodeLog.of(
+                    String.valueOf(flowExecution != null ? flowExecution.getId() : "unknown"),
+                    node != null ? node.getId() : "unknown",
+                    node != null ? node.getStepName() : "unknown",
+                    "INFO",
+                    "命令开始执行",
+                    Map.of(
+                            "phase", "runCommand.start",
+                            "commandPreview", command.length() > 200 ? command.substring(0, 200) + "..." : command,
+                            "logFile", logFile.getAbsolutePath(),
+                            "workspace", getWorkspace().getAbsolutePath()
+                    )
+            ));
+        } catch (Exception ignore) {
+            // log to regular logger but不抛出，避免影响业务
+            log.warn("记录 runCommand start 日志失败: {}", ignore.getMessage());
+        }
+
+        String output;
+        try {
+            // 执行命令（如果 ShellHandle 支持流式回调，建议在此处注册回调并把流式 fragment 送到 nodeLogService）
+            shellHandle.execute();
+
+            output = shellHandle.getOutput();
+
+            long durationMs = System.currentTimeMillis() - startTs;
+            int outLen = output == null ? 0 : output.length();
+
+            // 如果输出非常大，不把全部内容放 meta，只放预览并引用文件路径
+            String preview = "";
+            if (output != null) {
+                preview = output.length() > 1000 ? output.substring(0, 1000) + "..." : output;
+            }
+
+            nodeLogService.append(NodeLog.of(
+                    String.valueOf(flowExecution != null ? flowExecution.getId() : "unknown"),
+                    node != null ? node.getId() : "unknown",
+                    node != null ? node.getStepName() : "unknown",
+                    "INFO",
+                    "命令执行完成",
+                    Map.of(
+                            "phase", "runCommand.end",
+                            "commandPreview", command.length() > 200 ? command.substring(0, 200) + "..." : command,
+                            "durationMs", durationMs,
+                            "outputLength", outLen,
+                            "outputPreview", preview,
+                            "logFile", logFile.getAbsolutePath()
+                    )
+            ));
+
+            return output;
+        } catch (Exception ex) {
+            long durationMs = System.currentTimeMillis() - startTs;
+            String errMsg = ex.getMessage() == null ? ex.toString() : ex.getMessage();
+            String stack = StackTraceUtils.getStackTrace(ex);
+            if (stack.length() > 4000) stack = stack.substring(0, 4000) + "...";
+
+            try {
+                nodeLogService.append(NodeLog.of(
+                        String.valueOf(flowExecution != null ? flowExecution.getId() : "unknown"),
+                        node != null ? node.getId() : "unknown",
+                        node != null ? node.getStepName() : "unknown",
+                        "ERROR",
+                        "命令执行异常: " + errMsg,
+                        Map.of(
+                                "phase", "runCommand.error",
+                                "commandPreview", command.length() > 200 ? command.substring(0, 200) + "..." : command,
+                                "durationMs", durationMs,
+                                "exception", errMsg,
+                                "stackTrace", stack,
+                                "logFile", logFile.getAbsolutePath()
+                        )
+                ));
+            } catch (Exception ignore) {
+                log.warn("记录 runCommand error 日志失败: {}", ignore.getMessage());
+            }
+            throw ex; // 保持原有行为，继续抛出异常或由上层处理
+        }
+    }
+
+    /**
+     * 系统临时目录
+     * @return
+     */
+    protected File getWorkspace() {
+        return new File(System.getProperty("java.io.tmpdir"));
     }
 
 }
