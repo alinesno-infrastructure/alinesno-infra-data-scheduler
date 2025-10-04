@@ -12,16 +12,16 @@
 
       <el-row :gutter="20">
 
-         <!--应用数据-->
+         <!--实例数据-->
          <el-col :span="10" :xs="24">
             <LeftProcessDefinitionPanel />
          </el-col>
 
-         <!--应用数据-->
+         <!--实例数据-->
          <el-col :span="14" :xs="24">
             <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="100px">
-               <el-form-item label="应用名称" prop="dbName">
-                  <el-input v-model="queryParams.dbName" placeholder="请输入应用名称" clearable style="width: 240px"
+               <el-form-item label="实例名称" prop="dbName">
+                  <el-input v-model="queryParams.dbName" placeholder="请输入实例名称" clearable style="width: 240px"
                      @keyup.enter="handleQuery" />
                </el-form-item>
                <el-form-item>
@@ -29,15 +29,6 @@
                   <el-button icon="Refresh" @click="resetQuery">重置</el-button>
                </el-form-item>
             </el-form>
-
-            <el-row :gutter="10" class="mb8">
-
-               <el-col :span="1.5">
-                  <el-button type="danger" plain icon="Delete" :disabled="multiple" @click="handleDelete">删除</el-button>
-               </el-col>
-
-               <right-toolbar v-model:showSearch="showSearch" @queryTable="getList" :columns="columns"></right-toolbar>
-            </el-row>
 
             <el-table v-loading="loading" :data="ProcessInstanceList" @selection-change="handleSelectionChange">
                <el-table-column type="selection" width="50" align="center" />
@@ -66,7 +57,7 @@
                <el-table-column label="流程任务" width="100" align="center" key="jobDesc" prop="jobDesc"
                   v-if="columns[1].visible">
                   <template #default="scope">
-                     <div style="margin-top: 5px;">
+                     <div style="margin-top: 2px;margin-bottom: 2px;">
                         <el-button type="primary" text @click="handleProcessTaskInstance(scope.row)">
                            <i class="fa-solid fa-truck-fast" style="margin-right:5px"></i> 流程
                         </el-button>
@@ -77,7 +68,7 @@
                <el-table-column label="日志" width="100" align="center" key="jobDesc" prop="jobDesc"
                   v-if="columns[1].visible">
                   <template #default="scope">
-                     <div style="margin-top: 5px;">
+                     <div style="margin-top: 2px;margin-bottom: 2px;">
                         <el-button type="primary" text @click="handleProcessInstanceLog(scope.row)">
                            <i class="fa-solid fa-ferry" style="margin-right:5px"></i> 日志
                         </el-button>
@@ -132,13 +123,6 @@
                v-model:limit="queryParams.pageSize" @pagination="getList" />
          </el-col>
       </el-row>
-
-      <!-- 任务实例列表 -->
-      <!-- 
-      <el-drawer v-model="openTaskInstanceDialog" :size="'50%'" :title="processDefinitionTitle" :direction="'rtl'">
-         <ListInstance ref="processTaskDefinitionRef" />
-      </el-drawer>                               
-      -->
 
       <!-- 试运行窗口 -->
       <div class="aip-flow-drawer">
@@ -221,8 +205,8 @@ const openProcessInstanceLogTitle = ref('');
 
 // 列显隐信息
 const columns = ref([
-   { key: 0, label: `应用名称`, visible: true },
-   { key: 1, label: `应用描述`, visible: true },
+   { key: 0, label: `实例名称`, visible: true },
+   { key: 1, label: `实例描述`, visible: true },
    { key: 2, label: `授权地址`, visible: true },
    { key: 3, label: `类型`, visible: true },
    { key: 4, label: `是否公开`, visible: true },
@@ -249,7 +233,7 @@ const data = reactive({
 
 const { queryParams, form, rules } = toRefs(data);
 
-/** 查询应用列表 */
+/** 查询实例列表 */
 function getList() {
    loading.value = true;
    listProcessInstance(proxy.addDateRange(queryParams.value, dateRange.value)).then(res => {
@@ -276,7 +260,7 @@ function resetQuery() {
 /** 删除按钮操作 */
 function handleDelete(row) {
    const ProcessInstanceIds = row.id || ids.value;
-   proxy.$modal.confirm('是否确认删除应用编号为"' + ProcessInstanceIds + '"的数据项？').then(function () {
+   proxy.$modal.confirm('是否确认删除实例编号为"' + ProcessInstanceIds + '"的数据项？').then(function () {
       return delProcessInstance(ProcessInstanceIds);
    }).then(() => {
       getList();
@@ -315,7 +299,7 @@ function cancel() {
 function handleAdd() {
    reset();
    open.value = true;
-   title.value = "添加应用";
+   title.value = "添加实例";
 };
 
 /** 修改按钮操作 */
@@ -325,7 +309,7 @@ function handleUpdate(row) {
    getProcessInstance(ProcessInstanceId).then(response => {
       form.value = response.data;
       open.value = true;
-      title.value = "修改应用";
+      title.value = "修改实例";
    });
 };
 
@@ -408,7 +392,7 @@ const handleChangStatusField = async (field, value, id) => {
 
 /** 提交配置文档类型 */
 // function submitDocumentTypeForm(){
-//   // TODO 待保存应用文档类型
+//   // TODO 待保存实例文档类型
 // }
 
 
