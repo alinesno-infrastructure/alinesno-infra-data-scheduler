@@ -5,8 +5,10 @@ import com.alinesno.infra.data.scheduler.adapter.SparkSqlConsumer;
 import com.alinesno.infra.data.scheduler.entity.ComputeEngineEntity;
 import com.alinesno.infra.data.scheduler.service.IComputeEngineService;
 import com.alinesno.infra.data.scheduler.workflow.constants.FlowConst;
+import com.alinesno.infra.data.scheduler.workflow.logger.NodeLog;
 import com.alinesno.infra.data.scheduler.workflow.nodes.AbstractFlowNode;
 import com.alinesno.infra.data.scheduler.workflow.nodes.variable.step.SparkNodeData;
+import com.alinesno.infra.data.scheduler.workflow.utils.StackTraceUtils;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
@@ -20,8 +22,6 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * SparkNode 类继承自 AbstractFlowNode
- * 其功能是根据提供的文本内容生成相应的图片。
- * 在工作流中，如果需要根据文本描述生成图片，就会用到这个节点。
  */
 @Slf4j
 @Data
@@ -42,12 +42,42 @@ public class SparkNode extends AbstractFlowNode {
 
         ComputeEngineEntity computeEngine = computeEngineService.getCurrentConfig(flowExecution.getOrgId());
 
+        long startTs = System.currentTimeMillis();
         try {
             SparkNodeData nodeData = getNodeData();
             log.debug("nodeData = {}", nodeData);
             log.debug("node type = {} output = {}", node.getType(), output);
 
+            // 记录解析配置 & 计算引擎信息
+            nodeLogService.append(NodeLog.of(
+                    flowExecution.getId().toString(),
+                    node.getId(),
+                    node.getStepName(),
+                    "INFO",
+                    "Spark节点配置解析完成",
+                    Map.of(
+                            "sqlLength", nodeData.getSqlContent() != null ? nodeData.getSqlContent().length() : 0,
+                            "orgId", flowExecution.getOrgId(),
+                            "computeEngineId", computeEngine != null ? String.valueOf(computeEngine.getId()) : "unknown",
+                            "computeEngineAdmin", computeEngine != null ? computeEngine.getAdminUser() : "unknown"
+                    )
+            ));
+
             String sqlContent = nodeData.getSqlContent();
+
+            // 记录提交前（包含 sql 预览）
+            String sqlPreview = sqlContent == null ? "" :
+                    (sqlContent.length() > 1000 ? sqlContent.substring(0, 1000) + "..." : sqlContent);
+            nodeLogService.append(NodeLog.of(
+                    flowExecution.getId().toString(),
+                    node.getId(),
+                    node.getStepName(),
+                    "INFO",
+                    "准备提交 Spark SQL",
+                    Map.of(
+                            "sqlPreview", sqlPreview
+                    )
+            ));
 
             // 2. 创建 SparkSqlConsumer
             SparkSqlConsumer consumer = new SparkSqlConsumer(computeEngine);
@@ -55,15 +85,73 @@ public class SparkNode extends AbstractFlowNode {
             long waitMs = 600_000L; // 等待 600 秒
             Map<String, Object> params = new HashMap<>();
 
-            JSONObject syncResp = consumer.submitSync(sqlContent , params, computeEngine.getAdminUser(), waitMs);
-            System.out.println("同步提交响应: " + syncResp.toJSONString());
+            // 提交并等待结果
+            nodeLogService.append(NodeLog.of(
+                    flowExecution.getId().toString(),
+                    node.getId(),
+                    node.getStepName(),
+                    "INFO",
+                    "开始同步提交 Spark SQL",
+                    Map.of(
+                            "waitMs", waitMs,
+                            "paramsSize", params.size()
+                    )
+            ));
 
-            // TODO 获取到执行完成的文件并解析下载
-            output.put(node.getStepName() + ".result", syncResp.toJSONString());
+            JSONObject syncResp = consumer.submitSync(sqlContent , params, computeEngine.getAdminUser(), waitMs);
+
+            long durationMs = System.currentTimeMillis() - startTs;
+            String respStr = syncResp == null ? "{}" : syncResp.toJSONString();
+            String respPreview = respStr.length() > 1000 ? respStr.substring(0, 1000) + "..." : respStr;
+
+            // 提交返回日志
+            nodeLogService.append(NodeLog.of(
+                    flowExecution.getId().toString(),
+                    node.getId(),
+                    node.getStepName(),
+                    "INFO",
+                    "Spark SQL 同步提交完成",
+                    Map.of(
+                            "durationMs", durationMs,
+                            "responseLength", respStr.length(),
+                            "responsePreview", respPreview
+                    )
+            ));
+
+            // TODO 获取到执行完成的文件并解析下载（若有）
+            output.put(node.getStepName() + ".result", respStr);
+
+            // 成功结束日志
+            nodeLogService.append(NodeLog.of(
+                    flowExecution.getId().toString(),
+                    node.getId(),
+                    node.getStepName(),
+                    "INFO",
+                    "Spark 节点执行成功",
+                    Map.of(
+                            "outputKey", node.getStepName() + ".result"
+                    )
+            ));
 
             return CompletableFuture.completedFuture(null);
         } catch (Exception ex) {
-            log.error("ImageGenerateNode 执行异常: {}", ex.getMessage(), ex);
+            String errMsg = ex.getMessage() != null ? ex.getMessage() : "未知异常";
+            String stack = StackTraceUtils.getStackTrace(ex);
+            if (stack.length() > 4000) stack = stack.substring(0, 4000) + "...";
+
+            nodeLogService.append(NodeLog.of(
+                    flowExecution.getId().toString(),
+                    node.getId(),
+                    node.getStepName(),
+                    "ERROR",
+                    "Spark 节点执行异常: " + errMsg,
+                    Map.of(
+                            "exception", errMsg,
+                            "stackTrace", stack
+                    )
+            ));
+
+            log.error("SparkNode 执行异常: {}", ex.getMessage(), ex);
             CompletableFuture<Void> failed = new CompletableFuture<>();
             failed.completeExceptionally(ex);
             return failed;
