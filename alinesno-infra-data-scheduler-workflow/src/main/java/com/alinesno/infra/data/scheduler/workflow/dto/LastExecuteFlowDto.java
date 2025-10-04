@@ -12,6 +12,11 @@ import java.util.List;
 public class LastExecuteFlowDto {
 
     /**
+     * Execute Instance流程ID
+     */
+    private Long executeInstanceId;
+
+    /**
      * 流程执行状态
      * 表示整个流程的执行结果状态
      */
