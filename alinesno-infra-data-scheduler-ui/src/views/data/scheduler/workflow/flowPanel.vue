@@ -22,6 +22,9 @@ import AppEdge from './common/edge'
 
 import { useWorkflowStore } from '@/store/modules/workflowStore'; // 导入 Pinia Store
 import Control from './common/FlowControl.vue'
+import Snowflake from 'snowflake-id';
+
+const sf = new Snowflake({ mid: 1 });
 const nodes = import.meta.glob('./nodes/**/index.js', { eager: true })
 
 import { initDefaultShortcut } from './common/shortcut';
@@ -79,6 +82,23 @@ const renderGraphData = (data) => {
     lf.value.batchRegister([...Object.keys(nodes).map((key) => nodes[key].default), AppEdge])
     lf.value.setDefaultEdgeType('app-edge')
 
+    // ====== 最简单的统一处理办法：包装 graphModel.addEdge，给边自动补 id ======
+    const gm = lf.value.graphModel;
+    const originalAddEdge = gm.addEdge.bind(gm);
+
+    gm.addEdge = function(...args) {
+      // 兼容不同调用形式，通常第一个参数是 edge 对象
+      const edge = args[0] || {};
+      if (edge && typeof edge === 'object') {
+        if (!edge.id) {
+          edge.id = sf.generate();
+        }
+      }
+      args[0] = edge;
+      return originalAddEdge(...args);
+    };
+    // =======================================================================
+
     console.log('lf.value:', lf.value)
     console.log('data = ' + data)
 
@@ -133,6 +153,7 @@ const clickNode = (shapeItem) => {
   const nodeY = centerY + virtualRectCenterPositionY;
 
   const newNode = lf.value.graphModel.addNode({
+    id: sf.generate(),
     type: shapeItem.type,
     properties: shapeItem.properties,
     x: nodeX,
@@ -187,6 +208,7 @@ const setWorkflowGraphData = (data) => {
   if(!data){
     data = {
       nodes:[{
+        id: sf.generate(),
         type: 'start',
         properties: {
           icon: 'kubeflow' , 
