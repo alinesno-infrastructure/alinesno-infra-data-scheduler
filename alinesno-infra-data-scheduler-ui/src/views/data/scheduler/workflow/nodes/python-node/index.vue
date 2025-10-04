@@ -8,32 +8,53 @@
       <div class="settings-title">节点设置</div>
       <!-- 节点设置表单区域 -->
       <div class="settings-form">
-        <el-form :model="form" label-width="auto" label-position="top">
-          <!-- 语音识别模型选择项 -->
-          <el-form-item label="语音识别模型">
-            <LLMSelector :nodeModel="props.nodeModel" v-model="formData.llmModelId" :modelType="'speech_synthesis'" />
-          </el-form-item>
-          <!-- 选择语音文件选择项 -->
-          <el-form-item label="选择内容文件">
-            <FlowCascader :nodeModel="props.nodeModel" v-model="formData.contentList" />
+        <el-form :model="formData" label-width="auto" label-position="top">
+          <el-form-item label="Pyton脚本">
+            <div class="function-CodemirrorEditor mb-8" style="height: 120px;width:100%">
+              <ScriptEditorPanel ref="auditEditorRef" :lang="'python'" />
+              <div class="function-CodemirrorEditor__footer">
+                <el-button text @click="openCodemirrorDialog" style="background-color: transparent !important;" class="magnify">
+                  <i class="fa-solid fa-up-right-and-down-left-from-center"></i>
+                </el-button>
+              </div>
+            </div>
           </el-form-item>
           <el-form-item label="返回内容">
-            <el-switch v-model="formData.isPrint" size="small"  />
+            <el-switch v-model="formData.isPrint" size="small" />
           </el-form-item>
         </el-form>
       </div>
     </div>
+
+    <el-dialog
+      v-model="dialogVisible"
+      :title="'函数内容（Groovy）'"
+      append-to-body
+      fullscreen
+    >
+      <template #header>
+        <div class="dialog-footer" style="display: flex;align-items: center; justify-content: space-between; ">
+          <div>
+            Pyton脚本编写
+          </div>
+          <div>
+            <el-button type="primary" size="large" text bg @click="confirmAndSave"> 确定保存 </el-button>
+          </div>
+        </div>
+      </template>
+      <ScriptEditorFullPanel ref="auditFullEditorRef" :lang="'python'" />
+    </el-dialog>
 
   </FlowContainer>
 </template>
 
 <script setup>
 import { set } from 'lodash'
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed, nextTick, onMounted } from 'vue'
 
 import FlowContainer from '@/views/data/scheduler/workflow/common/FlowContainer'
-import FlowCascader from '@/views/data/scheduler/workflow/common/FlowCascader'
-import LLMSelector from '@/views/data/scheduler/workflow/components/LLMSelector'
+import ScriptEditorPanel from '@/views/data/scheduler/workflow/components/ScriptEditor';
+import ScriptEditorFullPanel from '@/views/data/scheduler/workflow/components/ScriptEditorFull';
 
 const props = defineProps({
   properties: {
@@ -49,12 +70,20 @@ const props = defineProps({
   }
 });
 
-// 表单数据对象
-const form = reactive({
-  llmModelId: '',
-  contentList: [],
-  isPrint: false
-})
+// 绑定选择框的值
+const auditEditorRef = ref(null)
+const auditFullEditorRef = ref(null)
+
+const dialogVisible = ref(false)
+
+// 绑定选择框的值
+const chatDataCode = ref('')
+
+const form = {
+  pythonScript: '',
+  dialogue_number: 0,
+  isPrint: true
+}
 
 const formData = computed({
   get: () => {
@@ -70,8 +99,38 @@ const formData = computed({
   }
 })
 
+// 确认保存
+function confirmAndSave() {
+  console.log('confirmAndSave')
+  chatDataCode.value = auditFullEditorRef.value.getRawScript()
+  auditEditorRef.value.setRawScript(chatDataCode.value)
+  console.log('auditFullEditorRef.value.getRawScript() = ' + auditFullEditorRef.value.getRawScript())
+  dialogVisible.value = false
+
+  formData.value.pythonScript = chatDataCode.value
+}
+
+// 打开编辑对话框
+function openCodemirrorDialog(type) {
+  chatDataCode.value = auditEditorRef.value.getRawScript()
+  dialogVisible.value = true
+  nextTick(() => {
+    auditFullEditorRef.value.setRawScript(chatDataCode.value)
+  })
+}
+
+onMounted(() => {
+  auditEditorRef.value.setRawScript(formData.value.pythonScript)
+})
 
 </script>
 
 <style lang="scss" scoped>
+
+.function-CodemirrorEditor__footer {
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+}
+
 </style>
