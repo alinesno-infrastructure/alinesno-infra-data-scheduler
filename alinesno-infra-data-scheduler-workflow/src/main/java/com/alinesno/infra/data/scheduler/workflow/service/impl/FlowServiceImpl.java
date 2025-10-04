@@ -874,6 +874,7 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
         }
 
         lastExecuteFlowDto.setStatus(flowExecutionEntity.getExecutionStatus());
+        lastExecuteFlowDto.setExecuteInstanceId(flowExecutionEntity.getId());
 
         // 获取到实例的节点
         LambdaQueryWrapper<FlowNodeExecutionEntity> queryNodeWrapper = new LambdaQueryWrapper<>();
