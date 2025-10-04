@@ -16,6 +16,9 @@ spring:
       host: 127.0.0.1
       port: 6379
 #      password: aip@local
+    mongodb:
+      uri: mongodb://localhost:27017/infra_scheduler_logs
+      database: infra_scheduler_logs
   servlet:
     multipart:
       max-file-size: 512MB
@@ -66,6 +69,7 @@ spring:
     restart:
       enabled: true
 
+
 # actable配置
 actable:
   table:
@@ -93,6 +97,19 @@ alinesno:
   data:
     scheduler:
       workspacePath: ${user.home}/.infra-data-scheduler
+
+# workflow工作流日志配置
+node:
+  log:
+    queue-size: 20000
+    batch-size: 200
+    flush-interval-ms: 1000
+    max-retries: 3
+    retry-backoff-ms: 500
+    fallback-file: /var/log/node_logs_failures.log
+    workers: 1
+    collection: node_logs
+    ttl-days: 7
 
 # sa-token配置
 sa-token:
