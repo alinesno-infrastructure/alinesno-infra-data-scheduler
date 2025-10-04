@@ -131,6 +131,7 @@ public class FlowController {
 
         AjaxResult result = AjaxResult.success(flowNodeExecutionDtos.getFlowNode()) ;
         result.put("status" , flowNodeExecutionDtos.getStatus());
+        result.put("executeInstanceId" , flowNodeExecutionDtos.getExecuteInstanceId());
 
         return result ;
 
