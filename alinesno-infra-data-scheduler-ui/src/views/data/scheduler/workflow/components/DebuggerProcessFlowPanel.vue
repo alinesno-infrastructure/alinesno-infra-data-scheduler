@@ -1,6 +1,6 @@
 <template>
   <div>
-  <el-scrollbar style="height:calc(100vh - 200px)" ref="scrollbarRef" >
+  <el-scrollbar style="height:calc(100vh - 220px)" ref="scrollbarRef" >
     <div class="debugger-process-flow-panel" ref="innerRef">
       <div
         class="flow-panel-item"
@@ -12,11 +12,14 @@
             <!-- 运行中显示 loading 图标 -->
             <el-button v-if="item.executionStatus === 'executing'" type="warning" text bg size="large" circle loading>
             </el-button>
+            <el-button v-if="item.executionStatus === 'error'" type="danger" text bg size="large" circle>
+              <i class="fa-solid fa-xmark"></i>
+            </el-button>
             <el-button v-if="item.executionStatus === 'completed'" type="success" text bg  size="large" circle>
               <i class="fa-solid fa-check"></i>
             </el-button>
           <div class="meta">
-            <div class="flow-panel-item-title">
+            <div class="flow-panel-item-title" :class="'title-status-' + item.executionStatus">
               <span class="flow-panel-item-title-icon">
                 <!-- <i :class="item.node.icon"></i> -->
                 <img :src="getTaskIconPath(item.node.icon)" />
@@ -65,6 +68,7 @@
 
   <div style="margin-top:15px;">
     <el-button type="primary" 
+        size="large"
         :loading="!isCompleted"
         @click="handleTryRun()"> 
       <i class="fa-solid fa-paper-plane"></i> &nbsp; 开始执行 
@@ -300,6 +304,10 @@ defineExpose({
   flex-direction: column;
   gap: 8px;
   border-radius: 6px;
+
+  .title-status-error{
+    color: red;
+  }
 
   .flow-panel-item {
     display: flex;
