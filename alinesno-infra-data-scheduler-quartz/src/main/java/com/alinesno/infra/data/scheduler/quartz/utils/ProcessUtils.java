@@ -172,8 +172,7 @@ public class ProcessUtils {
         return taskDefinitionList ;
     }
 
-    public static ProcessDefinitionEntity fromSaveDtoToEntity(ProcessDefinitionSaveDto dto) {
-        ProcessDefinitionEntity entity = new ProcessDefinitionEntity();
+    public static ProcessDefinitionEntity fromSaveDtoToEntity(ProcessDefinitionSaveDto dto, ProcessDefinitionEntity entity) {
 
         if(dto.getId() != null && dto.getId() > 0){
             entity.setId(dto.getId());
@@ -184,6 +183,7 @@ public class ProcessUtils {
         entity.setDescription(dto.getTaskDesc());
         entity.setEnvId(dto.getEnvId());
         entity.setCategoryId(dto.getCategoryId());
+        entity.setErrorStrategy(dto.getErrorStrategy());
 
         entity.setOrgId(dto.getOrgId());
         entity.setOperatorId(dto.getOperatorId());
