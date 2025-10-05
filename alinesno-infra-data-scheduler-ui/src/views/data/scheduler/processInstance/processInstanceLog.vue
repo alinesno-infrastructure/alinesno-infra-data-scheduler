@@ -417,7 +417,6 @@ onUnmounted(() => clearLoggerInterval());
 <style scoped lang="scss">
 .process-log-viewer {
   .log-container {
-    font-family: "Courier New", Courier, monospace;
     background-color: #272822;
     color: #f8f8f2;
     padding: 10px;
@@ -448,7 +447,7 @@ onUnmounted(() => clearLoggerInterval());
   .log-line {
     display: block;
     gap: 8px;
-    padding: 6px 0;
+    padding: 0px 0;
   }
 
   .log-line .time {
