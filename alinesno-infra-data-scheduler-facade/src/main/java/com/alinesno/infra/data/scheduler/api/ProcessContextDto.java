@@ -1,5 +1,7 @@
 package com.alinesno.infra.data.scheduler.api;
 
+import com.alinesno.infra.common.core.utils.DateUtils;
+import com.alinesno.infra.data.scheduler.entity.ProcessDefinitionEntity;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import lombok.ToString;
@@ -59,4 +61,36 @@ public class ProcessContextDto {
 
     // 任务结束时间，用于指定任务结束执行的时间
     private String endTime;
+
+    // 异常策略
+    private int errorStrategy;
+
+    public static ProcessContextDto formEntityToDto(ProcessDefinitionEntity entity) {
+
+        ProcessContextDto dto = new ProcessContextDto() ;
+
+        dto.setId(entity.getId());
+        dto.setIcon(entity.getIcon());
+        dto.setDataCollectionTemplate(entity.getDataCollectionTemplate());
+        dto.setTaskName(entity.getName());
+        dto.setTaskDesc(entity.getDescription());
+        dto.setGlobalParams(entity.getGlobalParamMap());
+        dto.setProjectCode(entity.getProjectId());
+        dto.setEnvId(entity.getEnvId());
+        dto.setTimeout(entity.getTimeout());
+        dto.setMonitorEmail(entity.getMonitorEmail());
+        dto.setCronExpression(entity.getScheduleCron());
+        dto.setCategoryId(entity.getCategoryId());
+        dto.setErrorStrategy(entity.getErrorStrategy());
+
+        if(entity.getStartTime() != null){
+            dto.setStartTime(DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS , entity.getStartTime()));
+        }
+        if(entity.getEndTime() != null){
+            dto.setEndTime(DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS , entity.getEndTime()));
+        }
+
+        return dto ;
+
+    }
 }
