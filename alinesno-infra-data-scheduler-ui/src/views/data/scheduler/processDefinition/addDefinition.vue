@@ -25,6 +25,13 @@
           <el-input v-model="form.taskName" placeholder="请输入任务名称"></el-input>
         </el-form-item>
 
+        <!-- 异常策略 异常策略（2:忽略 1:结束） el-radio-group -->
+         <el-form-item label="异常策略" prop="exceptionStrategy">
+          <el-radio-group v-model="form.errorStrategy">
+            <el-radio :label="item.code" v-for="item in ExceptionStrategyList" :key="item.code">{{ item.label }}</el-radio>
+          </el-radio-group>
+        </el-form-item>
+
         <!-- 任务描述 -->
          <el-form-item label="任务描述" prop="taskDesc">
           <el-input v-model="form.taskDesc" placeholder="请输入任务描述"></el-input>
@@ -42,25 +49,6 @@
           />
         </el-form-item>
 
-        <!-- 数据采集模板
-        <el-form-item label="数据采集模板" prop="dataCollectionTemplate">
-          <el-row>
-            <el-col :span="7" v-for="(o, index) in loginStyleArr" :key="index" :offset="index > 0 ? 1 : 0">
-              <el-card :body-style="{ padding: '0px !important' }"
-                :class="currentLoginStyle == o.id ? 'select-card' : ''" shadow="never">
-                <img :src="o.icon" class="image">
-                <div style="padding: 14px; line-height: 1.4rem; padding: 8px;">
-                  <span>{{ o.desc }}</span>
-                  <div class="bottom clearfix">
-                    <el-button @click="selectStyle(o)" type="text" class="button">选择</el-button>
-                  </div>
-                </div>
-              </el-card>
-            </el-col>
-          </el-row>
-        </el-form-item>
-        -->
-
         <el-form-item label="环境名称" prop="envId">
           <el-select v-model="form.envId" placeholder="选择执行环境" style="width:100%">
             <el-option v-for="item in envData" :key="item.id" :label="'(' + item.systemEnv + ')' + item.name"
@@ -68,66 +56,9 @@
           </el-select>
         </el-form-item>
 
-        <!-- 
-        <el-form-item label="变量">
-          <el-button type="primary" bg text @click="centerDialogVisible = true">
-            <i class="fa-solid fa-screwdriver-wrench"></i>&nbsp;配置全局变量
-          </el-button>
-        </el-form-item> 
-        -->
-
-        <!-- CRON表达式 -->
-        <!-- 
-        <el-form-item label="CRON表达式" prop="cronExpression">
-          <el-input disabled="true" v-model="form.cronExpression" placeholder="请输入CRON表达式">
-            <template #append>
-              <el-button :icon="Search" @click="handleShowCron">生成CRON表达式</el-button>
-            </template>
-          </el-input>
-        </el-form-item> 
-        -->
-
-        <!-- 是否告警 
-        <el-form-item label="起止时间" prop="startTime">
-          <el-col :span="11">
-            <el-date-picker 
-              v-model="form.startTime" 
-              format="YYYY-MM-DD HH:mm:ss"
-              value-format="YYYY-MM-DD HH:mm:ss"
-              type="datetime" 
-              placeholder="开始日期" 
-              :shortcuts="shortcuts"
-              style="width: 100%" />
-          </el-col>
-          <el-col :span="2" class="text-center">
-            <span class="text-gray-500">-</span>
-          </el-col>
-          <el-col :span="11">
-            <el-date-picker 
-              type="datetime" 
-              v-model="form.endTime" 
-              format="YYYY-MM-DD HH:mm:ss"
-              value-format="YYYY-MM-DD HH:mm:ss"
-              :shortcuts="shortcuts" 
-              placeholder="结束时间"
-              style="width: 100%" />
-          </el-col>
-        </el-form-item>
-         -->
-
-        <!-- 参与人监控邮箱 -->
-        <!-- <el-form-item label="参与人监控邮箱" prop="monitorEmail">
-          <el-input v-model="form.monitorEmail" placeholder="请输入参与人监控邮箱"></el-input>
-        </el-form-item> -->
-
         <br />
 
         <el-form-item>
-          <!-- 
-          <el-button icon="Right" type="primary" @click="createDatasource">
-            下一步
-          </el-button> 
-          -->
           <el-button icon="UploadFilled" type="primary" @click="saveDefinition">
             保存 
           </el-button>
@@ -168,16 +99,11 @@ import {
   saveProcessDefinition
 } from '@/api/data/scheduler/processDefinition'
 import { nextTick } from "vue";
+import { ExceptionStrategyList } from "@/utils/workflow"
 
 const { proxy } = getCurrentInstance();
 const route = useRoute()
 const router = useRouter();
-
-// const loginStyleArr = ref([
-//   { id: '1', icon: 'http://data.linesno.com/icons/flow/style-04.png', desc: '数据分析处理,从数据库中读取数据进行解析和加载' },
-//   { id: '2', icon: 'http://data.linesno.com/icons/flow/style-05.png', desc: '运维自动化任务,运维自动化管理和处理结果' },
-//   { id: '3', icon: 'http://data.linesno.com/icons/flow/style-06.png', desc: '数据采集,Agent智能体数据资产分析及更新' }
-// ]);
 
 const icons = ref([
   { id: 1, icon: 'fa-solid fa-charging-station'} ,
