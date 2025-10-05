@@ -85,4 +85,10 @@ public class FlowExecutionEntity extends InfraBaseEntity {
     @ColumnComment("运行唯一号")
     private String runUniqueNumber;
 
+    // 异常的节点id
+    @TableField(value = "exception_node_id")
+    @ColumnType(value = MySqlTypeConstant.BIGINT, length = 32)
+    @ColumnComment("异常的节点id")
+    private Long exceptionNodeId;
+
 }
