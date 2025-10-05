@@ -3,7 +3,7 @@ package com.alinesno.infra.data.scheduler.api.controller;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.alinesno.infra.common.core.constants.SpringInstanceScope;
-import com.alinesno.infra.common.core.utils.DateUtils;
+import com.alinesno.infra.common.core.utils.StringUtils;
 import com.alinesno.infra.common.extend.datasource.annotation.DataPermissionQuery;
 import com.alinesno.infra.common.extend.datasource.annotation.DataPermissionSave;
 import com.alinesno.infra.common.extend.datasource.annotation.DataPermissionScope;
@@ -85,28 +85,7 @@ public class ProcessDefinitionController extends BaseController<ProcessDefinitio
 
         ProcessDefinitionEntity entity = service.getById(id) ;
 
-        ProcessContextDto dto = new ProcessContextDto() ;
-
-        dto.setId(entity.getId());
-        dto.setIcon(entity.getIcon());
-        dto.setDataCollectionTemplate(entity.getDataCollectionTemplate());
-        dto.setTaskName(entity.getName());
-        dto.setTaskDesc(entity.getDescription());
-        dto.setGlobalParams(entity.getGlobalParamMap());
-        dto.setProjectCode(entity.getProjectId());
-        dto.setEnvId(entity.getEnvId());
-        dto.setTimeout(entity.getTimeout());
-        dto.setMonitorEmail(entity.getMonitorEmail());
-        dto.setCronExpression(entity.getScheduleCron());
-        dto.setCategoryId(entity.getCategoryId());
-
-        if(entity.getStartTime() != null){
-            dto.setStartTime(DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS , entity.getStartTime()));
-        }
-        if(entity.getEndTime() != null){
-            dto.setEndTime(DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS , entity.getEndTime()));
-        }
-
+        ProcessContextDto dto = ProcessContextDto.formEntityToDto(entity) ;
         return AjaxResult.success("success" , dto) ;
     }
 
@@ -188,6 +167,10 @@ public class ProcessDefinitionController extends BaseController<ProcessDefinitio
 
         // 更新online状态
         ProcessDefinitionEntity entity = service.getById(jobId) ;
+
+        // 判断是否定义cron表达式
+        Assert.isTrue(StringUtils.isNotBlank(entity.getScheduleCron()) , "请定义cron表达式.");
+
         entity.setOnline(false);
         service.updateById(entity) ;
 
@@ -253,6 +236,10 @@ public class ProcessDefinitionController extends BaseController<ProcessDefinitio
 
         // 更新online状态
         ProcessDefinitionEntity entity = service.getById(jobId) ;
+
+        // 判断是否定义cron表达式
+        Assert.isTrue(StringUtils.isNotBlank(entity.getScheduleCron()) , "请定义cron表达式.");
+
         entity.setOnline(true);
         service.updateById(entity) ;
 
