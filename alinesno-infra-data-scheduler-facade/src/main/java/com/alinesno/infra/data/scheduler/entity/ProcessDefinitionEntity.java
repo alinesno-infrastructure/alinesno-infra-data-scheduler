@@ -114,4 +114,16 @@ public class ProcessDefinitionEntity extends InfraBaseEntity {
     @ColumnComment("监控通知邮件")
     private String monitorEmail ;
 
+    /**
+     * 执行策略枚举 <br/>
+     * 0 -> 继续执行 <br/>
+     * 1 -> 停止执行 <br/>
+     * 2 -> 暂停任务 <br/>
+     * -1 -> 未知
+     */
+    @TableField
+    @ColumnType(value = MySqlTypeConstant.BIGINT)
+    @ColumnComment("异常策略（0:继续执行 1:停止执行 2.暂停任务）")
+    private int errorStrategy = 0 ;
+
 }
