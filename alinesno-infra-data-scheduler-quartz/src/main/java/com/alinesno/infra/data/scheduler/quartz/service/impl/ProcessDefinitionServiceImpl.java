@@ -3,8 +3,8 @@ package com.alinesno.infra.data.scheduler.quartz.service.impl;
 import cn.hutool.core.util.IdUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.alinesno.infra.common.core.service.impl.IBaseServiceImpl;
+import com.alinesno.infra.common.core.utils.StringUtils;
 import com.alinesno.infra.common.facade.datascope.PermissionQuery;
-import com.alinesno.infra.common.facade.response.AjaxResult;
 import com.alinesno.infra.common.web.log.utils.SpringUtils;
 import com.alinesno.infra.data.scheduler.adapter.CloudStorageConsumer;
 import com.alinesno.infra.data.scheduler.api.*;
@@ -14,6 +14,7 @@ import com.alinesno.infra.data.scheduler.entity.ProcessInstanceEntity;
 import com.alinesno.infra.data.scheduler.entity.TaskDefinitionEntity;
 import com.alinesno.infra.data.scheduler.entity.TaskInstanceEntity;
 import com.alinesno.infra.data.scheduler.enums.ExecutorTypeEnums;
+import com.alinesno.infra.data.scheduler.enums.JobStatusEnums;
 import com.alinesno.infra.data.scheduler.enums.ProcessStatusEnums;
 import com.alinesno.infra.data.scheduler.executor.IExecutorService;
 import com.alinesno.infra.data.scheduler.executor.bean.TaskInfoBean;
@@ -338,13 +339,26 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
 
     @Override
     public void saveProcessDefinition(ProcessDefinitionSaveDto dto) {
-        ProcessDefinitionEntity processDefinition = ProcessUtils.fromSaveDtoToEntity(dto);
-        processDefinition.setOnline(false);
-        this.saveOrUpdate(processDefinition);
+
+        ProcessDefinitionEntity processDefinition = new ProcessDefinitionEntity() ;
+
+        if(dto.getId() != null && dto.getId() > 0){
+            processDefinition = this.getById(dto.getId()) ;
+        }
+
+        ProcessDefinitionEntity newProcessDefinition = ProcessUtils.fromSaveDtoToEntity(dto , processDefinition);
+        newProcessDefinition.setOnline(false);
+
+        this.saveOrUpdate(newProcessDefinition);
 
         // 生成job任务
-        long processId = processDefinition.getId();
-        distSchedulerService.addJob(String.valueOf(processId), null);
+        long processId = newProcessDefinition.getId();
+
+        JobStatusEnums jobStatus = distSchedulerService.getJobStatus(String.valueOf(processId));
+
+        if(jobStatus == JobStatusEnums.NOT_FOUND){
+            distSchedulerService.addJob(String.valueOf(processId), null);
+        }
     }
 
     @Override
@@ -368,6 +382,23 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
         scheduler.pauseTrigger(TriggerKey.triggerKey(jobId, PipeConstants.TRIGGER_GROUP_NAME));//暂停触发器
         scheduler.unscheduleJob(TriggerKey.triggerKey(jobId, PipeConstants.TRIGGER_GROUP_NAME));//移除触发器
         scheduler.deleteJob(JobKey.jobKey(jobId, PipeConstants.JOB_GROUP_NAME));//删除Job
+    }
+
+    @SneakyThrows
+    @Override
+    public void pauseJob(Long longJobId) {
+        String jobId = String.valueOf(longJobId);
+
+        // 更新online状态
+        ProcessDefinitionEntity entity = getById(jobId) ;
+
+        // 判断是否定义cron表达式
+        if(StringUtils.isNotBlank(entity.getScheduleCron())){
+            entity.setOnline(false);
+            updateById(entity) ;
+        }
+
+        scheduler.pauseTrigger(TriggerKey.triggerKey(jobId , PipeConstants.TRIGGER_GROUP_NAME));
     }
 
 }
