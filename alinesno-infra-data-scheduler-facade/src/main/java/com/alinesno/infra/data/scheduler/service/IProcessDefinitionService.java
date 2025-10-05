@@ -67,4 +67,9 @@ public interface IProcessDefinitionService extends IBaseService<ProcessDefinitio
      * @param jobId
      */
     void deleteJob(String jobId);
+
+    /**
+     * 暂停任务
+     */
+    void pauseJob(Long jobId);
 }
