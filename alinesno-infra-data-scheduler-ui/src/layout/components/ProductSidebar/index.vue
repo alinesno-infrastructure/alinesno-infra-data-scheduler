@@ -115,6 +115,7 @@ function openSmartService() {
   padding-top:10px;
   margin: 2px;
   border-radius: 10px;
+  width: 100%;
 
   span{
     font-size: 12px;
