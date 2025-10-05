@@ -32,6 +32,11 @@ public interface IQuartzSchedulerService {
      */
     void updateJobCron(String jobId, String newCron);
 
+    /**
+     * 获取任务状态
+     * @param jobId
+     * @return
+     */
     @SneakyThrows
     JobStatusEnums getJobStatus(String jobId);
 }
