@@ -80,6 +80,13 @@
 			<optional>true</optional>
 		</dependency>
 
+		<!-- 阿里云分布式链路跟踪 -->
+		<dependency>
+			<groupId>com.aliyun</groupId>
+			<artifactId>aliyun-java-agent</artifactId>
+			<version>4.2.5</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>
