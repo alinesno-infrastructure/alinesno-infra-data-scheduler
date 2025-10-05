@@ -9,14 +9,18 @@
       >
         <div class="left">
           <div class="index">{{ index + 1 }}</div>
+          {{ item.executionStatus }}
             <!-- 运行中显示 loading 图标 -->
             <el-button v-if="item.executionStatus === 'executing'" type="warning" text bg size="large" circle loading>
+            </el-button>
+            <el-button v-if="item.executionStatus === 'error'" type="danger" text bg size="large" circle>
+              <i class="fa-solid fa-xmark"></i>
             </el-button>
             <el-button v-if="item.executionStatus === 'completed'" type="success" text bg  size="large" circle>
               <i class="fa-solid fa-check"></i>
             </el-button>
           <div class="meta">
-            <div class="flow-panel-item-title">
+            <div class="flow-panel-item-title" :class="'title-status-' + item.executionStatus">
               <span class="flow-panel-item-title-icon">
                 <img :src="getTaskIconPath(item.node.icon)" />
               </span>
@@ -291,6 +295,10 @@ defineExpose({
   flex-direction: column;
   gap: 8px;
   border-radius: 6px;
+
+  .title-status-error{
+    color: red;
+  }
 
   .flow-panel-item {
     display: flex;
