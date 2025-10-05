@@ -116,6 +116,16 @@
                   </template>
                </el-table-column> 
 
+               <!-- 异常策略 -->
+                <el-table-column label="异常策略" align="center" width="120" key="hasStatus" prop="hasStatus"
+                  v-if="columns[1].visible" :show-overflow-tooltip="true">
+                  <template #default="scope">
+                     <el-button type="text" text>
+                        {{ getExceptionStrategyByCode(scope.row.errorStrategy).label }}
+                     </el-button>
+                  </template>
+                  </el-table-column>
+
                <el-table-column label="开启" align="center" width="120" key="hasStatus" prop="hasStatus"
                   v-if="columns[1].visible" :show-overflow-tooltip="true">
                   <template #default="scope">
@@ -295,7 +305,7 @@ import {
 import CronButton from './components/CronButton.vue'
 import ListInstance from '@/views/data/scheduler/processInstance/listInstance.vue'
 import { nextTick } from "vue";
-import { get } from "@logicflow/core";
+import { getExceptionStrategyByCode } from "@/utils/workflow"
 
 const router = useRouter();
 const { proxy } = getCurrentInstance();
@@ -539,6 +549,7 @@ function handleView(row) {
 function handleResumeTrigger(row) {
    resumeTrigger(row.id).then(response => {
       proxy.$modal.msgSuccess("执行成功");
+      getList();
    });
 }
 
@@ -546,6 +557,7 @@ function handleResumeTrigger(row) {
 function handlePauseTrigger(row) {
    pauseTrigger(row.id).then(response => {
       proxy.$modal.msgSuccess("执行成功");
+      getList();
    });
 }
 
@@ -584,11 +596,11 @@ function handleCommand(command, row) {
          break;
       case "handlePauseTrigger":
          handlePauseTrigger(row);
-         getList();
+         // getList();
          break;
       case "handleResumeTrigger":
          handleResumeTrigger(row);
-         getList();
+         // getList();
          break;
       case "handleView":
          handleView(row);
@@ -652,6 +664,20 @@ const formatRelativeTime = (time) => {
    const diffYear = Math.floor(diffMonth / 12);
    return `${diffYear}年前`;
 }
+
+// 异常策略
+// const handleExceptionStrategy = (strategy) => {
+//    switch (strategy) {
+//       case 0:
+//          return '继续执行';
+//       case 1:
+//          return '停止执行';  
+//       case 2:
+//          return '暂停任务';
+//       default:
+//          return '未知';
+//    }
+// }
 
 getDeptTree();
 getList();
