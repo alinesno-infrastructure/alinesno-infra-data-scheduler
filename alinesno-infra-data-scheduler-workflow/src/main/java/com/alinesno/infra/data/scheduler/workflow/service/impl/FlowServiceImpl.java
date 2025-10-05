@@ -5,6 +5,7 @@ import cn.hutool.extra.spring.SpringUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alinesno.infra.common.core.service.impl.IBaseServiceImpl;
+import com.alinesno.infra.common.web.log.utils.SpringUtils;
 import com.alinesno.infra.data.scheduler.entity.ProcessDefinitionEntity;
 import com.alinesno.infra.data.scheduler.service.IProcessDefinitionService;
 import com.alinesno.infra.data.scheduler.workflow.dto.*;
@@ -12,6 +13,7 @@ import com.alinesno.infra.data.scheduler.workflow.entity.FlowEntity;
 import com.alinesno.infra.data.scheduler.workflow.entity.FlowExecutionEntity;
 import com.alinesno.infra.data.scheduler.workflow.entity.FlowNodeEntity;
 import com.alinesno.infra.data.scheduler.workflow.entity.FlowNodeExecutionEntity;
+import com.alinesno.infra.data.scheduler.workflow.enums.ExecutionStrategyEnums;
 import com.alinesno.infra.data.scheduler.workflow.enums.FlowExecutionStatus;
 import com.alinesno.infra.data.scheduler.workflow.enums.PublishStatus;
 import com.alinesno.infra.data.scheduler.workflow.mapper.FlowMapper;
@@ -36,6 +38,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -88,6 +92,8 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
         ProcessDefinitionEntity processDefinitionEntity = processDefinitionService.getById(processDefinitionId) ;
         processDefinitionEntity.setRunCount(processDefinitionEntity.getRunCount() + 1) ;
         processDefinitionService.updateById(processDefinitionEntity) ;
+
+        ExecutionStrategyEnums errorStrategy = ExecutionStrategyEnums.fromCode(processDefinitionEntity.getErrorStrategy()) ;
 
         FlowEntity flowEntity = getLatestPublishedFlowByProcessDefinitionId(processDefinitionId);
         Assert.notNull(flowEntity, "未发布角色流程");
@@ -142,12 +148,41 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
                         parseNodes ,
                         flowExecutionEntity ,
                         output ,
-                        outputContent) ;
+                        outputContent ,
+                        errorStrategy.getCode()) ;
 
                 future.whenComplete((v, e) -> {
+
+                    // 判断之前的节点是否有异常，有则标记流程为失败
+                    List<FlowNodeExecutionEntity> nodeExecutions = flowNodeExecutionService
+                            .list(Wrappers.lambdaQuery(FlowNodeExecutionEntity.class)
+                                    .eq(FlowNodeExecutionEntity::getFlowExecutionId, flowExecutionEntity.getId()));
+
+                    // 默认设置为完成状态
                     flowExecutionEntity.setExecutionStatus(FlowExecutionStatus.COMPLETED.getCode());
+
+                    // 检查是否有节点执行失败
+                    for (FlowNodeExecutionEntity nodeExecution : nodeExecutions) {
+                        if (nodeExecution.getExecutionStatus().equals(FlowExecutionStatus.ERROR.getCode())) {
+                            // 发现错误节点，覆盖为错误状态
+                            flowExecutionEntity.setExecutionStatus(FlowExecutionStatus.ERROR.getCode());
+                            flowExecutionEntity.setExceptionNodeId(nodeExecution.getNodeId());
+
+                            break;
+                        }
+                    }
+
+                    // 判断是否暂停任务
+                    if(flowExecutionEntity.getExecutionStatus().equals(FlowExecutionStatus.ERROR.getCode()) &&
+                            errorStrategy.equals(ExecutionStrategyEnums.PAUSE_TASK)) {
+                        IProcessDefinitionService processDefinitionService = SpringUtils.getBean(IProcessDefinitionService.class);
+                        processDefinitionService.pauseJob(processDefinitionId);
+                    }
+
+                    // 设置完成时间并更新
                     flowExecutionEntity.setFinishTime(new Date());
                     flowExecutionService.update(flowExecutionEntity);
+
                 });
 
                 future.get() ;
@@ -170,7 +205,8 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
             List<FlowNodeDto> nodes,
             FlowExecutionEntity flowExecutionEntity,
             Map<String, Object> output,
-            StringBuilder outputContent) {
+            StringBuilder outputContent,
+            int errorStrategy) {
 
         if (nodes == null || nodes.isEmpty()) {
             return CompletableFuture.completedFuture(null);
@@ -212,15 +248,21 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
         // 跳过集合（已被标记为 skip 的节点 id）
         Set<String> skipped = ConcurrentHashMap.newKeySet();
 
-        // 如果任一节点执行失败，则将 allDone 完成异常
         java.util.function.Consumer<Throwable> failAll = (err) -> {
-            if (!allDone.isDone()) {
-                allDone.completeExceptionally(err);
+            try {
+                // 将流程执行状态设置为 ERROR 并写库，记录 finishTime
+                flowExecutionEntity.setExecutionStatus(FlowExecutionStatus.ERROR.getCode());
+                flowExecutionEntity.setFinishTime(new Date());
+                // 你可以把 err 的信息也写到 flowExecutionEntity 的某个字段上（若有）
+                flowExecutionService.update(flowExecutionEntity);
+            } catch (Exception ex) {
+                log.error("Failed to persist flowExecution ERROR state", ex);
             }
+            if (!allDone.isDone()) allDone.completeExceptionally(err);
         };
 
         // 选择子节点（condition 节点有分支选择逻辑）
-        java.util.function.BiFunction<FlowNodeDto, Map<String, FlowNodeDto>, List<FlowNodeDto>> chooseChildren =
+        BiFunction<FlowNodeDto, Map<String, FlowNodeDto>, List<FlowNodeDto>> chooseChildren =
                 (node, nodeMapRef) -> {
                     List<FlowNodeDto.FlowEdgeDto> edges = node.getOutgoingEdges();
                     List<FlowNodeDto> chosen = new ArrayList<>();
@@ -278,7 +320,8 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
                         outputContent,
                         currentOrder,
                         nodeLevel,
-                        nodes
+                        nodes,
+                        errorStrategy
                 );
 
                 execFuture.whenComplete((v, ex) -> {
@@ -422,31 +465,27 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
      *
      * @return
      */
-    private CompletableFuture<Void> executeFlowNode(FlowNodeDto node,
-                                                    FlowExecutionEntity flowExecutionEntity,
-                                                    Map<String, Object> output ,
-                                                    StringBuilder outputContent ,
-                                                    int count ,
-                                                    int level,
-                                                    List<FlowNodeDto> nodes){
+    private CompletableFuture<Void> executeFlowNode(
+            FlowNodeDto node,
+            FlowExecutionEntity flowExecutionEntity,
+            Map<String,Object> output,
+            StringBuilder outputContent,
+            int count,
+            int level,
+            List<FlowNodeDto> nodes,
+            int errorStrategy) {
 
         return CompletableFuture.runAsync(() -> {
-            // 流程节点实例
             FlowNodeExecutionEntity flowNodeExecutionEntity = new FlowNodeExecutionEntity();
-
-            flowNodeExecutionEntity.setFlowExecutionId(flowExecutionEntity.getId()) ;
+            flowNodeExecutionEntity.setFlowExecutionId(flowExecutionEntity.getId());
             flowNodeExecutionEntity.setExecutionStatus(FlowExecutionStatus.EXECUTING.getCode());
             flowNodeExecutionEntity.setExecuteTime(new Date());
-
-            flowNodeExecutionEntity.setNodeId(node.getNodeId()) ;  // 与数据库存储节点的ID
-            flowNodeExecutionEntity.setStepId(node.getId());  // 与前端图形界面关联的ID
-
+            flowNodeExecutionEntity.setNodeId(node.getNodeId());
+            flowNodeExecutionEntity.setStepId(node.getId());
             flowNodeExecutionEntity.setExecutionOrder(count);
             flowNodeExecutionEntity.setExecutionDepth(level);
-
             flowNodeExecutionEntity.setNodeType(node.getType());
             ObjectMapper objectMapper = new ObjectMapper();
-
             try {
                 flowNodeExecutionEntity.setProperties(objectMapper.writeValueAsString(node.getProperties()));
             } catch (JsonProcessingException e) {
@@ -454,30 +493,60 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
                 flowNodeExecutionEntity.setProperties(null);
             }
 
+            // 初次保存为 EXECUTING
             flowNodeExecutionService.save(flowNodeExecutionEntity);
 
-            // 执行节点_开始
+            // 执行节点
             outputContent.setLength(0);
             AbstractFlowNode abstractFlowNode = SpringUtil.getBean(FLOW_STEP_NODE + node.getType());
             abstractFlowNode.setFlowNodes(nodes);
-            CompletableFuture<Void>  future =  abstractFlowNode.executeNode(node ,
-                    flowExecutionEntity ,
-                    flowNodeExecutionEntity ,
-                    output ,
-                    outputContent) ;
+            CompletableFuture<Void> future = abstractFlowNode.executeNode(node, flowExecutionEntity, flowNodeExecutionEntity, output, outputContent);
             try {
-                future.get();
-            } catch (InterruptedException | ExecutionException e) {
-                throw new RuntimeException(e);
-            }
-            flowNodeExecutionEntity.setExecuteInfo(outputContent.toString());
-            // 执行节点_结束
-            flowNodeExecutionEntity.setExecutionStatus(FlowExecutionStatus.COMPLETED.getCode());
-            flowNodeExecutionEntity.setFinishTime(new Date());
-            flowNodeExecutionEntity.setProgress(100);
-            flowNodeExecutionService.update(flowNodeExecutionEntity);
+                future.get(); // 等待节点执行结束（成功或抛异常）
+                // 成功路径
+                flowNodeExecutionEntity.setExecuteInfo(outputContent.toString());
+                flowNodeExecutionEntity.setExecutionStatus(FlowExecutionStatus.COMPLETED.getCode());
+                flowNodeExecutionEntity.setFinishTime(new Date());
+                flowNodeExecutionEntity.setProgress(100);
+                flowNodeExecutionService.update(flowNodeExecutionEntity);
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+                String err = stringifyThrowable(ie);
+                flowNodeExecutionEntity.setExecuteInfo(err);
+                flowNodeExecutionEntity.setExecutionStatus(FlowExecutionStatus.ERROR.getCode());
+                flowNodeExecutionEntity.setFinishTime(new Date());
+                flowNodeExecutionEntity.setProgress(0);
+                flowNodeExecutionService.update(flowNodeExecutionEntity);
 
-        } , chatThreadPool) ;
+                if(errorStrategy == ExecutionStrategyEnums.STOP_FLOW.getCode() ||
+                        errorStrategy == ExecutionStrategyEnums.PAUSE_TASK.getCode()){
+                    throw new RuntimeException("流程执行异常：" + err);
+                }
+
+            } catch (ExecutionException ee) {
+                Throwable cause = ee.getCause() != null ? ee.getCause() : ee;
+                String err = stringifyThrowable(cause);
+                flowNodeExecutionEntity.setExecuteInfo(err);
+                flowNodeExecutionEntity.setExecutionStatus(FlowExecutionStatus.ERROR.getCode());
+                flowNodeExecutionEntity.setFinishTime(new Date());
+                flowNodeExecutionEntity.setProgress(0);
+                flowNodeExecutionService.update(flowNodeExecutionEntity);
+
+                if(errorStrategy == ExecutionStrategyEnums.STOP_FLOW.getCode() ||
+                        errorStrategy == ExecutionStrategyEnums.PAUSE_TASK.getCode()){
+                    throw new RuntimeException("流程执行异常：" + err);
+                }
+
+            }
+        }, chatThreadPool);
+    }
+
+    private String stringifyThrowable(Throwable t) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        t.printStackTrace(pw);
+        pw.flush();
+        return sw.toString();
     }
 
     @SneakyThrows
@@ -485,7 +554,8 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
             List<FlowNodeDto> nodes,
             FlowExecutionEntity flowExecutionEntity,
             Map<String, Object> output,
-            StringBuilder outputContent) {
+            StringBuilder outputContent,
+            int errorStrategy) {
 
         if (nodes == null || nodes.isEmpty()) {
             return CompletableFuture.completedFuture(null);
@@ -513,7 +583,8 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
                 output,
                 outputContent,
                 count,
-                level);
+                level ,
+                errorStrategy);
     }
 
     private CompletableFuture<Void> processQueueAsync(
@@ -525,7 +596,8 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
             Map<String, Object> output,
             StringBuilder outputContent,
             AtomicInteger count,
-            AtomicInteger level) {
+            AtomicInteger level ,
+            int errorStrategy) {
 
         if (queue.isEmpty()) {
             return CompletableFuture.completedFuture(null);
@@ -544,7 +616,8 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
                     output,
                     outputContent,
                     count,
-                    level);
+                    level ,
+                    errorStrategy);
         }
 
         log.debug("node--{}--level--{}--->>>>>>>>start", count.get(), level.get());
@@ -571,7 +644,8 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
                 outputContent,
                 count.getAndIncrement(),
                 level.get(),
-                nodes);
+                nodes ,
+                errorStrategy);
 
         return execFuture.thenCompose(v -> {
             // 标记已访问
@@ -639,7 +713,8 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
                     output,
                     outputContent,
                     count,
-                    level);
+                    level ,
+                    errorStrategy);
         });
     }
 
