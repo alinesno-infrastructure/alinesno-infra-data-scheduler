@@ -16,6 +16,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -32,6 +38,13 @@ public class SparkNode extends AbstractFlowNode {
 
     @Autowired
     private IComputeEngineService computeEngineService ;
+
+    // 下载与预览相关配置（可根据需要调整）
+    private static final int DOWNLOAD_TIMEOUT_MS = 30_000;
+    private static final int MAX_DOWNLOAD_BYTES = 5 * 1024 * 1024; // 最大下载 5MB
+    private static final int RAW_PREVIEW_MAX = 1000;
+    private static final int ERROR_PREVIEW_MAX = 3000;
+    private static final int SMALL_BINARY_BASE64_MAX = 100 * 1024; // 小于 100KB 的二进制文件可以 base64 返回
 
     public SparkNode() {
         setType("spark");
@@ -98,36 +111,229 @@ public class SparkNode extends AbstractFlowNode {
                     )
             ));
 
-            JSONObject syncResp = consumer.submitSync(sqlContent , params, computeEngine.getAdminUser(), waitMs);
+            JSONObject syncResp = consumer.submitSync(sqlContent , params, computeEngine != null ? computeEngine.getAdminUser() : null, waitMs);
 
+            // ------------- 改进后的 syncResp 处理 -------------
             long durationMs = System.currentTimeMillis() - startTs;
-            String respStr = syncResp == null ? "{}" : syncResp.toJSONString();
-            String respPreview = respStr.length() > 1000 ? respStr.substring(0, 1000) + "..." : respStr;
 
-            // 提交返回日志
+            if (syncResp == null) {
+                // 空响应处理
+                nodeLogService.append(NodeLog.of(
+                        flowExecution.getId().toString(),
+                        node.getId(),
+                        node.getStepName(),
+                        "WARN",
+                        "Spark 返回空响应",
+                        Map.of("durationMs", durationMs)
+                ));
+                output.put(node.getStepName() + ".result", "{}");
+                output.put(node.getStepName() + ".rawResponsePreview", "{}");
+            } else {
+                // 提取常用字段
+                String id = syncResp.getString("id");
+                String status = syncResp.getString("status");
+                String createdAt = syncResp.getString("createdAt");
+                String startedAt = syncResp.getString("startedAt");
+                String finishedAt = syncResp.getString("finishedAt");
+                String resultPath = syncResp.getString("resultPath");
+                String errorMessage = syncResp.getString("errorMessage");
+
+                // 截断长文本（errorMessage）
+                String errorPreview = null;
+                if (errorMessage != null) {
+                    errorPreview = errorMessage.length() > ERROR_PREVIEW_MAX ? errorMessage.substring(0, ERROR_PREVIEW_MAX) + "..." : errorMessage;
+                }
+
+                // 组装结构化结果（初始）
+                Map<String, Object> structured = new HashMap<>();
+                if (id != null) structured.put("id", id);
+                if (status != null) structured.put("status", status);
+                if (createdAt != null) structured.put("createdAt", createdAt);
+                if (startedAt != null) structured.put("startedAt", startedAt);
+                if (finishedAt != null) structured.put("finishedAt", finishedAt);
+                if (resultPath != null) structured.put("resultPath", resultPath); // 仅路径字符串
+                if (errorPreview != null) structured.put("errorMessagePreview", errorPreview);
+
+                String rawRespStr = syncResp.toJSONString();
+                String rawPreview = rawRespStr.length() > RAW_PREVIEW_MAX ? rawRespStr.substring(0, RAW_PREVIEW_MAX) + "..." : rawRespStr;
+
+                output.put(node.getStepName() + ".result", JSONObject.toJSONString(structured));
+                output.put(node.getStepName() + ".rawResponsePreview", rawPreview);
+                output.put(node.getStepName() + ".rawResponse", rawRespStr); // 可选：可能很大
+
+                // 日志记录：根据状态分别记录
+                if ("SUCCESS".equalsIgnoreCase(status)) {
+                    nodeLogService.append(NodeLog.of(
+                            flowExecution.getId().toString(),
+                            node.getId(),
+                            node.getStepName(),
+                            "INFO",
+                            "Spark SQL 同步提交完成（SUCCESS）",
+                            Map.of(
+                                    "durationMs", durationMs,
+                                    "id", id,
+                                    "status", status,
+                                    "createdAt", createdAt,
+                                    "startedAt", startedAt,
+                                    "finishedAt", finishedAt,
+                                    "resultPath", resultPath
+                            )
+                    ));
+                } else {
+                    nodeLogService.append(NodeLog.of(
+                            flowExecution.getId().toString(),
+                            node.getId(),
+                            node.getStepName(),
+                            "ERROR",
+                            "Spark SQL 执行失败",
+                            Map.of(
+                                    "durationMs", durationMs,
+                                    "id", id,
+                                    "status", status,
+                                    "errorMessagePreview", errorPreview,
+                                    "resultPath", resultPath
+                            )
+                    ));
+
+                    // 返回异常处理
+                    log.error("SparkNode 执行异常: {}", errorPreview);
+                    CompletableFuture<Void> failed = new CompletableFuture<>();
+                    failed.completeExceptionally(new Throwable(errorPreview));
+                    return failed;
+                }
+
+                // 处理 resultPath：如果以 http/https 开头，尝试下载；否则说明无法直接读取（远端文件系统路径）
+                if (resultPath.startsWith("http://") || resultPath.startsWith("https://")) {
+                    // 尝试下载（带超时与大小限制）
+                    try {
+                        URL url = new URL(resultPath);
+                        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                        conn.setConnectTimeout(DOWNLOAD_TIMEOUT_MS);
+                        conn.setReadTimeout(DOWNLOAD_TIMEOUT_MS);
+                        conn.setRequestMethod("GET");
+                        conn.setInstanceFollowRedirects(true);
+
+                        int code = conn.getResponseCode();
+                        if (code == HttpURLConnection.HTTP_OK) {
+                            String contentType = conn.getContentType();
+                            boolean isText = contentType != null && (
+                                    contentType.startsWith("text") ||
+                                            contentType.contains("json") ||
+                                            contentType.contains("xml") ||
+                                            contentType.contains("csv") ||
+                                            contentType.contains("plain")
+                            );
+
+                            try (InputStream in = conn.getInputStream();
+                                 ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+                                byte[] buffer = new byte[8192];
+                                int read;
+                                int total = 0;
+                                boolean truncated = false;
+                                while ((read = in.read(buffer)) != -1) {
+                                    if (total + read > MAX_DOWNLOAD_BYTES) {
+                                        // 只读取到最大限制
+                                        baos.write(buffer, 0, Math.max(0, MAX_DOWNLOAD_BYTES - total));
+                                        truncated = true;
+                                        break;
+                                    } else {
+                                        baos.write(buffer, 0, read);
+                                    }
+                                    total += read;
+                                }
+                                byte[] contentBytes = baos.toByteArray();
+                                int downloadedSize = contentBytes.length;
+
+                                structured.put("resultFileDownloaded", true);
+                                structured.put("resultFileSize", downloadedSize);
+                                structured.put("resultFileTruncated", truncated);
+                                structured.put("resultFileContentType", contentType != null ? contentType : "unknown");
+
+                                if (isText) {
+                                    String charset = "UTF-8";
+                                    // 不严格解析 charset，这里默认 UTF-8
+                                    String text = new String(contentBytes, StandardCharsets.UTF_8);
+                                    String preview = text.length() > RAW_PREVIEW_MAX ? text.substring(0, RAW_PREVIEW_MAX) + "..." : text;
+                                    structured.put("resultFileContentPreview", preview);
+                                    // 如果未截断且大小较小，可以保存完整内容（注意内存）
+                                    if (!truncated && downloadedSize <= MAX_DOWNLOAD_BYTES) {
+                                        structured.put("resultFileContent", text);
+                                        output.put(node.getStepName() + ".resultFileContent", text);
+                                    }
+                                } else {
+                                    // 二进制文件：若很小则 base64 返回，否则仅返回 size 与标识
+                                    if (downloadedSize <= SMALL_BINARY_BASE64_MAX) {
+                                        String b64 = Base64.getEncoder().encodeToString(contentBytes);
+                                        structured.put("resultFileBase64", b64);
+                                        output.put(node.getStepName() + ".resultFileBase64", b64);
+                                    } else {
+                                        structured.put("resultFileBase64", null);
+                                    }
+                                }
+
+                                // 将 updated structured 写回 output.result（覆盖 earlier）
+                                output.put(node.getStepName() + ".result", JSONObject.toJSONString(structured));
+                                nodeLogService.append(NodeLog.of(
+                                        flowExecution.getId().toString(),
+                                        node.getId(),
+                                        node.getStepName(),
+                                        "INFO",
+                                        "已从 HTTP(S) resultPath 下载文件（或部分下载）",
+                                        Map.of("resultPath", resultPath, "downloadedSize", structured.get("resultFileSize"), "truncated", structured.get("resultFileTruncated"))
+                                ));
+                            }
+                        } else {
+                            // 非 200 返回
+                            structured.put("resultFileDownloaded", false);
+                            structured.put("resultFileDownloadHttpCode", code);
+                            output.put(node.getStepName() + ".result", JSONObject.toJSONString(structured));
+                            nodeLogService.append(NodeLog.of(
+                                    flowExecution.getId().toString(),
+                                    node.getId(),
+                                    node.getStepName(),
+                                    "WARN",
+                                    "从 resultPath 下载时 HTTP 响应非 200",
+                                    Map.of("resultPath", resultPath, "httpCode", code)
+                            ));
+                        }
+                    } catch (Exception dx) {
+                        String errMsg = dx.getMessage() != null ? dx.getMessage() : "下载异常";
+                        nodeLogService.append(NodeLog.of(
+                                flowExecution.getId().toString(),
+                                node.getId(),
+                                node.getStepName(),
+                                "ERROR",
+                                "从 HTTP(S) resultPath 下载失败: " + errMsg,
+                                Map.of("resultPath", resultPath, "exception", errMsg)
+                        ));
+                        structured.put("resultFileDownloaded", false);
+                        structured.put("resultFileDownloadError", errMsg);
+                        output.put(node.getStepName() + ".result", JSONObject.toJSONString(structured));
+                    }
+                } else {
+                    // 非 http(s) 路径，无法直接下载（远程机器路径）
+                    nodeLogService.append(NodeLog.of(
+                            flowExecution.getId().toString(),
+                            node.getId(),
+                            node.getStepName(),
+                            "INFO",
+                            "注意：resultPath 指向远端文件系统路径，当前环境无法直接读取。如需获取，请在远端提供 HTTP/下载接口或通过 SSH/SCP 拉取。",
+                            Map.of("resultPath", resultPath)
+                    ));
+                    structured.put("resultFileDownloaded", false);
+                    structured.put("resultFileDownloadError", "resultPath not http/https (remote path)");
+                    output.put(node.getStepName() + ".result", JSONObject.toJSONString(structured));
+                }
+
+            }
+
+            // 成功结束日志（整体）
             nodeLogService.append(NodeLog.of(
                     flowExecution.getId().toString(),
                     node.getId(),
                     node.getStepName(),
                     "INFO",
-                    "Spark SQL 同步提交完成",
-                    Map.of(
-                            "durationMs", durationMs,
-                            "responseLength", respStr.length(),
-                            "responsePreview", respPreview
-                    )
-            ));
-
-            // TODO 获取到执行完成的文件并解析下载（若有）
-            output.put(node.getStepName() + ".result", respStr);
-
-            // 成功结束日志
-            nodeLogService.append(NodeLog.of(
-                    flowExecution.getId().toString(),
-                    node.getId(),
-                    node.getStepName(),
-                    "INFO",
-                    "Spark 节点执行成功",
+                    "Spark 节点执行完成（已记录结构化结果与响应预览）",
                     Map.of(
                             "outputKey", node.getStepName() + ".result"
                     )
