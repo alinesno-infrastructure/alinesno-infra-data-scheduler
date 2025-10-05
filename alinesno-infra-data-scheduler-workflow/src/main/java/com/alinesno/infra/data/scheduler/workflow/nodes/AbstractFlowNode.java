@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 /**
  * 这是一个抽象父类，继承自 WorkflowNode 接口。
@@ -236,7 +237,10 @@ public abstract class AbstractFlowNode implements FlowNode {
                     // 5. 异常处理（异步回调）
                     log.error("节点执行失败:{}", ex.getMessage(), ex);
                     eventStepMessage("节点执行失败: " + ex.getMessage(), AgentConstants.STEP_ERROR);
-                    return null; // 异常不中断上层流程，仅标记错误状态
+
+                    // return null; // 异常不中断上层流程，仅标记错误状态，向上层抛出异常
+
+                    throw new CompletionException(ex);
                 });
     }
 
