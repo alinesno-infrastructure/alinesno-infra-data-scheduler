@@ -42,4 +42,10 @@ public class ProcessDefinitionSaveDto extends BaseDto {
     @NotNull(message = "任务名称不能为空")
     private String taskName ;
 
+    /**
+     * 异常策略
+     */
+    @NotNull(message = "异常策略不能为空")
+    private Integer errorStrategy ;
+
 }
