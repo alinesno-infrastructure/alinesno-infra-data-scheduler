@@ -49,7 +49,7 @@ public class FlowController {
             if (ex != null) {
                 // 记录日志、包装错误信息
                 // logger.error("tryRun failed", ex);
-                deferred.setErrorResult(AjaxResult.error("流程试运行失败: " + ex.getMessage()));
+                deferred.setErrorResult(AjaxResult.error("流程试运行失败"));
             } else {
                 // 可以把 result 放到 AjaxResult 的 data 中，或按需处理
                 deferred.setResult(AjaxResult.success("流程试运行成功", result));
