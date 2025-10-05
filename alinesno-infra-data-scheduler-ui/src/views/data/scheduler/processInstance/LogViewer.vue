@@ -9,7 +9,7 @@
 
       <ProcessInstanceLog 
         ref="processInstanceLogRef" 
-        :diffHeight="500" />
+        :diffHeight="300" />
 
   </el-dialog>
 </template>
