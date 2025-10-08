@@ -18,7 +18,7 @@
           <el-form-item label="运行类型">
             <el-radio-group v-model="formData.runType">
               <el-radio label="spark-sql">Spark-SQL</el-radio>
-              <el-radio label="pyspark" disabled>PySpark</el-radio>
+              <el-radio label="pyspark">PySpark</el-radio>
             </el-radio-group>
           </el-form-item>
 
