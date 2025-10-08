@@ -1,7 +1,7 @@
 # application.yaml
 spring:
   application:
-    name: data-scheduler
+    name: data-scheduler-spark-application
 
 # Spark配置
 spark:
