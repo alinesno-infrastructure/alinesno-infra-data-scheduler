@@ -14,7 +14,7 @@ public class SparkNodeData extends NodeData {
     private String runType;  // 运行类型(spark-sql,pyspark)
     private String sqlContent;  // sql 内容
     private String pysparkContent;  // pyspark 内容
-    private boolean isAsync;  // 是否异步执行
+    private boolean isAsync = true;  // 是否异步执行
 
 }
 
