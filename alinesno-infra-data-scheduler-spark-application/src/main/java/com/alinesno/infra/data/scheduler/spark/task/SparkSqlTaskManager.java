@@ -239,7 +239,7 @@ public class SparkSqlTaskManager {
                     } else {
                         // 失败：把 stderr 或 stdout 的摘要记录到 meta.errorMessage（长度受限）
                         String errMsg = stderrBuf.length() > 0 ? stderrBuf.toString() : stdoutBuf.toString();
-                        if (errMsg.length() > 2000) errMsg = errMsg.substring(0, 2000) + "...";
+//                        if (errMsg.length() > 10000) errMsg = errMsg.substring(0, 10000) + "...";
                         meta.setStatus(TaskStatus.FAILED);
                         meta.setErrorMessage("exitCode=" + exitCode + " stderr/summary: " + errMsg);
                         meta.setFinishedAt(Instant.now());
