@@ -26,7 +26,7 @@
         </el-form-item>
 
         <!-- 异常策略 异常策略（2:忽略 1:结束） el-radio-group -->
-         <el-form-item label="异常策略" prop="exceptionStrategy">
+         <el-form-item label="异常策略" prop="errorStrategy">
           <el-radio-group v-model="form.errorStrategy">
             <el-radio :label="item.code" v-for="item in ExceptionStrategyList" :key="item.code">{{ item.label }}</el-radio>
           </el-radio-group>
@@ -182,6 +182,9 @@ const data = reactive({
     ],
     envId: [
       { required: true, message: "请选择环境ID", trigger: "blur" }
+    ],
+    errorStrategy: [
+      { required: true, message: "请选择异常策略", trigger: "blur" }
     ],
     taskDesc: [
       { required: true, message: "请输入任务描述", trigger: "blur" }
