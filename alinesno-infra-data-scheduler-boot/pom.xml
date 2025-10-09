@@ -15,7 +15,7 @@
 
 	<properties>
 		<!-- python和内容镜像 -->
-		<docker.base.images>registry.cn-shenzhen.aliyuncs.com/alinesno-infra-base/openjdk:17-slim-python</docker.base.images>
+		<docker.base.images>registry.cn-shenzhen.aliyuncs.com/alinesno-infra-base/openjdk:21-data-scheduler</docker.base.images>
 	</properties>
 
 	<dependencies>
