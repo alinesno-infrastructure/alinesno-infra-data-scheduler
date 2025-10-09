@@ -16,4 +16,10 @@ public interface ISecretsService extends IBaseService<SecretsEntity> {
      */
     Map<String, String> secretMap();
 
+    /**
+     * 根据组织ID查询返回密钥值
+     * @param orgId
+     * @return
+     */
+    Map<String, String> getSecretMapByOrgId(Long orgId);
 }
