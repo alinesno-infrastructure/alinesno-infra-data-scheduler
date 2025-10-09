@@ -137,4 +137,12 @@ public class FlowNodeExecutionEntity extends InfraBaseEntity {
     @ColumnType(value = MySqlTypeConstant.TEXT)
     @ColumnComment("错误信息")
     private String errorMsg ;
+
+    public void setExecuteInfo(String executeInfo) {
+        // 最大长度不能超过10000个字符
+        if (executeInfo != null && executeInfo.length() > 10000) {
+            executeInfo = executeInfo.substring(0, 10000);
+        }
+        this.executeInfo = executeInfo;
+    }
 }
