@@ -8,6 +8,7 @@ import com.alinesno.infra.common.core.service.impl.IBaseServiceImpl;
 import com.alinesno.infra.common.web.log.utils.SpringUtils;
 import com.alinesno.infra.data.scheduler.entity.ProcessDefinitionEntity;
 import com.alinesno.infra.data.scheduler.service.IProcessDefinitionService;
+import com.alinesno.infra.data.scheduler.service.ISecretsService;
 import com.alinesno.infra.data.scheduler.workflow.dto.*;
 import com.alinesno.infra.data.scheduler.workflow.entity.FlowEntity;
 import com.alinesno.infra.data.scheduler.workflow.entity.FlowExecutionEntity;
@@ -68,6 +69,9 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
     private IFlowNodeService flowNodeService;  // 流程定义
 
     @Autowired
+    private ISecretsService secretsService ;
+
+    @Autowired
     private IFlowExecutionService flowExecutionService ;  // 流程实例
 
     @Autowired
@@ -92,6 +96,8 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
         ProcessDefinitionEntity processDefinitionEntity = processDefinitionService.getById(processDefinitionId) ;
         processDefinitionEntity.setRunCount(processDefinitionEntity.getRunCount() + 1) ;
         processDefinitionService.updateById(processDefinitionEntity) ;
+
+        Map<String , String> orgSecret = secretsService.getSecretMapByOrgId(processDefinitionEntity.getOrgId()) ;
 
         ExecutionStrategyEnums errorStrategy = ExecutionStrategyEnums.fromCode(processDefinitionEntity.getErrorStrategy()) ;
 
@@ -149,7 +155,8 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
                         flowExecutionEntity ,
                         output ,
                         outputContent ,
-                        errorStrategy.getCode()) ;
+                        errorStrategy.getCode(),
+                        orgSecret) ;
 
                 future.whenComplete((v, e) -> {
 
@@ -206,7 +213,8 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
             FlowExecutionEntity flowExecutionEntity,
             Map<String, Object> output,
             StringBuilder outputContent,
-            int errorStrategy) {
+            int errorStrategy,
+            Map<String, String> orgSecret) {
 
         if (nodes == null || nodes.isEmpty()) {
             return CompletableFuture.completedFuture(null);
@@ -321,7 +329,8 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
                         currentOrder,
                         nodeLevel,
                         nodes,
-                        errorStrategy
+                        errorStrategy ,
+                        orgSecret
                 );
 
                 execFuture.whenComplete((v, ex) -> {
@@ -473,7 +482,8 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
             int count,
             int level,
             List<FlowNodeDto> nodes,
-            int errorStrategy) {
+            int errorStrategy,
+            Map<String, String> orgSecret) {
 
         return CompletableFuture.runAsync(() -> {
             FlowNodeExecutionEntity flowNodeExecutionEntity = new FlowNodeExecutionEntity();
@@ -500,7 +510,16 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
             outputContent.setLength(0);
             AbstractFlowNode abstractFlowNode = SpringUtil.getBean(FLOW_STEP_NODE + node.getType());
             abstractFlowNode.setFlowNodes(nodes);
-            CompletableFuture<Void> future = abstractFlowNode.executeNode(node, flowExecutionEntity, flowNodeExecutionEntity, output, outputContent);
+            CompletableFuture<Void> future = abstractFlowNode.executeNode(
+                    node,
+                    flowExecutionEntity,
+                    flowNodeExecutionEntity,
+                    output,
+                    outputContent ,
+                    orgSecret);
+
+            boolean b = errorStrategy == ExecutionStrategyEnums.STOP_FLOW.getCode() || errorStrategy == ExecutionStrategyEnums.PAUSE_TASK.getCode();
+
             try {
                 future.get(); // 等待节点执行结束（成功或抛异常）
                 // 成功路径
@@ -518,8 +537,7 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
                 flowNodeExecutionEntity.setProgress(0);
                 flowNodeExecutionService.update(flowNodeExecutionEntity);
 
-                if(errorStrategy == ExecutionStrategyEnums.STOP_FLOW.getCode() ||
-                        errorStrategy == ExecutionStrategyEnums.PAUSE_TASK.getCode()){
+                if(b){
                     throw new RuntimeException("流程执行异常：" + err);
                 }
 
@@ -532,8 +550,7 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
                 flowNodeExecutionEntity.setProgress(0);
                 flowNodeExecutionService.update(flowNodeExecutionEntity);
 
-                if(errorStrategy == ExecutionStrategyEnums.STOP_FLOW.getCode() ||
-                        errorStrategy == ExecutionStrategyEnums.PAUSE_TASK.getCode()){
+                if(b){
                     throw new RuntimeException("流程执行异常：" + err);
                 }
 
@@ -555,7 +572,8 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
             FlowExecutionEntity flowExecutionEntity,
             Map<String, Object> output,
             StringBuilder outputContent,
-            int errorStrategy) {
+            int errorStrategy,
+            Map<String ,  String> orgSecret) {
 
         if (nodes == null || nodes.isEmpty()) {
             return CompletableFuture.completedFuture(null);
@@ -584,7 +602,8 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
                 outputContent,
                 count,
                 level ,
-                errorStrategy);
+                errorStrategy,
+                orgSecret);
     }
 
     private CompletableFuture<Void> processQueueAsync(
@@ -597,7 +616,8 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
             StringBuilder outputContent,
             AtomicInteger count,
             AtomicInteger level ,
-            int errorStrategy) {
+            int errorStrategy ,
+            Map<String , String> orgSecret) {
 
         if (queue.isEmpty()) {
             return CompletableFuture.completedFuture(null);
@@ -617,7 +637,8 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
                     outputContent,
                     count,
                     level ,
-                    errorStrategy);
+                    errorStrategy ,
+                    orgSecret);
         }
 
         log.debug("node--{}--level--{}--->>>>>>>>start", count.get(), level.get());
@@ -645,7 +666,8 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
                 count.getAndIncrement(),
                 level.get(),
                 nodes ,
-                errorStrategy);
+                errorStrategy,
+                orgSecret);
 
         return execFuture.thenCompose(v -> {
             // 标记已访问
@@ -714,7 +736,8 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
                     outputContent,
                     count,
                     level ,
-                    errorStrategy);
+                    errorStrategy ,
+                    orgSecret);
         });
     }
 
