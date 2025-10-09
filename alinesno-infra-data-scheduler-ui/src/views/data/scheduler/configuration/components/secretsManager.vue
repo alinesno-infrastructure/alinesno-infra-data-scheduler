@@ -34,7 +34,7 @@
                <el-table-column type="selection" width="50" align="center" />
 
                <!-- 业务字段-->
-               <el-table-column label="密钥标识" align="left" width="250" key="secName" prop="secName"
+               <el-table-column label="密钥标识" align="left" width="350" key="secName" prop="secName"
                   v-if="columns[0].visible">
                   <template #default="scope">
                      <div>
