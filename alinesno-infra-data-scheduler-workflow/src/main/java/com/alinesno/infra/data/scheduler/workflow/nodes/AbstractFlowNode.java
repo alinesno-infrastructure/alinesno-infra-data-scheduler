@@ -17,9 +17,11 @@ import com.alinesno.infra.data.scheduler.workflow.logger.NodeLog;
 import com.alinesno.infra.data.scheduler.workflow.logger.NodeLogService;
 import com.alinesno.infra.data.scheduler.workflow.nodes.variable.GlobalVariables;
 import com.alinesno.infra.data.scheduler.workflow.parse.TextReplacer;
+import com.alinesno.infra.data.scheduler.workflow.utils.CommonsTextSecrets;
 import com.alinesno.infra.data.scheduler.workflow.utils.OSUtils;
 import com.alinesno.infra.data.scheduler.workflow.utils.StackTraceUtils;
 import com.alinesno.infra.data.scheduler.workflow.utils.shell.ShellHandle;
+import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -90,10 +92,11 @@ public abstract class AbstractFlowNode implements FlowNode {
      */
     protected Map<String, Object> output;
 
-//    /**
-//     * 流程专家服务，提供流程相关的业务逻辑处理服务
-//     */
-//    protected FlowExpertService flowExpertService;
+    /**
+     * 原始密钥
+     */
+    @Getter
+    protected Map<String, String> orgSecret;
 
     /**
      * 节点类型
@@ -112,18 +115,17 @@ public abstract class AbstractFlowNode implements FlowNode {
             FlowExecutionEntity flowExecution,
             FlowNodeExecutionEntity flowNodeExecution,
             Map<String, Object> output,
-            StringBuilder outputContent) {
+            StringBuilder outputContent,
+            Map<String, String> orgSecret) {
 
         // 1. 初始化工作流参数（同步准备，无阻塞逻辑）
         workflowManage = new WorkflowManage(node, flowNodes);
         boolean isPrintContent = isPrintContent(node);
         node.setPrint(isPrintContent);
 
-//        flowExpertService.setNode(node);
-//        flowExpertService.setOutputContent(outputContent);
-
         // 设置成员变量（同步操作）
         this.setNode(node);
+        this.orgSecret = orgSecret;
         this.outputContent = outputContent;
         this.flowExecution = flowExecution;
         this.flowNodeExecution = flowNodeExecution;
@@ -486,9 +488,9 @@ public abstract class AbstractFlowNode implements FlowNode {
         ShellHandle shellHandle;
         boolean isWindows = OSUtils.isWindows();
         if (isWindows) {
-            shellHandle = new ShellHandle("cmd.exe", "/C", command);
+            shellHandle = new ShellHandle("cmd.exe", "/C", CommonsTextSecrets.replace(command ,getOrgSecret()));
         } else {
-            shellHandle = new ShellHandle("/bin/sh", "-c", command);
+            shellHandle = new ShellHandle("/bin/sh", "-c", CommonsTextSecrets.replace(command , getOrgSecret()));
         }
 
         shellHandle.setLogPath(logFile.getAbsolutePath());
