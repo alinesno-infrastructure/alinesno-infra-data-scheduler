@@ -9,6 +9,7 @@ import com.alinesno.infra.data.scheduler.workflow.constants.FlowConst;
 import com.alinesno.infra.data.scheduler.workflow.logger.NodeLog;
 import com.alinesno.infra.data.scheduler.workflow.nodes.AbstractFlowNode;
 import com.alinesno.infra.data.scheduler.workflow.nodes.variable.step.SparkNodeData;
+import com.alinesno.infra.data.scheduler.workflow.utils.CommonsTextSecrets;
 import com.alinesno.infra.data.scheduler.workflow.utils.StackTraceUtils;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -113,9 +114,9 @@ public class SparkNode extends AbstractFlowNode {
 
             JSONObject resp;
             if (async) {
-                resp = consumer.submitAsync(scriptOrFile, true , computeEngine != null ? computeEngine.getAdminUser() : null);
+                resp = consumer.submitAsync(CommonsTextSecrets.replace(scriptOrFile , getOrgSecret()), true , computeEngine != null ? computeEngine.getAdminUser() : null);
             } else {
-                resp = consumer.submitSync(scriptOrFile, true , computeEngine != null ? computeEngine.getAdminUser() : null, 600_000);
+                resp = consumer.submitSync(CommonsTextSecrets.replace(scriptOrFile, getOrgSecret()), true , computeEngine != null ? computeEngine.getAdminUser() : null, 600_000);
             }
 
             long durationMs = System.currentTimeMillis() - startTs;
@@ -407,7 +408,7 @@ public class SparkNode extends AbstractFlowNode {
                     )
             ));
 
-            JSONObject syncResp = consumer.submitSync(sqlContent , params, computeEngine != null ? computeEngine.getAdminUser() : null, waitMs);
+            JSONObject syncResp = consumer.submitSync(CommonsTextSecrets.replace(sqlContent , getOrgSecret()) , params, computeEngine != null ? computeEngine.getAdminUser() : null, waitMs);
 
             // ------------- 改进后的 syncResp 处理 -------------
             long durationMs = System.currentTimeMillis() - startTs;
