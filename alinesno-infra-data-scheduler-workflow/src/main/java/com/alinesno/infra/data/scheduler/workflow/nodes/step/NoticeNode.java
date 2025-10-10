@@ -12,6 +12,7 @@ import com.alinesno.infra.data.scheduler.workflow.constants.FlowConst;
 import com.alinesno.infra.data.scheduler.workflow.logger.NodeLog;
 import com.alinesno.infra.data.scheduler.workflow.nodes.AbstractFlowNode;
 import com.alinesno.infra.data.scheduler.workflow.nodes.variable.step.NoticeNodeData;
+import com.alinesno.infra.data.scheduler.workflow.utils.CommonsTextSecrets;
 import com.alinesno.infra.data.scheduler.workflow.utils.StackTraceUtils;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -167,7 +168,7 @@ public class NoticeNode extends AbstractFlowNode {
             content = replacePlaceholders(content);
 
             if (StringUtils.isNotEmpty(content)) {
-                message.setContent(content);
+                message.setContent(CommonsTextSecrets.replace(content , getOrgSecret()));
                 String title = content.length() > 64 ? content.substring(0, 64) : content;
                 message.setTitle(title);
             } else {
