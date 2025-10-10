@@ -34,14 +34,14 @@
                <el-table-column type="selection" width="50" align="center" />
 
                <!-- 业务字段-->
-               <el-table-column label="密钥标识" align="left" width="350" key="secName" prop="secName"
+               <el-table-column label="密钥标识" align="left" key="secName" prop="secName"
                   v-if="columns[0].visible">
                   <template #default="scope">
                      <div>
                         {{ scope.row.secName }} 
-                     </div>
-                     <div style="font-size: 13px;color: #a5a5a5;cursor: pointer;" v-copyText="scope.row.secName">
-                        复制标识 <i class="fa-solid fa-copy"></i>
+                        <span style="font-size: 13px;color: #a5a5a5;cursor: pointer;" v-copyText="'${{ secrets.' + scope.row.secName + '}}'">
+                           <i class="fa-solid fa-copy"></i>
+                        </span>
                      </div>
                   </template>
                </el-table-column>
@@ -49,13 +49,15 @@
                <el-table-column label="描述" align="left" key="secDesc" prop="secDesc" v-if="columns[1].visible"
                   :show-overflow-tooltip="true" />
 
+               <!-- 
                <el-table-column label="范围" align="center" width="100" key="secScope" prop="secScope"
                   v-if="columns[1].visible" :show-overflow-tooltip="true">
                   <template #default="scope">
                      <span v-if="scope.row.secScope === 'public'">全局</span>
                      <span v-if="scope.row.secScope === 'project'">项目</span>
                   </template>
-               </el-table-column>
+               </el-table-column> 
+               -->
 
                <el-table-column label="更新时间" align="center" prop="updateTime" v-if="columns[6].visible" width="160">
                   <template #default="scope">
@@ -66,13 +68,15 @@
                <!-- 操作字段  -->
                <el-table-column label="操作" align="center" width="150" class-name="small-padding fixed-width">
                   <template #default="scope">
+                     <!-- 
                      <el-tooltip content="修改" placement="top" v-if="scope.row.SecretsId !== 1">
                         <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)"
                            v-hasPermi="['system:Secrets:edit']"></el-button>
-                     </el-tooltip>
+                     </el-tooltip> 
+                     -->
                      <el-tooltip content="删除" placement="top" v-if="scope.row.SecretsId !== 1">
-                        <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)"
-                           v-hasPermi="['system:Secrets:remove']"></el-button>
+                        <el-button type="danger" link @click="handleDelete(scope.row)" v-hasPermi="['system:Secrets:remove']">
+                        </el-button>
                      </el-tooltip>
                   </template>
 
@@ -100,6 +104,7 @@
                   </el-form-item>
                </el-col>
             </el-row>
+            <!-- 
             <el-col :span="24">
                <el-form-item label="范围" prop="secScope">
                   <el-radio-group v-model="form.secScope">
@@ -107,7 +112,8 @@
                         :label="dict.value">{{ dict.label }}</el-radio>
                   </el-radio-group>
                </el-form-item>
-            </el-col>
+            </el-col> 
+            -->
             <el-row>
                <el-col :span="24">
                   <el-form-item label="密钥值" prop="secValue">
