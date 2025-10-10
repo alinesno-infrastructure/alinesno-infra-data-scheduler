@@ -2,18 +2,23 @@ package com.alinesno.infra.data.scheduler.workflow.logger;
 
 import com.alinesno.infra.data.scheduler.workflow.config.NodeLogProperties;
 import com.alinesno.infra.data.scheduler.workflow.logger.event.NodeLogCreatedEvent;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * 节点日志服务
  */
+@Slf4j
 @Service
 public class NodeLogService {
 
@@ -26,6 +31,12 @@ public class NodeLogService {
     private final FallbackFileWriter fallback;
     private final AtomicLong dropped = new AtomicLong(0);
 
+    /**
+     * 原始密钥
+     */
+    @Setter
+    @Getter
+    protected Map<String, String> orgSecret;
 
     public NodeLogService(NodeLogProperties props, MongoNodeLogRepository repository , ApplicationEventPublisher eventPublisher) {
         this.props = props;
@@ -41,15 +52,20 @@ public class NodeLogService {
         }
     }
 
-    public boolean append(NodeLog log) {
-        boolean ok = queue.offer(log);
+    public boolean append(NodeLog nodeLog) {
+
+        NodeLog sensitiveLog = NodeLog.maskSensitive(nodeLog , getOrgSecret()) ;
+        log.debug("sensitiveLog: {}", sensitiveLog);
+
+        boolean ok = queue.offer(sensitiveLog);
         if (!ok) {
             dropped.incrementAndGet();
             return false;
         }
         // publish event immediately (best-effort; event may be consumed before persistence)
         try {
-            eventPublisher.publishEvent(new NodeLogCreatedEvent(log));
+
+            eventPublisher.publishEvent(new NodeLogCreatedEvent(sensitiveLog));
         } catch (Exception e) {
             // ignore publisher failures; do not fail business flow
         }
