@@ -11,6 +11,7 @@ import com.alinesno.infra.data.scheduler.entity.TaskDefinitionEntity;
 import com.alinesno.infra.data.scheduler.executor.bean.TaskInfoBean;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public interface IProcessDefinitionService extends IBaseService<ProcessDefinitionEntity> {
 
@@ -19,7 +20,7 @@ public interface IProcessDefinitionService extends IBaseService<ProcessDefinitio
      * @param task
      * @param taskDefinitionList
      */
-    void runProcess(TaskInfoBean task, List<TaskDefinitionEntity> taskDefinitionList);
+    CompletableFuture<Void> runProcess(TaskInfoBean task, List<TaskDefinitionEntity> taskDefinitionList);
 
     /**
      * 保存流程定义
