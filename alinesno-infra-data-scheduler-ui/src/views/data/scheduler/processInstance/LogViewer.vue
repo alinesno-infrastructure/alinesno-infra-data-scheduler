@@ -3,6 +3,7 @@
     :model-value="visible"
     :title="title || '节点日志'"
     width="60%"
+    append-to-body
     @close="handleClose"
     :close-on-click-modal="false"
   >
