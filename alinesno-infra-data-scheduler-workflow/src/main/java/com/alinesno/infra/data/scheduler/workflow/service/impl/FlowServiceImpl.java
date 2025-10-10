@@ -497,8 +497,14 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
             flowNodeExecutionEntity.setNodeType(node.getType());
             ObjectMapper objectMapper = new ObjectMapper();
             try {
+
+                // 立刻检查中断
+                if (Thread.currentThread().isInterrupted()) {
+                    throw new InterruptedException("节点执行前检测到中断");
+                }
+
                 flowNodeExecutionEntity.setProperties(objectMapper.writeValueAsString(node.getProperties()));
-            } catch (JsonProcessingException e) {
+            } catch (JsonProcessingException | InterruptedException e) {
                 log.error("executeFlowNode Error converting properties to JSON: {}" , e.getMessage());
                 flowNodeExecutionEntity.setProperties(null);
             }
