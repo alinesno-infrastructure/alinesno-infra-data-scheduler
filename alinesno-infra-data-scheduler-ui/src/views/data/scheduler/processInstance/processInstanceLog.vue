@@ -471,8 +471,9 @@ onUnmounted(() => clearLoggerInterval());
 
   /* meta 完整块样式 */
   .meta-block {
-    margin-top: 6px;
+    margin-top: 3px;
     margin-left: 200px; /* 对齐到 message 之后的位置 */
+    margin-bottom: 3px;
   }
 
   .meta-pre {
