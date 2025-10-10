@@ -46,6 +46,35 @@ public class QuartzController {
     }
 
     /**
+     * 停止正在运行的任务实例（尝试中断）
+     * @param jobId Job 的 id（即 JobKey.name）
+     */
+    @PostMapping("stopJob")
+    public AjaxResult stopJob(String jobId) throws SchedulerException {
+
+        Assert.hasLength(jobId , "任务标识为空");
+
+        List<JobExecutionContext> executingJobs = scheduler.getCurrentlyExecutingJobs();
+        boolean found = false;
+        for (JobExecutionContext executingJob : executingJobs) {
+            JobKey jobKey = executingJob.getJobDetail().getKey();
+            if (jobKey.getName().equals(jobId) && jobKey.getGroup().equals(PipeConstants.JOB_GROUP_NAME)) {
+                // 使用 fireInstanceId 精确中断该次执行实例
+                String fireInstanceId = executingJob.getFireInstanceId();
+                boolean interrupted = scheduler.interrupt(fireInstanceId);
+                log.info("请求中断 jobId={} fireInstanceId={} result={}", jobId, fireInstanceId, interrupted);
+                found = true;
+            }
+        }
+
+        if (!found) {
+            return AjaxResult.error("未发现正在运行的任务实例");
+        }
+
+        return AjaxResult.success();
+    }
+
+    /**
      * 暂停触发器
      * @param jobId
      * @return
