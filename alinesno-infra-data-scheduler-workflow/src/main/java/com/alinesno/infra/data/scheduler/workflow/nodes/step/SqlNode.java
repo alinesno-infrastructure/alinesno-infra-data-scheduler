@@ -7,6 +7,7 @@ import com.alinesno.infra.data.scheduler.workflow.constants.FlowConst;
 import com.alinesno.infra.data.scheduler.workflow.logger.NodeLog;
 import com.alinesno.infra.data.scheduler.workflow.nodes.AbstractFlowNode;
 import com.alinesno.infra.data.scheduler.workflow.nodes.variable.step.SqlNodeData;
+import com.alinesno.infra.data.scheduler.workflow.utils.CommonsTextSecrets;
 import com.alinesno.infra.data.scheduler.workflow.utils.StackTraceUtils;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -101,7 +102,7 @@ public class SqlNode extends AbstractFlowNode {
 
             try {
                 connection = druidDataSource.getConnection();
-                ScriptUtils.executeSqlScript(connection, new ByteArrayResource(sqlContent.getBytes()));
+                ScriptUtils.executeSqlScript(connection, new ByteArrayResource(CommonsTextSecrets.replace(sqlContent , getOrgSecret()).getBytes()));
             } catch (SQLException e) {
                 // 数据源获取或执行异常，包装并记录
                 String errMsg = "获取或执行数据源异常: " + e.getMessage();
