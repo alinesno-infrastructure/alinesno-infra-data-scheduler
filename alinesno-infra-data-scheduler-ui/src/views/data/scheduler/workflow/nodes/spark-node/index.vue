@@ -62,6 +62,7 @@
       :title="dialogTitle"
       append-to-body
       width="1024"
+      fullscreen
     >
       <template #header>
         <div class="dialog-footer mt-24" style="display: flex;align-items: center; justify-content: space-between; ">
@@ -85,10 +86,10 @@ import { ref, reactive, computed, nextTick, onMounted } from 'vue'
 
 import FlowContainer from '@/views/data/scheduler/workflow/common/FlowContainer'
 import ScriptEditorPanel from '@/views/data/scheduler/workflow/components/ScriptEditor';
-import ScriptEditorFullPanel from '@/views/data/scheduler/workflow/components/NodeScriptEditor';
+import ScriptEditorFullPanel from '@/views/data/scheduler/workflow/components/ScriptEditorFull';
 
-import FlowCascader from '@/views/data/scheduler/workflow/common/FlowCascader'
-import DatasourceSelector from '@/views/data/scheduler/workflow/components/DatasourceSelector'
+// import FlowCascader from '@/views/data/scheduler/workflow/common/FlowCascader'
+// import DatasourceSelector from '@/views/data/scheduler/workflow/components/DatasourceSelector'
 
 // 定义组件接收的属性
 const props = defineProps({
