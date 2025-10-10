@@ -73,6 +73,12 @@
         @click="handleTryRun()"> 
       <i class="fa-solid fa-paper-plane"></i> &nbsp; 开始执行 
     </el-button>
+
+    <!-- 停止任务
+     <el-button :disabled="isCompleted"  type="danger" size="large" @click="handleStop()">
+      <i class="fa-solid fa-stop"></i> &nbsp; 停止任务 
+     </el-button>
+    -->
   </div>
 
   <!-- 日志弹窗组件 -->
@@ -85,6 +91,7 @@ import { reactive, ref, onMounted, onUnmounted, watch, getCurrentInstance, nextT
 import { ElMessage } from 'element-plus'
 import {
   tryRun,
+  stopRun,
   getLastExecutedFlowNodes
 } from '@/api/data/scheduler/flow'
 
@@ -282,6 +289,16 @@ const handleTryRun = () => {
   })
 }
 
+// 停止任务
+const handleStop = () => {
+  isCompleted.value = false ;
+  stopRun(currentProcessDefinitionId.value).then(response => {
+    isCompleted.value = true;
+    ElMessage.success('任务已停止');
+  }).catch(error => {
+    isCompleted.value = true;
+  })
+}
 
 // 当组件卸载时清除定时器
 onUnmounted(() => {
