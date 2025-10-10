@@ -7,10 +7,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.AbstractMap;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 密文替换工具类（兼容不同 commons-text 版本），参考github-action密钥替换方式
@@ -131,4 +130,62 @@ public class CommonsTextSecrets {
             return Collections.emptySet();
         }
     }
+
+    /**
+     * 将字符串中形如 ${{ secrets.KEY }} 的占位符进行脱敏，
+     * 整个占位符（包括 $、{、} 及内部空格/内容）都会被替换为等长的 '*' 串。
+     *
+     * 另外，如果输入中包含 orgSecret map 中的某个 value（字面匹配），
+     * 也会将该 value 替换为等长的 '*' 串。
+     *
+     * @param input 原始字符串
+     * @param orgSecret key->secretValue 的映射（如果为 null 或空则仅处理占位符）
+     * @return 脱敏后的字符串
+     */
+    public static String maskSecretsPlaceholders(String input, Map<String, String> orgSecret) {
+        if (input == null) return null;
+
+        // 第一步：把 ${{ secrets.X }} 整体替换为等长 '*'
+        Pattern pattern = Pattern.compile("\\$\\{\\{\\s*secrets\\.[A-Za-z0-9_.\\-]+\\s*\\}\\}");
+        Matcher matcher = pattern.matcher(input);
+        StringBuffer sb = new StringBuffer();
+        while (matcher.find()) {
+            String whole = matcher.group(); // 整个匹配，如 "${{ secrets.PROJECT_CODE }}"
+            String stars = repeat('*', whole.length());
+            matcher.appendReplacement(sb, Matcher.quoteReplacement(stars));
+        }
+        matcher.appendTail(sb);
+        String result = sb.toString();
+
+        // 第二步：把 orgSecret 中的 value 在结果中进行字面替换（按长度降序，避免短串先替换覆盖长串的一部分）
+        if (orgSecret != null && !orgSecret.isEmpty()) {
+            // 收集所有非空的 value，去重并按长度降序
+            List<String> values = new ArrayList<>();
+            for (String v : orgSecret.values()) {
+                if (v != null && !v.isEmpty()) values.add(v);
+            }
+            // 去重并按长度降序
+            values = values.stream()
+                    .distinct()
+                    .sorted(Comparator.comparingInt(String::length).reversed())
+                    .toList();
+
+            for (String secretVal : values) {
+                if (secretVal.isEmpty()) continue;
+                String stars = repeat('*', secretVal.length());
+                // 使用 String.replace 做字面替换（不使用正则）
+                result = result.replace(secretVal, stars);
+            }
+        }
+
+        return result;
+    }
+
+    private static String repeat(char c, int count) {
+        if (count <= 0) return "";
+        char[] arr = new char[count];
+        Arrays.fill(arr, c);
+        return new String(arr);
+    }
+
 }
