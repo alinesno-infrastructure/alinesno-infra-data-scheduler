@@ -1,20 +1,20 @@
 <template>
   <div class="app-container">
     <el-tabs :tab-position="tabPosition" class="demo-tabs">
-      <el-tab-pane label="系统运行配置">
+      <el-tab-pane label="系统运行配置" :lazy="true">
         <NodeManage />
       </el-tab-pane> 
-      <el-tab-pane label="环境管理">
+      <el-tab-pane label="环境管理" :lazy="true">
         <EnvironmentManage />
       </el-tab-pane>
       <!-- 消息通知-->
-       <el-tab-pane label="消息通知">
+       <el-tab-pane label="消息通知" :lazy="true">
         <NotificationManage />
       </el-tab-pane>
-      <el-tab-pane label="账号凭据管理">
+      <el-tab-pane label="账号凭据管理" :lazy="true">
         <CredentialManage />
       </el-tab-pane>
-      <el-tab-pane label="密钥管理">
+      <el-tab-pane label="密钥管理" :lazy="true">
         <SecretsManager/>
       </el-tab-pane>
     </el-tabs>
