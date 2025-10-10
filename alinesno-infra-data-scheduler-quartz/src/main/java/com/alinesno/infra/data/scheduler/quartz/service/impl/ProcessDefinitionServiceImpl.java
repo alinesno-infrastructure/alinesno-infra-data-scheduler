@@ -45,6 +45,7 @@ import java.io.File;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
@@ -85,30 +86,35 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
     @Value("${alinesno.data.scheduler.workspacePath:#{systemProperties['java.io.tmpdir']}}")
     private String workspacePath;
 
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)  // 此方法不需要开启事务
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Override
-    public void runProcess(TaskInfoBean task, List<TaskDefinitionEntity> taskDefinition) {
+    public CompletableFuture<Void> runProcess(TaskInfoBean task, List<TaskDefinitionEntity> taskDefinition) {
 
         IFlowService flowService = SpringUtils.getBean(IFlowService.class);
 
-        // 任务实例运行
         ProcessDefinitionEntity process = task.getProcess();
         log.debug("ProcessDefinitionServiceImpl.runProcess Start:{}", process.getId());
 
+        // 获取代表整个流程执行的 CompletableFuture（注意：flowService.runRoleFlow 必须返回代表真正执行结束的 future）
         CompletableFuture<String> flowFuture = flowService.runRoleFlow(process.getId());
-        // 当 future 完成时设置 DeferredResult
-        flowFuture.whenComplete((result, ex) -> {
+
+        // 将 flowFuture 链接为一个 CompletableFuture<Void>，便于上层统一等待/取消
+
+        return flowFuture.handle((res, ex) -> {
             ProcessDefinitionEntity finishProcess = getById(process.getId());
             if (ex != null) {
-                // 记录日志、包装错误信息
-                log.error("ProcessDefinitionServiceImpl.runProcess Failed:{} , error:{}", process.getId() ,  ex.getMessage());
+                // 记录日志
+                log.error("ProcessDefinitionServiceImpl.runProcess Failed:{} , error:{}", process.getId(), ((Throwable) ex).getMessage());
+                // 你可以在此根据需要更新数据库的失败状态（如果想在流程失败时进行额外持久化）
+                // 抛出异常以让上层 knowing it's failed
+                throw new CompletionException((Throwable) ex);
             } else {
                 log.debug("ProcessDefinitionServiceImpl.runProcess Finish:{}", process.getId());
                 finishProcess.setUpdateTime(new Date());
                 update(finishProcess);
+                return null;
             }
         });
-
     }
 
     /**
