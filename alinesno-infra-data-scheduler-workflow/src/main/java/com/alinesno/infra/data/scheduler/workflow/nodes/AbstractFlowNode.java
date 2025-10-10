@@ -123,6 +123,8 @@ public abstract class AbstractFlowNode implements FlowNode {
         boolean isPrintContent = isPrintContent(node);
         node.setPrint(isPrintContent);
 
+        nodeLogService.setOrgSecret(orgSecret);
+
         // 设置成员变量（同步操作）
         this.setNode(node);
         this.orgSecret = orgSecret;
@@ -497,6 +499,7 @@ public abstract class AbstractFlowNode implements FlowNode {
 
         long startTs = System.currentTimeMillis();
         // 记录开始日志
+        String commandPreview = command.length() > 200 ? command.substring(0, 200) + "..." : command;
         try {
             nodeLogService.append(NodeLog.of(
                     String.valueOf(flowExecution != null ? flowExecution.getId() : "unknown"),
@@ -506,7 +509,7 @@ public abstract class AbstractFlowNode implements FlowNode {
                     "命令开始执行",
                     Map.of(
                             "phase", "runCommand.start",
-                            "commandPreview", command.length() > 200 ? command.substring(0, 200) + "..." : command,
+                            "commandPreview", commandPreview,
                             "logFile", logFile.getAbsolutePath(),
                             "workspace", getWorkspace().getAbsolutePath()
                     )
@@ -540,7 +543,7 @@ public abstract class AbstractFlowNode implements FlowNode {
                     "命令执行完成",
                     Map.of(
                             "phase", "runCommand.end",
-                            "commandPreview", command.length() > 200 ? command.substring(0, 200) + "..." : command,
+                            "commandPreview", commandPreview,
                             "durationMs", durationMs,
                             "outputLength", outLen,
                             "outputPreview", preview,
@@ -564,7 +567,7 @@ public abstract class AbstractFlowNode implements FlowNode {
                         "命令执行异常: " + errMsg,
                         Map.of(
                                 "phase", "runCommand.error",
-                                "commandPreview", command.length() > 200 ? command.substring(0, 200) + "..." : command,
+                                "commandPreview", commandPreview,
                                 "durationMs", durationMs,
                                 "exception", errMsg,
                                 "stackTrace", stack,
