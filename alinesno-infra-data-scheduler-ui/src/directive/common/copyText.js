@@ -1,8 +1,9 @@
-/**
-* v-copyText 复制文本内容
-* Copyright (c) 2022 ruoyi
-*/
+import { ElMessage } from "element-plus"; 
 
+/**
+ * v-copyText 复制文本内容
+ * Copyright (c) 2022 ruoyi
+ */
 export default {
   beforeMount(el, { value, arg }) {
     if (arg === "callback") {
@@ -10,14 +11,38 @@ export default {
     } else {
       el.$copyValue = value;
       const handler = () => {
-        copyTextToClipboard(el.$copyValue);
+        const success = copyTextToClipboard(el.$copyValue);
+        if (success) {
+          ElMessage.success('复制成功');
+        } else {
+          ElMessage.error('复制失败');
+        }
         if (el.$copyCallback) {
-          el.$copyCallback(el.$copyValue);
+          // 将 success 也传回去，便于回调处理
+          el.$copyCallback(el.$copyValue, success);
         }
       };
       el.addEventListener("click", handler);
       el.$destroyCopy = () => el.removeEventListener("click", handler);
     }
+  },
+
+  updated(el, { value, arg }) {
+    // 支持动态更新 value 或 callback
+    if (arg === "callback") {
+      el.$copyCallback = value;
+    } else {
+      el.$copyValue = value;
+    }
+  },
+
+  beforeUnmount(el) {
+    if (el.$destroyCopy) {
+      el.$destroyCopy();
+    }
+    delete el.$copyValue;
+    delete el.$copyCallback;
+    delete el.$destroyCopy;
   }
 }
 
