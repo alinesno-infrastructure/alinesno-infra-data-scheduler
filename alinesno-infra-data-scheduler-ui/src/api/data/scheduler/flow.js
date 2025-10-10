@@ -20,6 +20,15 @@ var managerUrl = {
     tryRun: prefix + "tryRun",  // 尝试运行
     getLastExecutedFlowNodes: prefix + "lastExecutedFlowNodes", // 获取最近一次执行的流程节点
     getExecutedFlowNodes: prefix + "executedFlowNodes", // 获取流程节点情况
+    stopRun: prefix + "stopRun", // 停止任务 
+}
+
+// 停止任务
+export function stopRun(processDefinitionId , executeId) {
+    return request({
+        url: managerUrl.stopRun + "?processDefinitionId=" + parseStrEmpty(processDefinitionId) + "&executeId=" + parseStrEmpty(executeId),
+        method: 'get'
+    })
 }
 
 // 获取流程节点情况
