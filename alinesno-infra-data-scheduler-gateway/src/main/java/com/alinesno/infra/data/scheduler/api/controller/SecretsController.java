@@ -53,7 +53,17 @@ public class SecretsController extends BaseController<SecretsEntity, ISecretsSer
     @PostMapping("/datatables")
     public TableDataInfo datatables(HttpServletRequest request, Model model, DatatablesPageBean page) {
         log.debug("page = {}", ToStringBuilder.reflectionToString(page));
-        return this.toPage(model, this.getFeign(), page);
+        TableDataInfo tableDataInfo = this.toPage(model, this.getFeign(), page);
+
+        if (tableDataInfo != null && tableDataInfo.getRows() != null) {
+            for (Object row : tableDataInfo.getRows()) {
+                if (row instanceof SecretsEntity) {
+                    ((SecretsEntity) row).setSecValue(null); // 或 setSecValue(null) 视前端需求而定
+                }
+            }
+        }
+
+        return tableDataInfo;
     }
 
     /**
