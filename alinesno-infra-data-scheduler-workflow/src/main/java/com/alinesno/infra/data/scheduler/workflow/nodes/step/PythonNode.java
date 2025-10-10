@@ -7,6 +7,7 @@ import com.alinesno.infra.data.scheduler.workflow.constants.FlowConst;
 import com.alinesno.infra.data.scheduler.workflow.logger.NodeLog;
 import com.alinesno.infra.data.scheduler.workflow.nodes.AbstractFlowNode;
 import com.alinesno.infra.data.scheduler.workflow.nodes.variable.step.PythonNodeData;
+import com.alinesno.infra.data.scheduler.workflow.utils.CommonsTextSecrets;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
@@ -59,7 +60,7 @@ public class PythonNode extends AbstractFlowNode {
             // 2. 生成临时Python文件
             String pythonScript = nodeData.getPythonScript();
             pythonFile = new File(getWorkspace(), "python_" + IdUtil.getSnowflakeNextIdStr() + ".py");
-            FileUtils.writeStringToFile(pythonFile, pythonScript, Charset.defaultCharset(), false);
+            FileUtils.writeStringToFile(pythonFile, CommonsTextSecrets.replace(pythonScript , getOrgSecret()), Charset.defaultCharset(), false);
 
             // 2.1 文件生成日志
             nodeLogService.append(NodeLog.of(
