@@ -61,7 +61,7 @@ import { ref, reactive, computed, nextTick, onMounted } from 'vue'
 
 import FlowContainer from '@/views/data/scheduler/workflow/common/FlowContainer'
 import ScriptEditorPanel from '@/views/data/scheduler/workflow/components/ScriptEditor';
-import ScriptEditorFullPanel from '@/views/data/scheduler/workflow/components/NodeScriptEditor';
+import ScriptEditorFullPanel from '@/views/data/scheduler/workflow/components/ScriptEditorFull';
 
 const props = defineProps({
   properties: {
