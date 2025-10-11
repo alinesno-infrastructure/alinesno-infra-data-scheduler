@@ -75,6 +75,10 @@ public class SecretsController extends BaseController<SecretsEntity, ISecretsSer
     public AjaxResult saveSec(@RequestBody @Validated SecretsDto dto) {
 
         SecretsEntity entity = new SecretsEntity() ;
+
+        // 密钥标识去掉前后空格
+        dto.setSecName(dto.getSecName().trim());
+
         BeanUtils.copyProperties(dto, entity);
 
         entity.setUpdateTime(new Date());
@@ -91,7 +95,7 @@ public class SecretsController extends BaseController<SecretsEntity, ISecretsSer
 
         SecretsEntity entity = service.getById(dto.getId()) ;
 
-        entity.setSecName(dto.getSecName());
+        entity.setSecName(dto.getSecName().trim());
         if(dto.getSecValue() != null){
             entity.setSecValue(dto.getSecValue());
         }
