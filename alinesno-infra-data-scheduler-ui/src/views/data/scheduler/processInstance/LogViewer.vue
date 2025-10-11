@@ -4,13 +4,14 @@
     :title="title || '节点日志'"
     width="60%"
     append-to-body
+    fullscreen
     @close="handleClose"
     :close-on-click-modal="false"
   >
 
       <ProcessInstanceLog 
         ref="processInstanceLogRef" 
-        :diffHeight="300" />
+        :diffHeight="120" />
 
   </el-dialog>
 </template>
