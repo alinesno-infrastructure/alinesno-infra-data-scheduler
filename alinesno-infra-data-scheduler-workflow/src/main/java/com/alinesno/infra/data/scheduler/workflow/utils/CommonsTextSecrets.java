@@ -1,5 +1,10 @@
 package com.alinesno.infra.data.scheduler.workflow.utils;
 
+import com.alinesno.infra.common.web.log.utils.SpringUtils;
+import com.alinesno.infra.data.scheduler.workflow.logger.NodeLog;
+import com.alinesno.infra.data.scheduler.workflow.logger.NodeLogService;
+import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.text.StringSubstitutor;
 import org.apache.commons.text.lookup.StringLookup;
 import org.apache.commons.text.lookup.StringLookupFactory;
@@ -14,8 +19,9 @@ import java.util.regex.Pattern;
 /**
  * 密文替换工具类（兼容不同 commons-text 版本），参考github-action密钥替换方式
  */
+@Slf4j
+@NoArgsConstructor
 public class CommonsTextSecrets {
-    private CommonsTextSecrets() {}
 
     public static String replace(String input, Map<String, ?> secrets) {
         if (input == null) return null;
@@ -60,7 +66,10 @@ public class CommonsTextSecrets {
         // 可选：当希望未定义变量时抛异常，可启用下一行
         // substitutor.setEnableUndefinedVariableException(true);
 
-        return substitutor.replace(input);
+        String result = substitutor.replace(input);
+        System.out.println(">>>> " + result);
+
+        return result;
     }
 
     // 尝试反射创建接收 StringLookup 的构造器实例（优先 4 参数，再 3 参数）
@@ -78,8 +87,7 @@ public class CommonsTextSecrets {
 
         try {
             // 3 参数：(StringLookup, String prefix, String suffix)
-            Constructor<StringSubstitutor> c3 =
-                    StringSubstitutor.class.getConstructor(StringLookup.class, String.class, String.class);
+            Constructor<StringSubstitutor> c3 = StringSubstitutor.class.getConstructor(StringLookup.class, String.class, String.class);
             return c3.newInstance(lookup, prefix, suffix);
         } catch (NoSuchMethodException ignored) {
             // not available in this commons-text version
