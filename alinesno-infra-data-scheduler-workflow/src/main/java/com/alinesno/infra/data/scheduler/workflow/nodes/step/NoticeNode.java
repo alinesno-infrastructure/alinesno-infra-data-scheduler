@@ -13,6 +13,7 @@ import com.alinesno.infra.data.scheduler.workflow.logger.NodeLog;
 import com.alinesno.infra.data.scheduler.workflow.nodes.AbstractFlowNode;
 import com.alinesno.infra.data.scheduler.workflow.nodes.variable.step.NoticeNodeData;
 import com.alinesno.infra.data.scheduler.workflow.utils.CommonsTextSecrets;
+import com.alinesno.infra.data.scheduler.workflow.utils.SecretUtils;
 import com.alinesno.infra.data.scheduler.workflow.utils.StackTraceUtils;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -22,6 +23,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -168,7 +170,13 @@ public class NoticeNode extends AbstractFlowNode {
             content = replacePlaceholders(content);
 
             if (StringUtils.isNotEmpty(content)) {
-                message.setContent(CommonsTextSecrets.replace(content , getOrgSecret()));
+                String commandReplace = CommonsTextSecrets.replace(content , getOrgSecret()) ;
+                message.setContent(commandReplace);
+
+                // 检查命令中是否有未解析的密钥
+                Set<String> unresolvedSecrets = SecretUtils.checkAndLogUnresolvedSecrets(commandReplace , node , flowExecution, nodeLogService) ;
+                log.debug("未解析的密钥：{}" , unresolvedSecrets);
+
                 String title = content.length() > 64 ? content.substring(0, 64) : content;
                 message.setTitle(title);
             } else {
