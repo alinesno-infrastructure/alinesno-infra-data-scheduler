@@ -1,5 +1,6 @@
 package com.alinesno.infra.data.scheduler.workflow.nodes.step;
 
+import cn.hutool.core.util.IdUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.alinesno.infra.data.scheduler.adapter.SparkPythonConsumer;
 import com.alinesno.infra.data.scheduler.adapter.SparkSqlConsumer;
@@ -10,6 +11,7 @@ import com.alinesno.infra.data.scheduler.workflow.logger.NodeLog;
 import com.alinesno.infra.data.scheduler.workflow.nodes.AbstractFlowNode;
 import com.alinesno.infra.data.scheduler.workflow.nodes.variable.step.SparkNodeData;
 import com.alinesno.infra.data.scheduler.workflow.utils.CommonsTextSecrets;
+import com.alinesno.infra.data.scheduler.workflow.utils.SecretUtils;
 import com.alinesno.infra.data.scheduler.workflow.utils.StackTraceUtils;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -27,6 +29,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -113,11 +116,16 @@ public class SparkNode extends AbstractFlowNode {
             SparkPythonConsumer consumer = new SparkPythonConsumer(computeEngine);
 
             JSONObject resp;
+            String commandReplace = CommonsTextSecrets.replace(scriptOrFile , getOrgSecret()) ;
             if (async) {
-                resp = consumer.submitAsync(CommonsTextSecrets.replace(scriptOrFile , getOrgSecret()), true , computeEngine != null ? computeEngine.getAdminUser() : null);
+                resp = consumer.submitAsync(commandReplace , true , computeEngine != null ? computeEngine.getAdminUser() : null);
             } else {
-                resp = consumer.submitSync(CommonsTextSecrets.replace(scriptOrFile, getOrgSecret()), true , computeEngine != null ? computeEngine.getAdminUser() : null, 600_000);
+                resp = consumer.submitSync(commandReplace , true , computeEngine != null ? computeEngine.getAdminUser() : null, 600_000);
             }
+
+            // 检查命令中是否有未解析的密钥
+            Set<String> unresolvedSecrets = SecretUtils.checkAndLogUnresolvedSecrets(commandReplace , node , flowExecution, nodeLogService) ;
+            log.debug("未解析的密钥：{}" , unresolvedSecrets);
 
             long durationMs = System.currentTimeMillis() - startTs;
 
@@ -133,7 +141,12 @@ public class SparkNode extends AbstractFlowNode {
                 output.put(node.getStepName() + ".result", "{}");
                 output.put(node.getStepName() + ".rawResponsePreview", "{}");
             } else {
-                String id = resp.getString("id");
+                String id = resp.getString("id") ;
+
+                if(id == null){
+                    id = IdUtil.getSnowflakeNextIdStr() ;
+                }
+
                 String status = resp.getString("status");
                 String createdAt = resp.getString("createdAt");
                 String startedAt = resp.getString("startedAt");
@@ -408,7 +421,12 @@ public class SparkNode extends AbstractFlowNode {
                     )
             ));
 
-            JSONObject syncResp = consumer.submitSync(CommonsTextSecrets.replace(sqlContent , getOrgSecret()) , params, computeEngine != null ? computeEngine.getAdminUser() : null, waitMs);
+            String commandReplace = CommonsTextSecrets.replace(sqlContent , getOrgSecret()) ;
+            JSONObject syncResp = consumer.submitSync(commandReplace , params, computeEngine != null ? computeEngine.getAdminUser() : null, waitMs);
+
+            // 检查命令中是否有未解析的密钥
+            Set<String> unresolvedSecrets = SecretUtils.checkAndLogUnresolvedSecrets(commandReplace , node , flowExecution, nodeLogService) ;
+            log.debug("未解析的密钥：{}" , unresolvedSecrets);
 
             // ------------- 改进后的 syncResp 处理 -------------
             long durationMs = System.currentTimeMillis() - startTs;
