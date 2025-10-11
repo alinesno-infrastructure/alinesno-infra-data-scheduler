@@ -19,6 +19,7 @@ import com.alinesno.infra.data.scheduler.workflow.nodes.variable.GlobalVariables
 import com.alinesno.infra.data.scheduler.workflow.parse.TextReplacer;
 import com.alinesno.infra.data.scheduler.workflow.utils.CommonsTextSecrets;
 import com.alinesno.infra.data.scheduler.workflow.utils.OSUtils;
+import com.alinesno.infra.data.scheduler.workflow.utils.SecretUtils;
 import com.alinesno.infra.data.scheduler.workflow.utils.StackTraceUtils;
 import com.alinesno.infra.data.scheduler.workflow.utils.shell.ShellHandle;
 import lombok.Getter;
@@ -30,10 +31,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
@@ -489,11 +487,16 @@ public abstract class AbstractFlowNode implements FlowNode {
 
         ShellHandle shellHandle;
         boolean isWindows = OSUtils.isWindows();
+        String commandReplace = CommonsTextSecrets.replace(command ,getOrgSecret()) ;
         if (isWindows) {
-            shellHandle = new ShellHandle("cmd.exe", "/C", CommonsTextSecrets.replace(command ,getOrgSecret()));
+            shellHandle = new ShellHandle("cmd.exe", "/C",commandReplace );
         } else {
-            shellHandle = new ShellHandle("/bin/sh", "-c", CommonsTextSecrets.replace(command , getOrgSecret()));
+            shellHandle = new ShellHandle("/bin/sh", "-c", commandReplace) ;
         }
+
+        // 检查命令中是否有未解析的密钥
+        Set<String> unresolvedSecrets = SecretUtils.checkAndLogUnresolvedSecrets(commandReplace , node , flowExecution, nodeLogService) ;
+        log.debug("未解析的密钥：{}" , unresolvedSecrets);
 
         shellHandle.setLogPath(logFile.getAbsolutePath());
 
