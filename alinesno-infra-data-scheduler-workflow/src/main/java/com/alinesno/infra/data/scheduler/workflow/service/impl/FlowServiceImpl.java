@@ -104,6 +104,10 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
         FlowEntity flowEntity = getLatestPublishedFlowByProcessDefinitionId(processDefinitionId);
         Assert.notNull(flowEntity, "未发布角色流程");
 
+        // 这里输出chatThreadPool活动线程，是否线程已经满
+        logThreadPoolStatus();
+        detailedThreadPoolCheck();
+
         // 更新运行版本号
         flowEntity.setRunTimes(flowEntity.getRunTimes() == null ? 1 : flowEntity.getRunTimes() + 1);
         flowEntity.setRunUniqueNumber(IdUtil.nanoId(10));  // 记录最后执行的流程号
@@ -205,6 +209,63 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
             }
         } , chatThreadPool);
 
+    }
+
+    /**
+     * 打印线程池状态信息
+     */
+    private void logThreadPoolStatus() {
+        try {
+            int activeCount = chatThreadPool.getThreadPoolExecutor().getActiveCount();
+            int poolSize = chatThreadPool.getThreadPoolExecutor().getPoolSize();
+            long taskCount = chatThreadPool.getThreadPoolExecutor().getTaskCount();
+            long completedTaskCount = chatThreadPool.getThreadPoolExecutor().getCompletedTaskCount();
+            int queueSize = chatThreadPool.getThreadPoolExecutor().getQueue().size();
+            int corePoolSize = chatThreadPool.getThreadPoolExecutor().getCorePoolSize();
+            int maxPoolSize = chatThreadPool.getThreadPoolExecutor().getMaximumPoolSize();
+
+            // 计算线程池使用率
+            double poolUsage = (double) activeCount / maxPoolSize * 100;
+
+            log.info("线程池状态监控 - 活动线程: {}/{}, 池大小: {}, 队列任务: {}, 总任务: {}, 已完成: {}, 使用率: {:.2f}%",
+                    activeCount, maxPoolSize, poolSize, queueSize, taskCount, completedTaskCount, poolUsage);
+
+            // 如果线程池接近满载，记录警告日志
+            if (poolUsage > 80) {
+                log.warn("线程池使用率过高，当前使用率: {:.2f}%", poolUsage);
+            }
+
+            // 如果队列积压严重，记录警告
+            if (queueSize > 100) {
+                log.warn("线程池队列积压严重，当前队列大小: {}", queueSize);
+            }
+
+        } catch (Exception e) {
+            log.error("获取线程池状态失败", e);
+        }
+    }
+
+    /**
+     * 详细的线程池状态检查
+     */
+    private void detailedThreadPoolCheck() {
+        try {
+            ThreadPoolTaskExecutor executor = chatThreadPool;
+
+            log.info("=== 线程池详细状态 ===");
+            log.info("核心线程数: {}", executor.getCorePoolSize());
+            log.info("最大线程数: {}", executor.getMaxPoolSize());
+            log.info("当前池大小: {}", executor.getPoolSize());
+            log.info("活动线程数: {}", executor.getActiveCount());
+            log.info("队列容量: {}", executor.getThreadPoolExecutor().getQueue().remainingCapacity());
+            log.info("队列大小: {}", executor.getThreadPoolExecutor().getQueue().size());
+            log.info("总任务数: {}", executor.getThreadPoolExecutor().getTaskCount());
+            log.info("已完成任务: {}", executor.getThreadPoolExecutor().getCompletedTaskCount());
+            log.info("====================");
+
+        } catch (Exception e) {
+            log.error("详细线程池状态检查失败", e);
+        }
     }
 
     @SneakyThrows
