@@ -10,8 +10,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "alinesno.thread-pool.chat")
 public class ChatThreadPoolProperties {
 
-    private int corePoolSize = 5;
-    private int maxPoolSize = 20;
+    private int corePoolSize = 20;
+    private int maxPoolSize = 100;
     private int queueCapacity = 100;
     private String threadNamePrefix = "chat-thread-";
     private int keepAliveSeconds = 60;
