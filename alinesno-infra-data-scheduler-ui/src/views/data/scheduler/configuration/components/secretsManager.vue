@@ -39,7 +39,7 @@
                   <template #default="scope">
                      <div>
                         {{ scope.row.secName }} 
-                        <span style="font-size: 13px;color: #a5a5a5;cursor: pointer;" v-copyText="'${{ secrets.' + scope.row.secName + '}}'">
+                        <span style="font-size: 13px;color: #a5a5a5;cursor: pointer;" v-copyText="'${{secrets.' + scope.row.secName + '}}'">
                            <i class="fa-solid fa-copy"></i>
                         </span>
                      </div>
@@ -68,14 +68,14 @@
                <!-- 操作字段  -->
                <el-table-column label="操作" align="center" width="150" class-name="small-padding fixed-width">
                   <template #default="scope">
-                     <!-- 
                      <el-tooltip content="修改" placement="top" v-if="scope.row.SecretsId !== 1">
-                        <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)"
-                           v-hasPermi="['system:Secrets:edit']"></el-button>
+                        <el-button link type="primary" @click="handleUpdate(scope.row)" v-hasPermi="['system:Secrets:edit']">
+                           <i class="fa-solid fa-pen-nib"></i>
+                        </el-button>
                      </el-tooltip> 
-                     -->
                      <el-tooltip content="删除" placement="top" v-if="scope.row.SecretsId !== 1">
                         <el-button type="danger" link @click="handleDelete(scope.row)" v-hasPermi="['system:Secrets:remove']">
+                           <i class="fa-solid fa-trash"></i>
                         </el-button>
                      </el-tooltip>
                   </template>
@@ -114,7 +114,7 @@
                </el-form-item>
             </el-col> 
             -->
-            <el-row>
+            <el-row v-if="form.id == null">
                <el-col :span="24">
                   <el-form-item label="密钥值" prop="secValue">
                      <el-input v-model="form.secValue" type="textarea" rows="5" resize="none" placeholder="请输入密钥值" maxlength="255" />
