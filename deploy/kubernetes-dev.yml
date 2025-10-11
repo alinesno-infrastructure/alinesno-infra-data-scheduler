@@ -50,7 +50,7 @@ spec:
                 -Dspring.data.mongodb.uri=mongodb://${MONGODB_URL}/infra_scheduler_logs
 
                 -javaagent:/home/root/libs/aliyun-java-agent-4.2.5.jar
-                -Darms.licenseKey=${OPEN_TELEMETRY_ENDPOINT}
+                -Darms.licenseKey=${OPEN_TELEMETRY_ENDPOINT_DATA_SCHEDULER}
                 -Darms.appName=alinesno-infra-smart-expert-boot
 
                 -Dserver.port=8080
