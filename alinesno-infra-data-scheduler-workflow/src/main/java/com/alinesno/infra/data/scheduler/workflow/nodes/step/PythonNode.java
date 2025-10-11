@@ -8,6 +8,7 @@ import com.alinesno.infra.data.scheduler.workflow.logger.NodeLog;
 import com.alinesno.infra.data.scheduler.workflow.nodes.AbstractFlowNode;
 import com.alinesno.infra.data.scheduler.workflow.nodes.variable.step.PythonNodeData;
 import com.alinesno.infra.data.scheduler.workflow.utils.CommonsTextSecrets;
+import com.alinesno.infra.data.scheduler.workflow.utils.SecretUtils;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.nio.charset.Charset;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -60,7 +62,13 @@ public class PythonNode extends AbstractFlowNode {
             // 2. 生成临时Python文件
             String pythonScript = nodeData.getPythonScript();
             pythonFile = new File(getWorkspace(), "python_" + IdUtil.getSnowflakeNextIdStr() + ".py");
-            FileUtils.writeStringToFile(pythonFile, CommonsTextSecrets.replace(pythonScript , getOrgSecret()), Charset.defaultCharset(), false);
+
+            String commandReplace = CommonsTextSecrets.replace(pythonScript , getOrgSecret()) ;
+            FileUtils.writeStringToFile(pythonFile,commandReplace, Charset.defaultCharset(), false);
+
+            // 检查命令中是否有未解析的密钥
+            Set<String> unresolvedSecrets = SecretUtils.checkAndLogUnresolvedSecrets(commandReplace , node , flowExecution, nodeLogService) ;
+            log.debug("未解析的密钥：{}" , unresolvedSecrets);
 
             // 2.1 文件生成日志
             nodeLogService.append(NodeLog.of(
