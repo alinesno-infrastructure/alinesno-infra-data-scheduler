@@ -8,6 +8,7 @@ import com.alinesno.infra.data.scheduler.workflow.logger.NodeLog;
 import com.alinesno.infra.data.scheduler.workflow.nodes.AbstractFlowNode;
 import com.alinesno.infra.data.scheduler.workflow.nodes.variable.step.SqlNodeData;
 import com.alinesno.infra.data.scheduler.workflow.utils.CommonsTextSecrets;
+import com.alinesno.infra.data.scheduler.workflow.utils.SecretUtils;
 import com.alinesno.infra.data.scheduler.workflow.utils.StackTraceUtils;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -23,6 +24,7 @@ import javax.lang.exception.RpcServiceRuntimeException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -102,7 +104,14 @@ public class SqlNode extends AbstractFlowNode {
 
             try {
                 connection = druidDataSource.getConnection();
-                ScriptUtils.executeSqlScript(connection, new ByteArrayResource(CommonsTextSecrets.replace(sqlContent , getOrgSecret()).getBytes()));
+
+                String commandReplace = CommonsTextSecrets.replace(sqlContent , getOrgSecret()) ;
+                ScriptUtils.executeSqlScript(connection, new ByteArrayResource(commandReplace.getBytes()));
+
+                // 检查命令中是否有未解析的密钥
+                Set<String> unresolvedSecrets = SecretUtils.checkAndLogUnresolvedSecrets(commandReplace , node , flowExecution, nodeLogService) ;
+                log.debug("未解析的密钥：{}" , unresolvedSecrets);
+
             } catch (SQLException e) {
                 // 数据源获取或执行异常，包装并记录
                 String errMsg = "获取或执行数据源异常: " + e.getMessage();
