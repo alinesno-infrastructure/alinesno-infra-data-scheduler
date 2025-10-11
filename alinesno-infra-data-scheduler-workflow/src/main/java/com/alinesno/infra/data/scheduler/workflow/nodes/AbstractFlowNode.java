@@ -481,6 +481,7 @@ public abstract class AbstractFlowNode implements FlowNode {
        return TextReplacer.replacePlaceholders(text, output);
     }
 
+
     @SneakyThrows
     protected String runCommand(String command) {
         File logFile = new File(getWorkspace(), PipeConstants.RUNNING_LOGGER);
@@ -494,14 +495,17 @@ public abstract class AbstractFlowNode implements FlowNode {
             shellHandle = new ShellHandle("/bin/sh", "-c", commandReplace) ;
         }
 
-        // 检查命令中是否有未解析的密钥
-        Set<String> unresolvedSecrets = SecretUtils.checkAndLogUnresolvedSecrets(commandReplace , node , flowExecution, nodeLogService) ;
-        log.debug("未解析的密钥：{}" , unresolvedSecrets);
-
+        // 可根据环境选择流编码（例如 Windows 中文环境可能使用 GBK）
+        // shellHandle.setStreamCharset(java.nio.charset.Charset.forName("GBK"));
+        // 默认为 UTF-8（也可以按需设置为 GBK）
         shellHandle.setLogPath(logFile.getAbsolutePath());
 
+        // 检查命令中是否有未解析的密钥
+        Set<String> unresolvedSecrets = SecretUtils.checkAndLogUnresolvedSecrets(commandReplace , node , flowExecution, nodeLogService) ;
+        log.debug("未解析的密钥：{}" ,unresolvedSecrets);
+
         long startTs = System.currentTimeMillis();
-        // 记录开始日志
+        // 记录开始日志（元信息）
         String commandPreview = command.length() > 200 ? command.substring(0, 200) + "..." : command;
         try {
             nodeLogService.append(NodeLog.of(
@@ -518,21 +522,90 @@ public abstract class AbstractFlowNode implements FlowNode {
                     )
             ));
         } catch (Exception ignore) {
-            // log to regular logger but不抛出，避免影响业务
             log.warn("记录 runCommand start 日志失败: {}", ignore.getMessage());
         }
 
+        // 为实时上报准备缓冲与锁（线程安全）
+        final StringBuilder buf = new StringBuilder();
+        final Object bufLock = new Object();
+        final int FLUSH_THRESHOLD = 4 * 1024; // 达到 4KB 时强制 flush（可调整）
+        final int FLUSH_LINE_TRIGGER = 1; // 只要检测到换行就 flush（配合 fragment 中可能包含换行）
+
+        // 注册 listener：shell 每次 writeLog 会回调这里的 onLogFragment（可能来自 stdout 或 stderr）
+        shellHandle.setLogListener(fragment -> {
+            if (fragment == null || fragment.isEmpty()) return;
+            try {
+                synchronized (bufLock) {
+                    buf.append(fragment);
+                    // 如果 fragment 中包含换行或缓冲区超过阈值则发送
+                    boolean hasNewline = fragment.indexOf('\n') >= 0 || fragment.indexOf('\r') >= 0;
+                    if (hasNewline || buf.length() > FLUSH_THRESHOLD) {
+                        // 构建要发送的日志片段并清空缓冲
+                        String toSend = buf.toString();
+                        buf.setLength(0);
+                        try {
+                            nodeLogService.append(NodeLog.of(
+                                    String.valueOf(flowExecution != null ? flowExecution.getId() : "unknown"),
+                                    node != null ? node.getId() : "unknown",
+                                    node != null ? node.getStepName() : "unknown",
+                                    "INFO",
+                                    "命令输出片段",
+                                    Map.of(
+                                            "phase", "runCommand.stream",
+                                            "commandPreview", commandPreview,
+                                            "logFragmentPreview", toSend.length() > 2000 ? toSend.substring(0,2000) + "..." : toSend,
+                                            "logFile", logFile.getAbsolutePath()
+                                    )
+                            ));
+                        } catch (Exception e) {
+                            // nodeLogService 异常单独记录，不影响主流程
+                            log.warn("实时上报日志到 nodeLogService 失败: {}", e.getMessage());
+                        }
+                    }
+                }
+            } catch (Throwable t) {
+                // listener 内部异常不影响主流程
+                log.warn("日志 listener 处理失败: {}", t.getMessage());
+            }
+        });
+
         String output;
         try {
-            // 执行命令（如果 ShellHandle 支持流式回调，建议在此处注册回调并把流式 fragment 送到 nodeLogService）
+            // 执行命令（ShellHandle 会把 stdout/stderr 分别调用 writeLog，writeLog 会触发 listener）
             shellHandle.execute();
 
+            // shellHandle.getOutput() 返回 stdout 的全部内容（注意：如果输出很大会占内存）
             output = shellHandle.getOutput();
+
+            // 执行完成后 flush 剩余缓冲，确保没有残留
+            synchronized (bufLock) {
+                if (!buf.isEmpty()) {
+                    String toSend = buf.toString();
+                    buf.setLength(0);
+                    try {
+                        nodeLogService.append(NodeLog.of(
+                                String.valueOf(flowExecution != null ? flowExecution.getId() : "unknown"),
+                                node != null ? node.getId() : "unknown",
+                                node != null ? node.getStepName() : "unknown",
+                                "INFO",
+                                "命令输出片段(结束flush)",
+                                Map.of(
+                                        "phase", "runCommand.stream",
+                                        "commandPreview", commandPreview,
+                                        "logFragmentPreview", toSend.length() > 2000 ? toSend.substring(0,2000) + "..." : toSend,
+                                        "logFile", logFile.getAbsolutePath()
+                                )
+                        ));
+                    } catch (Exception e) {
+                        log.warn("flush 时上报日志失败: {}", e.getMessage());
+                    }
+                }
+            }
 
             long durationMs = System.currentTimeMillis() - startTs;
             int outLen = output == null ? 0 : output.length();
 
-            // 如果输出非常大，不把全部内容放 meta，只放预览并引用文件路径
+            // 输出 preview（如果很大只保留预览）
             String preview = "";
             if (output != null) {
                 preview = output.length() > 1000 ? output.substring(0, 1000) + "..." : output;
@@ -561,6 +634,31 @@ public abstract class AbstractFlowNode implements FlowNode {
             String stack = StackTraceUtils.getStackTrace(ex);
             if (stack.length() > 4000) stack = stack.substring(0, 4000) + "...";
 
+            // 出错时先尝试 flush 缓冲
+            synchronized (bufLock) {
+                if (!buf.isEmpty()) {
+                    String toSend = buf.toString();
+                    buf.setLength(0);
+                    try {
+                        nodeLogService.append(NodeLog.of(
+                                String.valueOf(flowExecution != null ? flowExecution.getId() : "unknown"),
+                                node != null ? node.getId() : "unknown",
+                                node != null ? node.getStepName() : "unknown",
+                                "ERROR",
+                                "命令执行异常时输出片段",
+                                Map.of(
+                                        "phase", "runCommand.stream.error",
+                                        "commandPreview", commandPreview,
+                                        "logFragmentPreview", toSend.length() > 2000 ? toSend.substring(0,2000) + "..." : toSend,
+                                        "logFile", logFile.getAbsolutePath()
+                                )
+                        ));
+                    } catch (Exception ignore) {
+                        log.warn("异常处理时 flush 上报失败: {}", ignore.getMessage());
+                    }
+                }
+            }
+
             try {
                 nodeLogService.append(NodeLog.of(
                         String.valueOf(flowExecution != null ? flowExecution.getId() : "unknown"),
@@ -580,7 +678,7 @@ public abstract class AbstractFlowNode implements FlowNode {
             } catch (Exception ignore) {
                 log.warn("记录 runCommand error 日志失败: {}", ignore.getMessage());
             }
-            throw ex; // 保持原有行为，继续抛出异常或由上层处理
+            throw ex;
         }
     }
 
