@@ -15,13 +15,11 @@ public class SecretsDto extends BaseDto {
     @NotBlank(message = "名称不能为空")
     private String secName;
 
-    @NotBlank(message = "值不能为空")
     private String secValue;
 
     @NotBlank(message = "描述不能为空")
     private String secDesc;
 
-    @NotBlank(message = "范围不能为空")
-    private String secScope;
+    private String secScope = "project";
 
 }
