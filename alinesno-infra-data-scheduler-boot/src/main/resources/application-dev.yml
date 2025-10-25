@@ -12,7 +12,6 @@ spring:
     url: jdbc:mysql://localhost:3306/dev_alinesno_infra_data_scheduler_v100?serverTimezone=GMT%2B8&zeroDateTimeBehavior=CONVERT_TO_NULL
     username: root
     password: adminer
-
     # druid-specific 配置
     druid:
       # 连接池大小
@@ -38,9 +37,9 @@ spring:
       host: 127.0.0.1
       port: 6379
 #      password: aip@local
-    mongodb:
-      uri: mongodb://localhost:27017/infra_scheduler_logs
-      database: infra_scheduler_logs
+#     mongodb:
+#       uri: mongodb://localhost:27017/infra_scheduler_logs
+#       database: infra_scheduler_logs
   servlet:
     multipart:
       max-file-size: 512MB
