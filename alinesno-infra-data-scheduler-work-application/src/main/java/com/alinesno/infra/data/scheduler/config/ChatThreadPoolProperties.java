@@ -1,0 +1,22 @@
+package com.alinesno.infra.data.scheduler.config;
+
+import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+/**
+ * 聊天线程池属性配置
+ */
+@Data
+@ConfigurationProperties(prefix = "alinesno.thread-pool.chat")
+public class ChatThreadPoolProperties {
+
+    private int corePoolSize = 20;
+    private int maxPoolSize = 100;
+    private int queueCapacity = 100;
+    private String threadNamePrefix = "chat-thread-";
+    private int keepAliveSeconds = 60;
+    private boolean waitForTasksOnShutdown = true;
+    private int awaitTerminationSeconds = 30;
+    private String rejectedExecutionType = "CALLER_RUNS";
+
+}
