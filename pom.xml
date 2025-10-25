@@ -16,7 +16,7 @@
     <version>${revision}</version>
 
     <properties>
-        <revision>2.2.0-SNAPSHOT</revision>
+        <revision>3.0.0-SNAPSHOT</revision>
         <alinesno.infra.common.version>1.2.0-SNAPSHOT</alinesno.infra.common.version>
 
         <!-- 版本号 -->
@@ -36,8 +36,7 @@
         <module>alinesno-infra-data-scheduler-adapter</module> <!-- 适配层 -->
         <module>alinesno-infra-data-scheduler-llm</module> <!-- 大模型层 -->
 
-        <module>alinesno-infra-data-scheduler-im</module> <!--  IM通知 -->
-        <module>alinesno-infra-data-scheduler-workflow</module> <!--  工作流层次 -->
+        <module>alinesno-infra-data-scheduler-notice</module> <!--  消息通知 -->
         <module>alinesno-infra-data-scheduler-quartz</module>  <!-- 定时任务 -->
 
         <module>alinesno-infra-data-scheduler-domain</module>  <!-- 领域服务 -->
@@ -45,13 +44,16 @@
 
         <module>alinesno-infra-data-scheduler-boot</module>  <!-- 启动服务 -->
 
+        <!-- worker工作执行节点 -->
+        <module>alinesno-infra-data-scheduler-work</module> <!--  工作流层次 -->
+        <module>alinesno-infra-data-scheduler-work-application</module>  <!-- 启动服务 -->
+
         <!-- Spark服务
         <module>alinesno-infra-data-scheduler-spark-application</module>
+        <module>alinesno-infra-data-scheduler-spark-jar</module>
         -->
+        <!-- spark任务执行器 -->
 
-        <!-- 任务执行器
-        <module>alinesno-infra-data-scheduler-executor</module>
-        -->
     </modules>
 
     <dependencyManagement>
