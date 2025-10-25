@@ -29,12 +29,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>com.alinesno.infra.data</groupId>
-			<artifactId>alinesno-infra-data-scheduler-workflow</artifactId>
-			<version>${revision}</version>
-		</dependency>
-
-		<dependency>
 			<groupId>com.github.kagkarlsson</groupId>
 			<artifactId>db-scheduler</artifactId>
 			<version>12.4.0</version>
@@ -67,15 +61,24 @@
             <groupId>com.alinesno.infra.common</groupId>
             <artifactId>alinesno-infra-common-core</artifactId>
             <version>${alinesno.infra.common.version}</version>
-            <scope>compile</scope>
         </dependency>
 
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-core</artifactId>
-            <version>6.0.11</version>
         </dependency>
 
-    </dependencies>
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>fastjson</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.alinesno.infra.data</groupId>
+			<artifactId>alinesno-infra-data-scheduler-adapter</artifactId>
+			<version>${revision}</version>
+		</dependency>
+
+	</dependencies>
 
 </project>
