@@ -7,6 +7,7 @@ import com.alinesno.infra.common.core.utils.StringUtils;
 import com.alinesno.infra.common.facade.datascope.PermissionQuery;
 import com.alinesno.infra.common.web.log.utils.SpringUtils;
 import com.alinesno.infra.data.scheduler.adapter.CloudStorageConsumer;
+import com.alinesno.infra.data.scheduler.adapter.WorkerFlowConsumer;
 import com.alinesno.infra.data.scheduler.api.*;
 import com.alinesno.infra.data.scheduler.constants.PipeConstants;
 import com.alinesno.infra.data.scheduler.entity.ProcessDefinitionEntity;
@@ -23,7 +24,6 @@ import com.alinesno.infra.data.scheduler.quartz.utils.CronConverter;
 import com.alinesno.infra.data.scheduler.quartz.utils.ProcessUtils;
 import com.alinesno.infra.data.scheduler.scheduler.IQuartzSchedulerService;
 import com.alinesno.infra.data.scheduler.service.*;
-import com.alinesno.infra.data.scheduler.workflow.service.IFlowService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -82,6 +82,8 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
     @Autowired
     private IResourceService resourceService;
 
+    @Autowired
+    private WorkerFlowConsumer flowService ;
 
     @Value("${alinesno.data.scheduler.workspacePath:#{systemProperties['java.io.tmpdir']}}")
     private String workspacePath;
@@ -89,8 +91,6 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Override
     public CompletableFuture<Void> runProcess(TaskInfoBean task, List<TaskDefinitionEntity> taskDefinition) {
-
-        IFlowService flowService = SpringUtils.getBean(IFlowService.class);
 
         ProcessDefinitionEntity process = task.getProcess();
         log.debug("ProcessDefinitionServiceImpl.runProcess Start:{}", process.getId());
