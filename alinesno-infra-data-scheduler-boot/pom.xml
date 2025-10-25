@@ -52,7 +52,7 @@
 
 		<dependency>
 			<groupId>com.alinesno.infra.data</groupId>
-			<artifactId>alinesno-infra-data-scheduler-im</artifactId>
+			<artifactId>alinesno-infra-data-scheduler-notice</artifactId>
 			<version>${revision}</version>
 		</dependency>
 		<dependency>
@@ -67,24 +67,17 @@
             <version>${revision}</version>
 		</dependency>
 
-        <dependency>
-            <groupId>com.alinesno.infra.data</groupId>
-            <artifactId>alinesno-infra-data-scheduler-workflow</artifactId>
-            <version>${revision}</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.alinesno.infra.data</groupId>-->
+<!--            <artifactId>alinesno-infra-data-scheduler-workflow</artifactId>-->
+<!--            <version>${revision}</version>-->
+<!--        </dependency>-->
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-devtools</artifactId>
 			<scope>runtime</scope>
 			<optional>true</optional>
-		</dependency>
-
-		<!-- 阿里云分布式链路跟踪 -->
-		<dependency>
-			<groupId>com.aliyun</groupId>
-			<artifactId>aliyun-java-agent</artifactId>
-			<version>4.2.5</version>
 		</dependency>
 
 	</dependencies>
