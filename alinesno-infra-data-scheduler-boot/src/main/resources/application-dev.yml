@@ -36,10 +36,6 @@ spring:
     redis:
       host: 127.0.0.1
       port: 6379
-#      password: aip@local
-#     mongodb:
-#       uri: mongodb://localhost:27017/infra_scheduler_logs
-#       database: infra_scheduler_logs
   servlet:
     multipart:
       max-file-size: 512MB
@@ -119,6 +115,7 @@ alinesno:
       host: http://alinesno-infra-base-gateway-proxy-application.beta.base.infra.linesno.com
   data:
     scheduler:
+      worker-node: http://localhost:30300
       workspacePath: ${user.home}/.infra-data-scheduler
 
 # workflow工作流日志配置
