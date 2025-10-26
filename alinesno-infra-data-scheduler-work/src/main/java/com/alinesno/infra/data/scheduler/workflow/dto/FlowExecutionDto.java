@@ -1,10 +1,6 @@
 package com.alinesno.infra.data.scheduler.workflow.dto;
 
 import com.alinesno.infra.common.facade.base.BaseDto;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.gitee.sunchenbin.mybatis.actable.annotation.ColumnComment;
-import com.gitee.sunchenbin.mybatis.actable.annotation.ColumnType;
-import com.gitee.sunchenbin.mybatis.actable.constants.MySqlTypeConstant;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
