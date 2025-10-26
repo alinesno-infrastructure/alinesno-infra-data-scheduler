@@ -5,7 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.alinesno.infra.data.scheduler.adapter.SparkPythonConsumer;
 import com.alinesno.infra.data.scheduler.adapter.SparkSqlConsumer;
 import com.alinesno.infra.data.scheduler.entity.ComputeEngineEntity;
-import com.alinesno.infra.data.scheduler.service.IComputeEngineService;
+import com.alinesno.infra.data.scheduler.workflow.service.IComputeEngineService;
 import com.alinesno.infra.data.scheduler.workflow.constants.FlowConst;
 import com.alinesno.infra.data.scheduler.workflow.logger.NodeLog;
 import com.alinesno.infra.data.scheduler.workflow.nodes.AbstractFlowNode;
