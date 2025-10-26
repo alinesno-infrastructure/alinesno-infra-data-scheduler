@@ -5,15 +5,18 @@ import com.alibaba.fastjson.JSONObject;
 import com.alinesno.infra.common.core.service.impl.IBaseServiceImpl;
 import com.alinesno.infra.common.core.utils.StringUtils;
 import com.alinesno.infra.common.facade.datascope.PermissionQuery;
+import com.alinesno.infra.common.facade.response.R;
 import com.alinesno.infra.common.web.log.utils.SpringUtils;
 import com.alinesno.infra.data.scheduler.adapter.CloudStorageConsumer;
-import com.alinesno.infra.data.scheduler.adapter.WorkerFlowConsumer;
+import com.alinesno.infra.data.scheduler.adapter.worker.WorkerFlowConsumer;
 import com.alinesno.infra.data.scheduler.api.*;
+import com.alinesno.infra.data.scheduler.api.worker.RunRoleFlowDto;
 import com.alinesno.infra.data.scheduler.constants.PipeConstants;
 import com.alinesno.infra.data.scheduler.entity.ProcessDefinitionEntity;
 import com.alinesno.infra.data.scheduler.entity.ProcessInstanceEntity;
 import com.alinesno.infra.data.scheduler.entity.TaskDefinitionEntity;
 import com.alinesno.infra.data.scheduler.entity.TaskInstanceEntity;
+import com.alinesno.infra.data.scheduler.enums.ExecutionStrategyEnums;
 import com.alinesno.infra.data.scheduler.enums.ExecutorTypeEnums;
 import com.alinesno.infra.data.scheduler.enums.JobStatusEnums;
 import com.alinesno.infra.data.scheduler.enums.ProcessStatusEnums;
@@ -44,8 +47,8 @@ import org.springframework.util.Assert;
 import java.io.File;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
@@ -90,31 +93,27 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Override
-    public CompletableFuture<Void> runProcess(TaskInfoBean task, List<TaskDefinitionEntity> taskDefinition) {
+    public CompletableFuture<String> runProcess(TaskInfoBean task, List<TaskDefinitionEntity> taskDefinition) {
 
         ProcessDefinitionEntity process = task.getProcess();
         log.debug("ProcessDefinitionServiceImpl.runProcess Start:{}", process.getId());
 
-        // 获取代表整个流程执行的 CompletableFuture（注意：flowService.runRoleFlow 必须返回代表真正执行结束的 future）
-        CompletableFuture<String> flowFuture = flowService.runRoleFlow(process.getId());
+        Long processDefinitionId = process.getId();
+        ExecutionStrategyEnums errorStrategy = ExecutionStrategyEnums.fromCode(process.getErrorStrategy()) ;
 
-        // 将 flowFuture 链接为一个 CompletableFuture<Void>，便于上层统一等待/取消
+        Map<String , String> orgSecrets = secretsService.getSecretMapByOrgId(process.getOrgId()) ;
+        process.setRunCount(process.getRunCount() + 1) ;
+        updateById(process) ;
 
-        return flowFuture.handle((res, ex) -> {
-            ProcessDefinitionEntity finishProcess = getById(process.getId());
-            if (ex != null) {
-                // 记录日志
-                log.error("ProcessDefinitionServiceImpl.runProcess Failed:{} , error:{}", process.getId(), ((Throwable) ex).getMessage());
-                // 你可以在此根据需要更新数据库的失败状态（如果想在流程失败时进行额外持久化）
-                // 抛出异常以让上层 knowing it's failed
-                throw new CompletionException((Throwable) ex);
-            } else {
-                log.debug("ProcessDefinitionServiceImpl.runProcess Finish:{}", process.getId());
-                finishProcess.setUpdateTime(new Date());
-                update(finishProcess);
-                return null;
-            }
-        });
+        RunRoleFlowDto roleFlowDto = RunRoleFlowDto.form(processDefinitionId , process , errorStrategy , orgSecrets);
+        R<String> result = flowService.runRoleFlow(roleFlowDto);
+
+        ProcessDefinitionEntity finishProcess = getById(process.getId());
+        finishProcess.setUpdateTime(new Date());
+        update(finishProcess);
+
+        return CompletableFuture.completedFuture(result.getData());
+
     }
 
     /**
