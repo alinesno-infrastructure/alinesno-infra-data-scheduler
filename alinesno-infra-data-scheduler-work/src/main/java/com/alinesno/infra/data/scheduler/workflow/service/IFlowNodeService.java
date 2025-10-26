@@ -1,7 +1,7 @@
 package com.alinesno.infra.data.scheduler.workflow.service;
 
 import com.alinesno.infra.common.facade.services.IBaseService;
-import com.alinesno.infra.data.scheduler.workflow.entity.FlowNodeEntity;
+import com.alinesno.infra.data.scheduler.entity.worker.FlowNodeEntity;
 
 /**
  * 工作流节点服务接口，专注于工作流节点情况信息的业务处理。
