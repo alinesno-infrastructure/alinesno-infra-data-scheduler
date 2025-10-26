@@ -17,10 +17,11 @@ public interface IProcessDefinitionService extends IBaseService<ProcessDefinitio
 
     /**
      * 运行任务实例
+     *
      * @param task
      * @param taskDefinitionList
      */
-    CompletableFuture<Void> runProcess(TaskInfoBean task, List<TaskDefinitionEntity> taskDefinitionList);
+    CompletableFuture<String> runProcess(TaskInfoBean task, List<TaskDefinitionEntity> taskDefinitionList);
 
     /**
      * 保存流程定义
