@@ -1,7 +1,7 @@
 package com.alinesno.infra.data.scheduler.workflow.config;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * MongoDB 属性配置类
