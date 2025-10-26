@@ -1,12 +1,12 @@
 package com.alinesno.infra.data.scheduler.workflow.service;
 
 import com.alinesno.infra.common.facade.services.IBaseService;
+import com.alinesno.infra.data.scheduler.api.worker.FlowDto;
+import com.alinesno.infra.data.scheduler.api.worker.LastExecuteFlowDto;
+import com.alinesno.infra.data.scheduler.api.worker.WorkflowRequestDto;
 import com.alinesno.infra.data.scheduler.entity.ProcessDefinitionEntity;
+import com.alinesno.infra.data.scheduler.entity.worker.FlowEntity;
 import com.alinesno.infra.data.scheduler.enums.ExecutionStrategyEnums;
-import com.alinesno.infra.data.scheduler.workflow.dto.FlowDto;
-import com.alinesno.infra.data.scheduler.workflow.dto.LastExecuteFlowDto;
-import com.alinesno.infra.data.scheduler.workflow.dto.WorkflowRequestDto;
-import com.alinesno.infra.data.scheduler.workflow.entity.FlowEntity;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
