@@ -1,6 +1,6 @@
 package com.alinesno.infra.data.scheduler.workflow;
 
-import com.alinesno.infra.data.scheduler.workflow.dto.FlowNodeDto;
+import com.alinesno.infra.data.scheduler.api.worker.FlowNodeDto;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
