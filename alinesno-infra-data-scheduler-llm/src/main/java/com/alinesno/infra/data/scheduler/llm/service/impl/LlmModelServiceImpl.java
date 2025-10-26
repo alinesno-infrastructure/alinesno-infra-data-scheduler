@@ -31,7 +31,6 @@ import com.alinesno.infra.common.core.service.impl.IBaseServiceImpl;
 import com.alinesno.infra.common.core.utils.StringUtils;
 import com.alinesno.infra.common.facade.datascope.PermissionQuery;
 import com.alinesno.infra.data.scheduler.adapter.enums.LlmModelProviderEnums;
-import com.alinesno.infra.data.scheduler.adapter.enums.ModelDataScopeOptions;
 import com.alinesno.infra.data.scheduler.adapter.enums.ModelTypeEnums;
 import com.alinesno.infra.data.scheduler.adapter.service.ILLmAdapterService;
 import com.alinesno.infra.data.scheduler.llm.dto.TestLlmModelDto;
