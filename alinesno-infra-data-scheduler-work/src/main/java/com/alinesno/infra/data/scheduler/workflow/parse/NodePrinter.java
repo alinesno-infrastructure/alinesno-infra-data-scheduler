@@ -1,6 +1,6 @@
 package com.alinesno.infra.data.scheduler.workflow.parse;
 
-import com.alinesno.infra.data.scheduler.workflow.dto.FlowNodeDto;
+import com.alinesno.infra.data.scheduler.api.worker.FlowNodeDto;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
