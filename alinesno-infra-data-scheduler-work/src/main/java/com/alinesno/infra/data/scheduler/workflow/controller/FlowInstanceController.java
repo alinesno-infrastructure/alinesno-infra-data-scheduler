@@ -5,12 +5,9 @@ import com.alinesno.infra.common.extend.datasource.annotation.DataPermissionScop
 import com.alinesno.infra.common.facade.pageable.ConditionDto;
 import com.alinesno.infra.common.facade.pageable.DatatablesPageBean;
 import com.alinesno.infra.common.facade.pageable.TableDataInfo;
-import com.alinesno.infra.common.facade.response.AjaxResult;
 import com.alinesno.infra.common.web.adapter.rest.BaseController;
 import com.alinesno.infra.data.scheduler.entity.ProcessDefinitionEntity;
-import com.alinesno.infra.data.scheduler.entity.ProcessInstanceEntity;
 import com.alinesno.infra.data.scheduler.service.IProcessDefinitionService;
-import com.alinesno.infra.data.scheduler.service.IProcessInstanceService;
 import com.alinesno.infra.data.scheduler.workflow.dto.FlowExecutionDto;
 import com.alinesno.infra.data.scheduler.workflow.entity.FlowExecutionEntity;
 import com.alinesno.infra.data.scheduler.workflow.enums.FlowExecutionStatus;
@@ -23,7 +20,10 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.List;
