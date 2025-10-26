@@ -1,11 +1,14 @@
 package com.alinesno.infra.data.scheduler.workflow.controller;
 
 import com.alinesno.infra.common.facade.response.AjaxResult;
+import com.alinesno.infra.data.scheduler.api.worker.FlowDto;
+import com.alinesno.infra.data.scheduler.api.worker.LastExecuteFlowDto;
+import com.alinesno.infra.data.scheduler.api.worker.RunRoleFlowDto;
+import com.alinesno.infra.data.scheduler.api.worker.WorkflowRequestDto;
 import com.alinesno.infra.data.scheduler.constants.PipeConstants;
-import com.alinesno.infra.data.scheduler.workflow.dto.FlowDto;
-import com.alinesno.infra.data.scheduler.workflow.dto.LastExecuteFlowDto;
-import com.alinesno.infra.data.scheduler.workflow.dto.WorkflowRequestDto;
-import com.alinesno.infra.data.scheduler.workflow.entity.FlowEntity;
+import com.alinesno.infra.data.scheduler.entity.ProcessDefinitionEntity;
+import com.alinesno.infra.data.scheduler.entity.worker.FlowEntity;
+import com.alinesno.infra.data.scheduler.enums.ExecutionStrategyEnums;
 import com.alinesno.infra.data.scheduler.workflow.service.IFlowService;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.JobExecutionContext;
@@ -20,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -79,6 +83,30 @@ public class FlowController {
         });
 
         return deferred;
+    }
+
+    /**
+     * 运行角色工作流
+     * @param runRoleFlowDto
+     * @return
+     * @throws SchedulerException
+     */
+    @PostMapping("/runRoleFlow")
+    public AjaxResult runRoleFlow(@RequestBody RunRoleFlowDto runRoleFlowDto) throws SchedulerException {
+
+        Long processDefinitionId = runRoleFlowDto.getProcessDefinitionId();
+        ProcessDefinitionEntity processDefinitionEntity = runRoleFlowDto.getProcessDefinitionEntity();
+        ExecutionStrategyEnums errorStrategy = runRoleFlowDto.getErrorStrategy();
+        Map<String , String> orgSecrets = runRoleFlowDto.getOrgSecrets();
+
+        log.debug("processDefinitionId: {}" , processDefinitionId);
+        log.debug("processDefinitionEntity: {}" , processDefinitionEntity);
+        log.debug("errorStrategy: {}" , errorStrategy);
+        log.debug("orgSecrets: {}" , orgSecrets);
+
+        flowService.runRoleFlow(processDefinitionId , processDefinitionEntity , errorStrategy , orgSecrets);
+
+        return AjaxResult.success("工作流运行成功");
     }
 
     /**
