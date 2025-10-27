@@ -7,7 +7,7 @@ import com.alinesno.infra.data.scheduler.adapter.SparkSqlConsumer;
 import com.alinesno.infra.data.scheduler.entity.ComputeEngineEntity;
 import com.alinesno.infra.data.scheduler.workflow.service.IComputeEngineService;
 import com.alinesno.infra.data.scheduler.workflow.constants.FlowConst;
-import com.alinesno.infra.data.scheduler.workflow.logger.NodeLog;
+import com.alinesno.infra.data.scheduler.api.logger.NodeLog;
 import com.alinesno.infra.data.scheduler.workflow.nodes.AbstractFlowNode;
 import com.alinesno.infra.data.scheduler.workflow.nodes.variable.step.SparkNodeData;
 import com.alinesno.infra.data.scheduler.workflow.utils.CommonsTextSecrets;
