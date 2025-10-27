@@ -1,6 +1,7 @@
 package com.alinesno.infra.data.scheduler.workflow.controller;
 
 import com.alinesno.infra.common.facade.response.AjaxResult;
+import com.alinesno.infra.common.facade.response.R;
 import com.alinesno.infra.data.scheduler.api.worker.FlowDto;
 import com.alinesno.infra.data.scheduler.api.worker.LastExecuteFlowDto;
 import com.alinesno.infra.data.scheduler.api.worker.RunRoleFlowDto;
@@ -196,11 +197,10 @@ public class FlowController {
 
         LastExecuteFlowDto flowNodeExecutionDtos = flowService.getLastExecutedFlow(processDefinitionId , null) ;
 
-        AjaxResult result = AjaxResult.success(flowNodeExecutionDtos.getFlowNode()) ;
-        result.put("status" , flowNodeExecutionDtos.getStatus());
-        result.put("executeInstanceId" , flowNodeExecutionDtos.getExecuteInstanceId());
+//        result.put("status" , flowNodeExecutionDtos.getStatus());
+//        result.put("executeInstanceId" , flowNodeExecutionDtos.getExecuteInstanceId());
 
-        return result ;
+        return AjaxResult.success(flowNodeExecutionDtos);
 
     }
 
@@ -208,14 +208,13 @@ public class FlowController {
      * 获取到最后运行的流程执行节点
      */
     @GetMapping("/executedFlowNodes")
-    public AjaxResult executedFlowNodes(@RequestParam Long processDefinitionId , @RequestParam Long executeId) {
+    public R<LastExecuteFlowDto> executedFlowNodes(@RequestParam Long processDefinitionId , @RequestParam Long executeId) {
 
         LastExecuteFlowDto flowNodeExecutionDtos = flowService.getLastExecutedFlow(processDefinitionId , executeId) ;
 
-        AjaxResult result = AjaxResult.success(flowNodeExecutionDtos.getFlowNode()) ;
-        result.put("status" , flowNodeExecutionDtos.getStatus());
+        //        result.put("status" , flowNodeExecutionDtos.getStatus());
 
-        return result ;
+        return R.ok(flowNodeExecutionDtos) ; //  AjaxResult.success(flowNodeExecutionDtos.getFlowNode());
 
     }
 
