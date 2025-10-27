@@ -1,5 +1,6 @@
 package com.alinesno.infra.data.scheduler.config;
 
+import com.alinesno.infra.common.core.auto.EnableCore;
 import com.alinesno.infra.common.extend.datasource.enable.EnableInfraDataScope;
 import com.alinesno.infra.common.facade.enable.EnableActable;
 import com.dtflys.forest.springboot.annotation.ForestScan;
@@ -26,6 +27,7 @@ import org.springframework.context.annotation.Configuration;
 @ForestScan({
         "com.alinesno.infra.data.scheduler.adapter"
 })
+@EnableCore
 @Configuration
 public class AppConfiguration implements CommandLineRunner {
 
