@@ -1,6 +1,6 @@
 package com.alinesno.infra.data.scheduler.workflow.utils;
 
-import com.alinesno.infra.data.scheduler.workflow.logger.NodeLog;
+import com.alinesno.infra.data.scheduler.api.logger.NodeLog;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jetbrains.annotations.NotNull;
 
