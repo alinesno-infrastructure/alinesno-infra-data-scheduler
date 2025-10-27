@@ -6,26 +6,20 @@ import com.alinesno.infra.common.facade.pageable.ConditionDto;
 import com.alinesno.infra.common.facade.pageable.DatatablesPageBean;
 import com.alinesno.infra.common.facade.pageable.TableDataInfo;
 import com.alinesno.infra.common.web.adapter.rest.BaseController;
-import com.alinesno.infra.data.scheduler.entity.ProcessDefinitionEntity;
-import com.alinesno.infra.data.scheduler.service.IProcessDefinitionService;
-import com.alinesno.infra.data.scheduler.workflow.dto.FlowExecutionDto;
-import com.alinesno.infra.data.scheduler.workflow.entity.FlowExecutionEntity;
-import com.alinesno.infra.data.scheduler.workflow.enums.FlowExecutionStatus;
+import com.alinesno.infra.data.scheduler.entity.worker.FlowExecutionEntity;
 import com.alinesno.infra.data.scheduler.workflow.service.IFlowExecutionService;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.annotations.Api;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.builder.ToStringBuilder;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -45,9 +39,6 @@ public class FlowInstanceController extends BaseController<FlowExecutionEntity, 
     @Autowired
     private IFlowExecutionService service;
 
-    @Autowired
-    private IProcessDefinitionService processDefinitionService ;
-
     /**
      * 获取TransEntity的DataTables数据。
      *
@@ -56,50 +47,12 @@ public class FlowInstanceController extends BaseController<FlowExecutionEntity, 
      * @param page DatatablesPageBean对象。
      * @return 包含DataTables数据的TableDataInfo对象。
      */
-    @DataPermissionScope
     @ResponseBody
     @PostMapping("/datatables")
-    public TableDataInfo datatables(HttpServletRequest request, Model model, DatatablesPageBean page) {
+    public TableDataInfo datatables(HttpServletRequest request, Model model, @RequestBody DatatablesPageBean page) {
         log.debug("page = {}", ToStringBuilder.reflectionToString(page));
-        List<ConditionDto> condition = page.getConditionList() ;
+        return this.toPage(model, this.getFeign(), page);
 
-        ConditionDto conditionDto = new ConditionDto()  ;
-        conditionDto.setType("orderBy");
-        conditionDto.setValue("desc") ;
-        conditionDto.setColumn("runTimes");
-
-        condition.add(conditionDto) ;
-        page.setConditionList(condition);
-
-        TableDataInfo tableDataInfo = this.toPage(model, this.getFeign(), page);
-
-        if(tableDataInfo.getRows() != null){
-
-            List<FlowExecutionDto> dtoRows = new ArrayList<>() ;
-
-            for(Object obj : tableDataInfo.getRows()){
-                FlowExecutionEntity entity = (FlowExecutionEntity) obj ;
-
-                FlowExecutionDto dto = new FlowExecutionDto() ;
-                BeanUtils.copyProperties(entity,dto);
-
-                Long processDefinitionId = entity.getProcessDefinitionId();
-                ProcessDefinitionEntity processInstanceEntity = processDefinitionService.getById(processDefinitionId) ;
-
-                if(processInstanceEntity != null){
-                    dto.setName(processInstanceEntity.getName());
-                }
-
-                FlowExecutionStatus flowExecutionStatus = FlowExecutionStatus.getByCode(entity.getExecutionStatus()) ;
-                dto.setExecutionStatusLabel(flowExecutionStatus.getLabel());
-
-                dtoRows.add(dto) ;
-            }
-
-            tableDataInfo.setRows(dtoRows);
-        }
-
-        return tableDataInfo;
     }
 
     @Override
