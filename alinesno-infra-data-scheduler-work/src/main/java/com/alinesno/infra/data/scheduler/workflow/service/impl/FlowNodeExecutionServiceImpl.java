@@ -1,7 +1,7 @@
 package com.alinesno.infra.data.scheduler.workflow.service.impl;
 
 import com.alinesno.infra.common.core.service.impl.IBaseServiceImpl;
-import com.alinesno.infra.data.scheduler.workflow.entity.FlowNodeExecutionEntity;
+import com.alinesno.infra.data.scheduler.entity.worker.FlowNodeExecutionEntity;
 import com.alinesno.infra.data.scheduler.workflow.mapper.FlowNodeExecutionMapper;
 import com.alinesno.infra.data.scheduler.workflow.service.IFlowNodeExecutionService;
 import lombok.extern.slf4j.Slf4j;
