@@ -7,6 +7,7 @@ import com.alinesno.infra.data.scheduler.api.worker.RunRoleFlowDto;
 import com.alinesno.infra.data.scheduler.api.worker.WorkflowRequestDto;
 import com.alinesno.infra.data.scheduler.entity.worker.FlowEntity;
 import com.dtflys.forest.annotation.*;
+import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * 任务执行工作流
@@ -50,7 +51,7 @@ public interface WorkerFlowConsumer {
      * @param executeId
      * @return
      */
-    @Get("/lastExecutedFlowNodes")
+    @Get("/executedFlowNodes")
     R<LastExecuteFlowDto> getLastExecutedFlow(@Query("processDefinitionId") Long processDefinitionId,
                                               @Query("executeId") Long executeId);
 
@@ -70,4 +71,12 @@ public interface WorkerFlowConsumer {
      */
     @Post("/processAndSave")
     R<Long> processAndSave(@JSONBody WorkflowRequestDto flowDto, @Query("processDefinitionId") Long processDefinitionId);
+
+    /**
+     * 获取最近执行流程
+     * @param processDefinitionId
+     * @return
+     */
+    @Get("/lastExecutedFlowNodes")
+    R<LastExecuteFlowDto> lastExecutedFlowNodes(@Query("processDefinitionId") Long processDefinitionId);
 }
