@@ -1,5 +1,6 @@
 package com.alinesno.infra.data.scheduler.workflow.logger;
 
+import com.alinesno.infra.data.scheduler.api.logger.NodeLog;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
