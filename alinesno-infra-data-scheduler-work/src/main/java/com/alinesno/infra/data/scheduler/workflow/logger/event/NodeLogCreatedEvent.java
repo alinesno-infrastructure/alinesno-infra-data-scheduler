@@ -1,6 +1,6 @@
 package com.alinesno.infra.data.scheduler.workflow.logger.event;
 
-import com.alinesno.infra.data.scheduler.workflow.logger.NodeLog;
+import com.alinesno.infra.data.scheduler.api.logger.NodeLog;
 
 /**
  * 节点日志创建事件
