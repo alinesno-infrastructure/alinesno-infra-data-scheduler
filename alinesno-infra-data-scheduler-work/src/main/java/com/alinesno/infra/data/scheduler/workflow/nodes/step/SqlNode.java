@@ -4,7 +4,7 @@ import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.fastjson.JSONObject;
 import com.alinesno.infra.data.scheduler.service.IDataSourceService;
 import com.alinesno.infra.data.scheduler.workflow.constants.FlowConst;
-import com.alinesno.infra.data.scheduler.workflow.logger.NodeLog;
+import com.alinesno.infra.data.scheduler.api.logger.NodeLog;
 import com.alinesno.infra.data.scheduler.workflow.nodes.AbstractFlowNode;
 import com.alinesno.infra.data.scheduler.workflow.nodes.variable.step.SqlNodeData;
 import com.alinesno.infra.data.scheduler.workflow.utils.CommonsTextSecrets;
