@@ -1,5 +1,6 @@
 package com.alinesno.infra.data.scheduler.workflow.logger;
 
+import com.alinesno.infra.data.scheduler.api.logger.NodeLog;
 import com.alinesno.infra.data.scheduler.workflow.config.NodeLogProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
