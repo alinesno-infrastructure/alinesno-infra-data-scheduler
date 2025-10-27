@@ -4,7 +4,7 @@ package com.alinesno.infra.data.scheduler.workflow.nodes.step;
 import cn.hutool.core.util.IdUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.alinesno.infra.data.scheduler.workflow.constants.FlowConst;
-import com.alinesno.infra.data.scheduler.workflow.logger.NodeLog;
+import com.alinesno.infra.data.scheduler.api.logger.NodeLog;
 import com.alinesno.infra.data.scheduler.workflow.nodes.AbstractFlowNode;
 import com.alinesno.infra.data.scheduler.workflow.nodes.variable.step.PythonNodeData;
 import com.alinesno.infra.data.scheduler.workflow.utils.CommonsTextSecrets;
