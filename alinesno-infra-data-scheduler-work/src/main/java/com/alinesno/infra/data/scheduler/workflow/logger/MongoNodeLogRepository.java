@@ -1,5 +1,6 @@
 package com.alinesno.infra.data.scheduler.workflow.logger;
 
+import com.alinesno.infra.data.scheduler.api.logger.NodeLog;
 import com.alinesno.infra.data.scheduler.workflow.config.NodeLogProperties;
 import org.bson.Document;
 import org.springframework.data.mongodb.core.MongoTemplate;
