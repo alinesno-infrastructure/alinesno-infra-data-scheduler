@@ -1,7 +1,9 @@
 package com.alinesno.infra.data.scheduler.workflow.logger;
 
+import com.alinesno.infra.data.scheduler.api.logger.NodeLog;
 import com.alinesno.infra.data.scheduler.workflow.config.NodeLogProperties;
 import com.alinesno.infra.data.scheduler.workflow.logger.event.NodeLogCreatedEvent;
+import com.alinesno.infra.data.scheduler.workflow.utils.NodeLogSecrets;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -54,7 +56,7 @@ public class NodeLogService {
 
     public boolean append(NodeLog nodeLog) {
 
-        NodeLog sensitiveLog = NodeLog.maskSensitive(nodeLog , getOrgSecret()) ;
+        NodeLog sensitiveLog = NodeLogSecrets.maskSensitive(nodeLog , getOrgSecret()) ;
         log.debug("sensitiveLog: {}", sensitiveLog);
 
         boolean ok = queue.offer(sensitiveLog);
