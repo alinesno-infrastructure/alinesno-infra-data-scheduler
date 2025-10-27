@@ -33,7 +33,7 @@ spring:
     redis:
       host: 127.0.0.1
       port: 6379
-      password: aip@local
+#      password: aip@local
     mongodb:
       uri: mongodb://localhost:27017/infra_scheduler_logs
       database: infra_scheduler_logs
