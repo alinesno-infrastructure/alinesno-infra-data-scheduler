@@ -5,7 +5,7 @@ import com.alinesno.infra.common.extend.datasource.annotation.DataPermissionSave
 import com.alinesno.infra.common.facade.datascope.PermissionQuery;
 import com.alinesno.infra.common.facade.response.AjaxResult;
 import com.alinesno.infra.common.facade.response.R;
-import com.alinesno.infra.data.scheduler.adapter.worker.ComputeEngineConsumer;
+import com.alinesno.infra.data.scheduler.adapter.worker.WorkerComputeEngineConsumer;
 import com.alinesno.infra.data.scheduler.api.ComputeEngineConfigDto;
 import com.alinesno.infra.data.scheduler.api.ProbeResultDto;
 import com.alinesno.infra.data.scheduler.entity.ComputeEngineEntity;
@@ -21,7 +21,7 @@ import javax.validation.Valid;
 public class WorkflowComputeEngineController  {
 
     @Autowired
-    private ComputeEngineConsumer service;
+    private WorkerComputeEngineConsumer service;
 
     /**
      * 获取当前配置
