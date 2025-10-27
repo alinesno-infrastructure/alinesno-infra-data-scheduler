@@ -1,8 +1,9 @@
 package com.alinesno.infra.data.scheduler.workflow.controller;
 
 import com.alinesno.infra.common.facade.response.AjaxResult;
+import com.alinesno.infra.common.facade.response.R;
 import com.alinesno.infra.data.scheduler.workflow.logger.MongoNodeLogQueryRepository;
-import com.alinesno.infra.data.scheduler.workflow.logger.NodeLog;
+import com.alinesno.infra.data.scheduler.api.logger.NodeLog;
 import com.alinesno.infra.data.scheduler.workflow.logger.NodeLogSseService;
 import com.alinesno.infra.data.scheduler.workflow.utils.NodeLogUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -77,9 +78,9 @@ public class NodeLogController {
      * @return
      */
     @GetMapping("/readLog")
-    public AjaxResult readLog(@RequestParam String processInstanceId,
-                              @RequestParam(required = false) String nodeId ,
-                              @RequestParam(required = false, defaultValue = "0") int start) {
+    public R<Map<String , Object>> readLog(@RequestParam String processInstanceId,
+                                           @RequestParam(required = false) String nodeId ,
+                                           @RequestParam(required = false, defaultValue = "0") int start) {
 
         if(!StringUtils.hasLength(nodeId)){
             nodeId = null ;
@@ -99,10 +100,10 @@ public class NodeLogController {
 
             // 4. 构造返回体
             Map<String, Object> data = NodeLogUtils.buildLogResponse(start, keptLines);
-            return AjaxResult.success(data);
+            return R.ok(data);
         } catch (Exception ex) {
             log.error("读取任务日志失败，processInstanceId={}", processInstanceId, ex);
-            return AjaxResult.error("读取日志失败: " + ex.getMessage());
+            return R.fail("读取日志失败: " + ex.getMessage());
         }
     }
 }
