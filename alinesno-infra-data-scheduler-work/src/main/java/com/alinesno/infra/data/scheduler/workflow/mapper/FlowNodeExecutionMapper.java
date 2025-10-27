@@ -1,7 +1,7 @@
 package com.alinesno.infra.data.scheduler.workflow.mapper;
 
 import com.alinesno.infra.common.facade.mapper.repository.IBaseMapper;
-import com.alinesno.infra.data.scheduler.workflow.entity.FlowNodeExecutionEntity;
+import com.alinesno.infra.data.scheduler.entity.worker.FlowNodeExecutionEntity;
 
 /**
  * 工作流节点执行表 Mapper 接口
