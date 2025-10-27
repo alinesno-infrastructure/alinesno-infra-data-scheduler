@@ -28,9 +28,8 @@ public class ComputeEngineController extends BaseController<ComputeEngineEntity,
      * @param query
      * @return
      */
-    @DataPermissionQuery
-    @GetMapping("/getConfig")
-    public AjaxResult getConfig(PermissionQuery  query) {
+    @PostMapping("/getConfig")
+    public AjaxResult getConfig(@RequestBody PermissionQuery  query) {
 
         ComputeEngineEntity computeEngineEntity = service.getCurrentConfig(query);
         ComputeEngineConfigDto computeEngineConfigDto = ComputeEngineConfigDto.fromEntity(computeEngineEntity);
