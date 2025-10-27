@@ -180,7 +180,7 @@ public class WorkerFlowController {
     @GetMapping("/lastExecutedFlowNodes")
     public AjaxResult lastExecutedFlowNodes(@RequestParam Long processDefinitionId) {
 
-        R<LastExecuteFlowDto> flowNodeExecutionResult = flowService.getLastExecutedFlow(processDefinitionId , null) ;
+        R<LastExecuteFlowDto> flowNodeExecutionResult = flowService.lastExecutedFlowNodes(processDefinitionId) ;
         LastExecuteFlowDto flowNodeExecutionDtos = flowNodeExecutionResult.getData() ;
 
         AjaxResult result = AjaxResult.success(flowNodeExecutionDtos.getFlowNode()) ;
