@@ -4,6 +4,7 @@ import com.alinesno.infra.common.core.auto.EnableCore;
 import com.alinesno.infra.common.extend.datasource.enable.EnableInfraDataScope;
 import com.alinesno.infra.common.facade.enable.EnableActable;
 import com.dtflys.forest.springboot.annotation.ForestScan;
+import com.ulisesbocchio.jasyptspringboot.annotation.EnableEncryptableProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.CommandLineRunner;
@@ -18,6 +19,7 @@ import org.springframework.context.annotation.Configuration;
 @Slf4j
 @EnableActable
 @EnableInfraDataScope
+@EnableEncryptableProperties
 @MapperScan({
         "com.alinesno.infra.data.scheduler.quartz.mapper" ,
         "com.alinesno.infra.data.scheduler.llm.mapper",
