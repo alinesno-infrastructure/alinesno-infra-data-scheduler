@@ -6,6 +6,7 @@ import com.alinesno.infra.common.web.adapter.sso.enable.EnableInfraSsoApi;
 import com.alinesno.infra.common.web.log.aspect.LogAspect;
 import com.alinesno.infra.data.scheduler.service.ICategoryService;
 import com.dtflys.forest.springboot.annotation.ForestScan;
+import com.ulisesbocchio.jasyptspringboot.annotation.EnableEncryptableProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,7 @@ import org.springframework.context.annotation.Configuration;
 @Slf4j
 @EnableActable
 @EnableInfraDataScope
+@EnableEncryptableProperties
 @EnableInfraSsoApi
 @MapperScan({
         "com.alinesno.infra.data.scheduler.quartz.mapper" ,
