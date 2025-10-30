@@ -1,0 +1,85 @@
+# 创建service为${PROJECT_NAME}
+apiVersion: v1
+kind: Service
+metadata:
+  name: ${PROJECT_NAME}
+  namespace: ${NAMESPACE}
+spec:
+  selector:
+    app: ${PROJECT_NAME}
+    release: canary
+  ports:
+    - name: http
+      targetPort: 8080
+      port: 8080
+
+---
+# 创建后端服务的pod
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ${PROJECT_NAME}
+  namespace: ${NAMESPACE}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ${PROJECT_NAME}
+      release: canary
+  template:
+    metadata:
+      labels:
+        app: ${PROJECT_NAME}
+        release: canary
+    spec:
+      imagePullSecrets:
+        - name: aliyun-docker-registry
+      containers:
+        - name: ${PROJECT_NAME}
+          image: ${ALIYUN_CR_REGISTORY}/${ALIYUN_CR_NAMESPACE}/${PROJECT_NAME}:${VERSION}
+          env:
+            - name: JAVA_TOOL_OPTIONS
+              value: |
+                -Dsa-token.jwt-secret-key=ENC(${SA_TOKEN_JWT_SECRET_KEY})
+                -Dsa-token.sign.secret-key=ENC(${SA_TOKEN_SIGN_SECRET_KEY})
+
+                -Dapi-decrypt.publicKey=ENC(${API_DECRYPT_PUBLIC_KEY})
+                -Dapi-decrypt.privateKey=ENC(${API_DECRYPT_PRIVATE_KEY})
+
+                -Dspring.data.redis.host=ENC(${REDIS_HOST})
+                -Dspring.data.redis.password=ENC(${REDIS_KEY})
+                
+                -Dspring.datasource.url=jdbc:mysql://${DB_MYSQL_URL}/dev_alinesno_infra_data_scheduler_v100?serverTimezone=GMT%2B8&zeroDateTimeBehavior=CONVERT_TO_NULL
+                -Dspring.datasource.username=ENC(${DB_MYSQL_USERNAME})
+                -Dspring.datasource.password=ENC(${DB_MYSQL_PASSWORD})
+
+                -Dspring.data.mongodb.uri=mongodb://${MONGODB_URL}/infra_scheduler_logs
+
+                -Dserver.port=8080
+            - name: JASYPT_ENCRYPTOR_PASSWORD
+              value: ${JASYPT_ENCRYPTOR_PASSWORD}
+          ports:
+            - name: http
+              containerPort: 8080
+
+# ---
+# # 创建域名服务
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: ingress-${PROJECT_NAME}
+#   namespace: ${NAMESPACE}
+#   annotations:
+#     kubernetes.io/ingress.class: "nginx"
+# spec:
+#   rules:
+#     - host: "${PROJECT_NAME}.${INFRA_DEV_DOMAIN}"
+#       http:
+#         paths:
+#           - pathType: Prefix
+#             path: "/"
+#             backend:
+#               service:
+#                 name: ${PROJECT_NAME}
+#                 port:
+#                   number: 8080
