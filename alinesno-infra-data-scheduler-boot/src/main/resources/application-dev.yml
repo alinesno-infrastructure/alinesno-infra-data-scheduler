@@ -94,7 +94,7 @@ actable:
   table:
     auto: update
   model:
-    pack: com.alinesno.infra.data.scheduler.entity;com.alinesno.infra.data.scheduler.llm.entity;com.alinesno.infra.data.scheduler.workflow.entity;
+    pack: com.alinesno.infra.data.scheduler.entity;com.alinesno.infra.data.scheduler.llm.entity;com.alinesno.infra.data.scheduler.workflow.entity;com.alinesno.infra.data.scheduler.trigger.entity;
   database:
     type: mysql
   index:
