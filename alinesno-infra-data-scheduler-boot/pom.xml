@@ -52,6 +52,12 @@
 
 		<dependency>
 			<groupId>com.alinesno.infra.data</groupId>
+			<artifactId>alinesno-infra-data-scheduler-trigger</artifactId>
+			<version>${revision}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.alinesno.infra.data</groupId>
 			<artifactId>alinesno-infra-data-scheduler-notice</artifactId>
 			<version>${revision}</version>
 		</dependency>
@@ -67,7 +73,7 @@
             <version>${revision}</version>
 		</dependency>
 
-	</dependencies>
+    </dependencies>
 
 	<build>
 		<plugins>
