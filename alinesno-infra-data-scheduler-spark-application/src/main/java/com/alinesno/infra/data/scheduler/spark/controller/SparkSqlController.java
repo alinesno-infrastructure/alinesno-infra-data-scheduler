@@ -39,7 +39,7 @@ public class SparkSqlController {
     private final ScheduledExecutorService scheduler;
 
     // 控制器字段注入
-    @Value("#{'${spark-sql.admin-users}'.split(',')}")
+    @Value("#{'${spark.admin-users}'.split(',')}")
     private Set<String> adminUsers;
 
     @Autowired
