@@ -1,9 +1,8 @@
 package com.alinesno.infra.data.scheduler.workflow.controller;
 
-import com.alinesno.infra.common.extend.datasource.annotation.DataPermissionQuery;
 import com.alinesno.infra.common.extend.datasource.annotation.DataPermissionSave;
 import com.alinesno.infra.common.facade.datascope.PermissionQuery;
-import com.alinesno.infra.common.facade.response.AjaxResult;
+import com.alinesno.infra.common.facade.response.R;
 import com.alinesno.infra.common.web.adapter.rest.BaseController;
 import com.alinesno.infra.data.scheduler.api.ComputeEngineConfigDto;
 import com.alinesno.infra.data.scheduler.api.ProbeResultDto;
@@ -25,16 +24,14 @@ public class ComputeEngineController extends BaseController<ComputeEngineEntity,
 
     /**
      * 获取当前配置
+     *
      * @param query
      * @return
      */
     @PostMapping("/getConfig")
-    public AjaxResult getConfig(@RequestBody PermissionQuery  query) {
-
+    public R<ComputeEngineEntity> getConfig(@RequestBody PermissionQuery  query) {
         ComputeEngineEntity computeEngineEntity = service.getCurrentConfig(query);
-        ComputeEngineConfigDto computeEngineConfigDto = ComputeEngineConfigDto.fromEntity(computeEngineEntity);
-
-        return AjaxResult.success(computeEngineConfigDto);
+        return R.ok(computeEngineEntity);
     }
 
     /**
@@ -44,19 +41,19 @@ public class ComputeEngineController extends BaseController<ComputeEngineEntity,
      */
     @DataPermissionSave
     @PostMapping("/saveConfig")
-    public AjaxResult saveConfig(@Valid @RequestBody ComputeEngineConfigDto config) {
+    public R<String> saveConfig(@Valid @RequestBody ComputeEngineConfigDto config) {
         service.saveOrUpdateConfig(ComputeEngineConfigDto.toEntity(config));
-        return AjaxResult.success("保存成功");
+        return R.ok("保存成功");
     }
 
     // 添加到原有的 ComputeEngineController
     @GetMapping("/probeHealth")
-    public AjaxResult probeHealth(
+    public R<ProbeResultDto> probeHealth(
             @RequestParam("engineAddress") String engineAddress,
             @RequestParam(value = "adminUser", required = false) String adminUser) {
 
         ProbeResultDto result = service.probeEngineHealth(engineAddress, adminUser);
-        return AjaxResult.success(result);
+        return R.ok(result);
     }
 
     @Override
