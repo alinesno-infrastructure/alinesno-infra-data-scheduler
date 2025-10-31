@@ -5,7 +5,10 @@ import com.alinesno.infra.data.scheduler.spark.config.SparkProperties;
 import com.alinesno.infra.data.scheduler.spark.model.TaskMeta;
 import com.alinesno.infra.data.scheduler.spark.model.TaskResult;
 import com.alinesno.infra.data.scheduler.spark.model.TaskStatus;
-import com.alinesno.infra.data.scheduler.spark.utils.OssSqlStorage;
+import com.alinesno.infra.data.scheduler.spark.model.UploadResult;
+import com.alinesno.infra.data.scheduler.spark.oss.AliyunOssSqlStorage;
+import com.alinesno.infra.data.scheduler.spark.oss.IOssSqlStorage;
+import com.alinesno.infra.data.scheduler.spark.oss.MinioOssSqlStorage;
 import com.alinesno.infra.data.scheduler.spark.utils.StorageUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.spark.launcher.SparkLauncher;
@@ -37,7 +40,7 @@ public class SparkSqlTaskManager {
     private final Path tasksDir;
     private final Path resultsDir;
 
-    private final OssSqlStorage ossSqlStorage;
+    private IOssSqlStorage ossSqlStorage;
 
     // 并发限制（正在运行的任务数）
     private final Semaphore concurrencyLimiter;
@@ -72,13 +75,23 @@ public class SparkSqlTaskManager {
 
         // 如果开启上传 sql 到 oss，则初始化 OssSqlStorage
         if (sparkProperties.isUploadSqlToOss()) {
-            this.ossSqlStorage = new OssSqlStorage(
-                    sparkProperties.getOss().getEndpoint(),
-                    sparkProperties.getOss().getBucketName(),
-                    sparkProperties.getOss().getAccessKeyId(),
-                    sparkProperties.getOss().getAccessKeySecret(),
-                    sparkProperties.getOssBasePath()
-            );
+            if(sparkProperties.getOss().getType().equals("aliyun")){
+                this.ossSqlStorage = new AliyunOssSqlStorage(
+                        sparkProperties.getOss().getEndpoint(),
+                        sparkProperties.getOss().getBucketName(),
+                        sparkProperties.getOss().getAccessKeyId(),
+                        sparkProperties.getOss().getAccessKeySecret(),
+                        sparkProperties.getOssBasePath()
+                );
+            }else if(sparkProperties.getOss().getType().equals("minio")){
+                this.ossSqlStorage = new MinioOssSqlStorage(
+                        sparkProperties.getOss().getEndpoint(),
+                        sparkProperties.getOss().getBucketName(),
+                        sparkProperties.getOss().getAccessKeyId(),
+                        sparkProperties.getOss().getAccessKeySecret(),
+                        sparkProperties.getOssBasePath()
+                );
+            }
         } else {
             this.ossSqlStorage = null;
         }
@@ -148,7 +161,7 @@ public class SparkSqlTaskManager {
                     sqlArgValue = reqSql;
                 } else {
                     try {
-                        OssSqlStorage.UploadResult up = ossSqlStorage.uploadStringAsTempFile(reqSql, Duration.ofHours(1));
+                        UploadResult up = ossSqlStorage.uploadStringAsTempFile(reqSql, Duration.ofHours(1));
                         sqlArgName = "--sql-file";
                         sqlArgValue = up.getPresignedUrl().toString();
                         uploadedObjectKey = up.getObjectKey();
