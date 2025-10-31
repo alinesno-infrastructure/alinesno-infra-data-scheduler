@@ -27,12 +27,14 @@
         <guava.version>14.0.1</guava.version>
         <scala.binary.version>2.12</scala.binary.version>
         <spark.version>3.5.6</spark.version>
+        <minio.version>8.5.2</minio.version>
 
         <!-- Third-party dependencies versions -->
         <iceberg.version>1.10.0</iceberg.version>
         <aliyun.oss.version>3.14.0</aliyun.oss.version>
         <mysql.connector.version>8.0.33</mysql.connector.version>
         <jsqlparser.version>4.5</jsqlparser.version>
+        <jasypt.spring.boot.version>3.0.5</jasypt.spring.boot.version>
 
         <!-- Plugin versions -->
         <maven.assembly.plugin.version>3.3.0</maven.assembly.plugin.version>
@@ -48,6 +50,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-logging</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.ulisesbocchio</groupId>
+            <artifactId>jasypt-spring-boot-starter</artifactId>
+            <version>${jasypt.spring.boot.version}</version>
         </dependency>
 
         <dependency>
@@ -112,6 +120,19 @@
             <groupId>com.github.jsqlparser</groupId>
             <artifactId>jsqlparser</artifactId>
             <version>${jsqlparser.version}</version>
+        </dependency>
+
+        <!-- MinIO -->
+        <dependency>
+            <groupId>io.minio</groupId>
+            <artifactId>minio</artifactId>
+            <version>${minio.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>4.10.0</version>
         </dependency>
 
     </dependencies>
