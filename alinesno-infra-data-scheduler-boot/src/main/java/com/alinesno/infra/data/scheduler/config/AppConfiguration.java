@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * 应用配置
@@ -25,12 +26,14 @@ import org.springframework.context.annotation.Configuration;
 @EnableInfraDataScope
 @EnableEncryptableProperties
 @EnableInfraSsoApi
+@EnableScheduling
 @MapperScan({
         "com.alinesno.infra.data.scheduler.quartz.mapper" ,
         "com.alinesno.infra.data.scheduler.mapper",
         "com.alinesno.infra.data.scheduler.notice.mapper",
         "com.alinesno.infra.data.scheduler.llm.mapper",
-        "com.alinesno.infra.data.scheduler.workflow.mapper"
+        "com.alinesno.infra.data.scheduler.workflow.mapper",
+        "com.alinesno.infra.data.scheduler.trigger.mapper"
 })
 @ForestScan({
         "com.alinesno.infra.common.web.adapter.base.consumer" ,
