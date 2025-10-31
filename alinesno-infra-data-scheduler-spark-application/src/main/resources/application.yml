@@ -3,13 +3,16 @@ spring:
   application:
     name: data-scheduler-spark-application
 
+server:
+  port: 43361
+
 # Spark配置
 spark:
   defaultParallelism: 200
-  admin-users:
+  admin-users: zhangsan,lisi  # >>>>>>> 此注意要调整!! >>>>>>>>
   master: spark://127.0.0.1:7077
-  spark-home: "${user.home}/spark-3.5.6-bin-hadoop3"
-  app-name: "alinesno-infra-data-scheduler-spark-api"
+  spark-home: ${user.home}/spark-3.5.6-bin-hadoop3
+  app-name: alinesno-infra-data-scheduler-spark-api
   upload-sql-to-oss: true
   executor:
     instances: 5        # 对齐spark-sql命令的Executor数量
@@ -22,29 +25,24 @@ spark:
     shufflePartitions: 200  # 根据数据量调整Shuffle分区数
     maxStatements: 100
     maxSqlLength: 100000
-    warehouse-dir: "file:///tmp/spark-warehouse"
-    default-catalog: "aip_catalog"
-
-  # Iceberg Catalog配置
-  catalog:
-    className: "org.apache.iceberg.spark.SparkCatalog"
-    warehouse: "oss://alinesno-datalake"
-    type: "jdbc"
-    uri: "jdbc:mysql://localhost:3306/dev_alinesno_infra_data_lake_v100?serverTimezone=GMT%2B8&zeroDateTimeBehavior=CONVERT_TO_NULL"
-    jdbc:
-      verify-server-certificate: false
-      use-ssl: false
-      user: "root"
-      password: "adminer"
-      driver: "com.mysql.cj.jdbc.Driver"
+    warehouse-dir: file:///tmp/spark-warehouse
+    default-catalog: aip_catalog
 
   # OSS配置 - 通过-D参数传递
   oss:
-    impl: "org.apache.hadoop.fs.aliyun.oss.AliyunOSSFileSystem"
-    bucket-name: "alinesno-datalake"
-    endpoint: "${oss.endpoint:}"
-    access-key-id: "${oss.accessKeyId:}"
-    access-key-secret: "${oss.accessKeySecret:}"
+    type: minio
+    impl: org.apache.hadoop.fs.aliyun.oss.AliyunOSSFileSystem
+    bucket-name: alinesno-datalake
+    endpoint: http://localhost:9000
+    access-key-id: minioadmin
+    access-key-secret: minioadmin
 
-server:
-  port: 43361
+# 配置加密配置
+jasypt:
+  encryptor:
+    # 指定加密密钥，生产环境请放到启动参数里面
+    password: ${JASYPT_ENCRYPTOR_PASSWORD:0f7b0a5d-46bc-40fd-b8ed-3181d21d644f}
+    # 指定解密算法，需要和加密时使用的算法一致
+    algorithm: PBEWithMD5AndDES
+    # 加密密钥的IV
+    iv-generator-classname: org.jasypt.iv.NoIvGenerator
