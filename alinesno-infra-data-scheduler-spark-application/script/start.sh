@@ -8,6 +8,8 @@ mkdir -p "$APP_HOME/run"
 # 应用Jar包
 JAR=${APP_HOME}${LIB_DIR}/${JAR_NAME}
 
+export JASYPT_ENCRYPTOR_PASSWORD=${JASYPT_ENCRYPTOR_PASSWORD}
+
 # Java启动参数
 JAVA_OPTS="-XX:+IgnoreUnrecognizedVMOptions \
 --add-opens=java.base/java.lang=ALL-UNNAMED \
@@ -27,14 +29,11 @@ JAVA_OPTS="-XX:+IgnoreUnrecognizedVMOptions \
 -Djdk.reflect.useDirectMethodHandle=false \
 -Dspark.executor-jar.spark-sql-job-jar=${SPARK_SQL_EXECUTOR_JAR} \
 -Dspark.spark-home=${SPARK_HOME} \
--Dspark-sql.admin-users=${SPARK_ADMIN_USERS} \
+-Dspark.admin-users=${SPARK_ADMIN_USERS} \
 -Dspark.master=${SPARK_MASTER} \
--Doss.endpoint=${OSS_ENDPOINT} \
--Doss.accessKeyId=${OSS_ACCESS_KEY_ID} \
--Doss.accessKeySecret=${OSS_ACCESS_KEY_SECRET} \
--Dspark.catalog.uri=jdbc:mysql://${DB_MYSQL_URL}/dev_alinesno_infra_data_lake_v100?characterEncoding=UTF-8&serverTimezone=GMT%2B8&allowMultiQueries=true \
--Dspark.catalog.jdbc.user=${DB_MYSQL_USRENAME} \
--Dspark.catalog.jdbc.password=${DB_MYSQL_PASSWORD}"
+-Dspark.oss.endpoint=ENC(${OSS_ENDPOINT}) \
+-Dspark.oss.accessKeyId=ENC(${OSS_ACCESS_KEY_ID}) \
+-Dspark.oss.accessKeySecret=ENC(${OSS_ACCESS_KEY_SECRET})"
 
 echo "Using JAR: $JAR"
 nohup java $JAVA_OPTS -Xms1g -Xmx2g -jar "$JAR" >> "$APP_HOME/logs/app.log" 2>&1 &
