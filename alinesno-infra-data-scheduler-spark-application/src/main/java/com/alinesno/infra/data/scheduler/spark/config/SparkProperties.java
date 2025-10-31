@@ -19,9 +19,8 @@ public class SparkProperties {
     private String appName;
     private Driver driver = new Driver();
     private Sql sql = new Sql();
-    private Catalog catalog = new Catalog();
-    private Oss oss = new Oss();
     private String deployMode = "client" ;
+    private Oss oss = new Oss();
 
     private ExecutorJar executorJar = new ExecutorJar();
 
@@ -64,25 +63,8 @@ public class SparkProperties {
     }
 
     @Data
-    public static class Catalog {
-        private String className;
-        private String warehouse;
-        private String type;
-        private String uri;
-        private Jdbc jdbc = new Jdbc();
-    }
-
-    @Data
-    public static class Jdbc {
-        private boolean verifyServerCertificate;
-        private boolean useSsl;
-        private String user;
-        private String password;
-        private String driver;
-    }
-
-    @Data
     public static class Oss {
+        private String type;  // 云存储类型minio/aliyun
         private String impl;
         private String bucketName;
         private String endpoint;
