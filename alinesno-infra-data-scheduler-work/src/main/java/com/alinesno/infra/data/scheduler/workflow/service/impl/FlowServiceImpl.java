@@ -87,12 +87,6 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
                                                  ExecutionStrategyEnums errorStrategy ,
                                                  Map<String , String> orgSecrets) {
 
-//        ProcessDefinitionEntity processDefinitionEntity = processDefinitionService.getById(processDefinitionId) ;
-//        processDefinitionEntity.setRunCount(processDefinitionEntity.getRunCount() + 1) ;
-//        processDefinitionService.updateById(processDefinitionEntity) ;
-//        Map<String , String> orgSecret = secretsService.getSecretMapByOrgId(processDefinitionEntity.getOrgId()) ;
-//        ExecutionStrategyEnums errorStrategy = ExecutionStrategyEnums.fromCode(processDefinitionEntity.getErrorStrategy()) ;
-
         FlowEntity flowEntity = getLatestPublishedFlowByProcessDefinitionId(processDefinitionId);
         Assert.notNull(flowEntity, "未发布角色流程");
 
@@ -123,6 +117,10 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
 
         flowExecutionService.save(flowExecutionEntity);
 
+        // 取到持久化后的主键 id（作为 executionId）
+        String executionId = String.valueOf(flowExecutionEntity.getId()); // 或者 use runUniqueNumber
+
+        // 异步提交真正执行任务（不阻塞当前线程）
         return CompletableFuture.supplyAsync(() -> {
             try {
 
@@ -196,7 +194,7 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
 //                processDefinitionEntity.setSuccessCount(processDefinitionEntity.getSuccessCount() + 1) ;
 //                processDefinitionService.updateById(processDefinitionEntity) ;
 
-                return null ; // taskInfo.getFullContent() ;
+                return executionId ;
             } catch (Exception e) {
                 log.error("流程执行失败", e);
                 throw new RuntimeException("流程执行失败: " + e.getMessage(), e);
