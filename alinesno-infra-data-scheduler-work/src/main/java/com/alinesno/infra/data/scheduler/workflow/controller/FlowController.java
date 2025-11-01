@@ -10,6 +10,7 @@ import com.alinesno.infra.data.scheduler.constants.PipeConstants;
 import com.alinesno.infra.data.scheduler.entity.ProcessDefinitionEntity;
 import com.alinesno.infra.data.scheduler.entity.worker.FlowEntity;
 import com.alinesno.infra.data.scheduler.enums.ExecutionStrategyEnums;
+import com.alinesno.infra.data.scheduler.workflow.service.IFlowExecutionService;
 import com.alinesno.infra.data.scheduler.workflow.service.IFlowService;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.JobExecutionContext;
@@ -26,6 +27,7 @@ import org.springframework.web.context.request.async.DeferredResult;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeoutException;
 
 /**
  * 流程控制
@@ -37,6 +39,9 @@ import java.util.concurrent.CompletableFuture;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequestMapping("/api/infra/data/scheduler/flow")
 public class FlowController {
+
+    @Autowired
+    private IFlowExecutionService flowExecutionService;
 
     @Autowired
     private Scheduler scheduler ;
@@ -86,28 +91,93 @@ public class FlowController {
         return deferred;
     }
 
-    /**
-     * 运行角色工作流
-     * @param runRoleFlowDto
-     * @return
-     * @throws SchedulerException
-     */
+//    /**
+//     * 运行角色工作流
+//     * @param runRoleFlowDto
+//     * @return
+//     * @throws SchedulerException
+//     */
+//    @PostMapping("/runRoleFlow")
+//    public R<String> runRoleFlow(@RequestBody RunRoleFlowDto runRoleFlowDto) {
+//
+//        Long processDefinitionId = runRoleFlowDto.getProcessDefinitionId();
+//        ProcessDefinitionEntity processDefinitionEntity = runRoleFlowDto.getProcessDefinitionEntity();
+//        ExecutionStrategyEnums errorStrategy = runRoleFlowDto.getErrorStrategy();
+//        Map<String , String> orgSecrets = runRoleFlowDto.getOrgSecrets();
+//
+//        log.debug("processDefinitionId: {}" , processDefinitionId);
+//        log.debug("processDefinitionEntity: {}" , processDefinitionEntity);
+//        log.debug("errorStrategy: {}" , errorStrategy);
+//        log.debug("orgSecrets: {}" , orgSecrets);
+//
+//        CompletableFuture<String> future = flowService.runRoleFlow(processDefinitionId , processDefinitionEntity , errorStrategy , orgSecrets);
+//
+//        String executionId = null;
+//        try {
+//            // future 是已经完成的 completedFuture，所以 get()/join() 会立即返回
+//            executionId = future.get();
+//        } catch (Exception e) {
+//            log.error("生成执行实例失败", e);
+//            return R.fail() ;
+//        }
+//
+//        // 返回执行id 给调用方
+//        return R.ok(executionId);
+//    }
+
+
     @PostMapping("/runRoleFlow")
-    public AjaxResult runRoleFlow(@RequestBody RunRoleFlowDto runRoleFlowDto) throws SchedulerException {
+    public DeferredResult<R<String>> runRoleFlow(@RequestBody RunRoleFlowDto runRoleFlowDto) {
 
         Long processDefinitionId = runRoleFlowDto.getProcessDefinitionId();
         ProcessDefinitionEntity processDefinitionEntity = runRoleFlowDto.getProcessDefinitionEntity();
         ExecutionStrategyEnums errorStrategy = runRoleFlowDto.getErrorStrategy();
-        Map<String , String> orgSecrets = runRoleFlowDto.getOrgSecrets();
+        Map<String, String> orgSecrets = runRoleFlowDto.getOrgSecrets();
 
         log.debug("processDefinitionId: {}" , processDefinitionId);
-        log.debug("processDefinitionEntity: {}" , processDefinitionEntity);
-        log.debug("errorStrategy: {}" , errorStrategy);
-        log.debug("orgSecrets: {}" , orgSecrets);
 
-        flowService.runRoleFlow(processDefinitionId , processDefinitionEntity , errorStrategy , orgSecrets);
+        // 超时时间（毫秒），可按需调整或从 DTO/配置读取
+        long timeoutMillis = runRoleFlowDto.getOutTime() ;
 
-        return AjaxResult.success("工作流运行成功");
+        // DeferredResult 用来异步返回给客户端，超时会触发 onTimeout
+        DeferredResult<R<String>> deferred = new DeferredResult<>(timeoutMillis);
+
+        // 调用 service，service 返回 CompletableFuture<String>
+        CompletableFuture<String> future = flowService.runRoleFlow(processDefinitionId,
+                processDefinitionEntity, errorStrategy, orgSecrets);
+
+        // 当 CompletableFuture 完成或异常时，设置 DeferredResult 的结果
+        future.whenComplete((result, ex) -> {
+            if (ex != null) {
+                log.error("runRoleFlow 执行失败, processDefinitionId={}, ex={}", processDefinitionId, ex);
+                // 返回失败信息（根据实际 R 的实现调整）
+                deferred.setErrorResult(R.fail("流程执行失败: " + ex.getMessage()));
+            } else {
+                // result 是 executionId（或其他你约定的返回值）
+                deferred.setResult(R.ok(result));
+            }
+        });
+
+        // timeout 处理：可以尝试取消底层 future 或设置异常
+        deferred.onTimeout(() -> {
+            log.warn("runRoleFlow 请求超时, processDefinitionId={}, timeoutMs={}", processDefinitionId, timeoutMillis);
+            // 尝试取消底层任务（取决于你的任务是否响应中断）
+            try {
+                future.completeExceptionally(new TimeoutException("请求超时"));
+                future.cancel(true); // 可选：是否中断运行线程，视具体实现而定
+            } catch (Exception e) {
+                log.warn("尝试取消 future 失败: {}", e.getMessage());
+            }
+            deferred.setErrorResult(R.fail("请求超时，请稍后查询执行状态"));
+        });
+
+        // 请求完成时的清理（可选）
+        deferred.onCompletion(() -> {
+            // 若需要额外清理或指标上报可以写这里
+            log.debug("runRoleFlow DeferredResult completed for processDefinitionId={}", processDefinitionId);
+        });
+
+        return deferred;
     }
 
     /**
