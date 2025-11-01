@@ -21,7 +21,12 @@ public class TriggerEntity extends InfraBaseEntity {
     @Column(name = "job_id" , comment = "任务ID")
     private Long jobId;
 
-    @Column(name = "cron" , comment = "cron表达式")
     @TableField
+    @Column(name = "process_id" , comment = "流程ID")
+    private Long processId;
+
+    @TableField
+    @Column(name = "cron" , comment = "cron表达式")
     private String cron;
+
 }
