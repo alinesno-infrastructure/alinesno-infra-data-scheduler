@@ -1,5 +1,6 @@
 package com.alinesno.infra.data.scheduler.trigger.controller;
 
+import com.alinesno.infra.common.facade.response.AjaxResult;
 import com.alinesno.infra.data.scheduler.trigger.bean.ParseResultDTO;
 import com.alinesno.infra.data.scheduler.trigger.entity.TriggerEntity;
 import com.alinesno.infra.data.scheduler.trigger.resolver.CronResolverAdvanced;
@@ -29,21 +30,21 @@ public class DebugController {
 
     // 通过直接传入 cron & jobId 解析
     @GetMapping("/parse")
-    public ParseResultDTO parseCron(@RequestParam String cron,
-                                    @RequestParam(required = false) String jobId,
-                                    @RequestParam(defaultValue = "5") int next) {
+    public AjaxResult parseCron(@RequestParam String cron,
+                                @RequestParam(required = false) String jobId,
+                                @RequestParam(defaultValue = "5") int next) {
         CronSchedule schedule = resolver.parse(cron, jobId);
-        return buildDto(schedule, cron, jobId, next);
+        return AjaxResult.success(buildDto(schedule, cron, jobId, next));
     }
 
     // 通过 DB 中 triggerId 解析
     @GetMapping("/trigger/{id}/parse")
-    public ParseResultDTO parseTrigger(@PathVariable String id,
+    public AjaxResult parseTrigger(@PathVariable String id,
                                        @RequestParam(defaultValue = "5") int next) {
         TriggerEntity t = triggerService.getById(id);
         if (t == null) throw new NoSuchElementException("trigger not found: " + id);
         CronSchedule schedule = resolver.parse(t.getCron(), t.getJobId()+"");
-        return buildDto(schedule, t.getCron(), t.getJobId() + "" , next);
+        return AjaxResult.success(buildDto(schedule, t.getCron(), t.getJobId() + "" , next));
     }
 
     private ParseResultDTO buildDto(CronSchedule schedule, String cron, String jobId, int next) {
