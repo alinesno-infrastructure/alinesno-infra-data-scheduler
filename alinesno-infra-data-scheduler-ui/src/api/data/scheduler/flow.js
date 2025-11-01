@@ -51,7 +51,7 @@ export function getLastExecutedFlowNodes(processDefinitionId) {
 export function tryRun(processDefinitionId) {
     return request({
         url: managerUrl.tryRun + "?processDefinitionId=" + parseStrEmpty(processDefinitionId),
-        method: 'get'
+        method: 'post'
     })
 }
 
