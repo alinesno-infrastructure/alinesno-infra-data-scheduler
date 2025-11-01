@@ -46,7 +46,7 @@ public class WorkflowComputeEngineController  {
     @DataPermissionSave
     @PostMapping("/saveConfig")
     public AjaxResult saveConfig(@Valid @RequestBody ComputeEngineConfigDto config) {
-        R<Boolean> result = service.saveOrUpdateConfig(ComputeEngineConfigDto.toEntity(config));
+        R<Boolean> result = service.saveOrUpdateConfig(config) ; // ComputeEngineConfigDto.toEntity(config));
         return AjaxResult.success("保存成功");
     }
 
@@ -57,7 +57,7 @@ public class WorkflowComputeEngineController  {
             @RequestParam(value = "adminUser", required = false) String adminUser) {
 
         R<ProbeResultDto> result = service.probeEngineHealth(engineAddress, adminUser);
-        return AjaxResult.success(result);
+        return AjaxResult.success(result.getData());
     }
 
 }
