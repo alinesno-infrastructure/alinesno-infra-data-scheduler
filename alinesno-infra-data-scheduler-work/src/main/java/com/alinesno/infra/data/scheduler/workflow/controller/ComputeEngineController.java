@@ -1,6 +1,5 @@
 package com.alinesno.infra.data.scheduler.workflow.controller;
 
-import com.alinesno.infra.common.extend.datasource.annotation.DataPermissionSave;
 import com.alinesno.infra.common.facade.datascope.PermissionQuery;
 import com.alinesno.infra.common.facade.response.R;
 import com.alinesno.infra.common.web.adapter.rest.BaseController;
@@ -39,11 +38,10 @@ public class ComputeEngineController extends BaseController<ComputeEngineEntity,
      * @param config
      * @return
      */
-    @DataPermissionSave
     @PostMapping("/saveConfig")
-    public R<String> saveConfig(@Valid @RequestBody ComputeEngineConfigDto config) {
+    public R<Boolean> saveConfig(@Valid @RequestBody ComputeEngineConfigDto config) {
         service.saveOrUpdateConfig(ComputeEngineConfigDto.toEntity(config));
-        return R.ok("保存成功");
+        return R.ok(true);
     }
 
     // 添加到原有的 ComputeEngineController
