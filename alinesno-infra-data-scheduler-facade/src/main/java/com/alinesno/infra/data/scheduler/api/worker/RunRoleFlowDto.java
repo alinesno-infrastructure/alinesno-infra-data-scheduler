@@ -11,7 +11,9 @@ import java.util.Map;
  */
 @Data
 public class RunRoleFlowDto {
+
     private Long processDefinitionId  ;
+    private Long outTime = 300_000L ;
     private ProcessDefinitionEntity processDefinitionEntity ;
     private ExecutionStrategyEnums errorStrategy ;
     private Map<String , String> orgSecrets ;
