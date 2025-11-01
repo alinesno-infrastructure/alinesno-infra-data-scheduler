@@ -7,12 +7,11 @@ import com.alinesno.infra.data.scheduler.api.worker.RunRoleFlowDto;
 import com.alinesno.infra.data.scheduler.api.worker.WorkflowRequestDto;
 import com.alinesno.infra.data.scheduler.entity.worker.FlowEntity;
 import com.dtflys.forest.annotation.*;
-import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * 任务执行工作流
  */
-@BaseRequest(baseURL = "#{alinesno.data.scheduler.worker-node}/api/infra/data/scheduler/flow" , connectTimeout = 30*1000)
+@BaseRequest(baseURL = "#{alinesno.data.scheduler.worker-node}/api/infra/data/scheduler/flow" , readTimeout = 3600_000)
 public interface WorkerFlowConsumer {
 
     /**
