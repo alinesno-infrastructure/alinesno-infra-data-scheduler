@@ -4,14 +4,13 @@ import com.alinesno.infra.common.facade.response.R;
 import com.dtflys.forest.annotation.BaseRequest;
 import com.dtflys.forest.annotation.Get;
 import com.dtflys.forest.annotation.Query;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Map;
 
 /**
  * WorkerNodeLogConsumer
  */
-@BaseRequest(baseURL = "#{alinesno.data.scheduler.worker-node}/api/infra/data/scheduler/nodeLogs" , connectTimeout = 30*1000)
+@BaseRequest(baseURL = "#{alinesno.data.scheduler.worker-node}/api/infra/data/scheduler/nodeLogs" , readTimeout = 3600_000)
 public interface WorkerNodeLogConsumer {
 
     /**
