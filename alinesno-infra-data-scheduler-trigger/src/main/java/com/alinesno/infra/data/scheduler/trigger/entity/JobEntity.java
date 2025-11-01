@@ -19,6 +19,16 @@ import lombok.EqualsAndHashCode;
 public class JobEntity extends InfraBaseEntity {
 
     @TableField
-    @Column(name = "name", type = MySqlTypeConstant.VARCHAR, length = 255, isNull = false)
+    @Column(name = "process_id", type = MySqlTypeConstant.BIGINT, isNull = false , comment = "进程ID")
+    private Long processId ;
+
+    @TableField
+    @Column(name = "name", type = MySqlTypeConstant.VARCHAR, length = 255, isNull = false , comment = "名称")
     private String name;
+
+    // 描述
+    @TableField("remark")
+    @Column(name = "remark", type = MySqlTypeConstant.VARCHAR, length = 255, isNull = true , comment = "描述")
+    private String remark;
+
 }
