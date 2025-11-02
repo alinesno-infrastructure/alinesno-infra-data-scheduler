@@ -1,6 +1,5 @@
 package com.alinesno.infra.data.scheduler.quartz;
 
-import org.quartz.Scheduler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,17 +19,6 @@ public class SchedulerConfig {
 
    @Autowired
    private DataSource dataSource;
-
-   /**
-    * 创建Scheduler实例
-    *
-    * @return 创建的Scheduler实例
-    * @throws Exception 如果创建过程中出现异常则抛出
-    */
-   @Bean
-   public Scheduler scheduler() throws Exception {
-       return schedulerFactoryBean().getScheduler();
-   }
 
    /**
     * 创建SchedulerFactoryBean实例
