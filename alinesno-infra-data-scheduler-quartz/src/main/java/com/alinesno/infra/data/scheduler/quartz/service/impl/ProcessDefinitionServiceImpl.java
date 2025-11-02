@@ -11,7 +11,6 @@ import com.alinesno.infra.data.scheduler.adapter.CloudStorageConsumer;
 import com.alinesno.infra.data.scheduler.adapter.worker.WorkerFlowConsumer;
 import com.alinesno.infra.data.scheduler.api.*;
 import com.alinesno.infra.data.scheduler.api.worker.RunRoleFlowDto;
-import com.alinesno.infra.data.scheduler.constants.PipeConstants;
 import com.alinesno.infra.data.scheduler.entity.ProcessDefinitionEntity;
 import com.alinesno.infra.data.scheduler.entity.ProcessInstanceEntity;
 import com.alinesno.infra.data.scheduler.entity.TaskDefinitionEntity;
@@ -23,7 +22,6 @@ import com.alinesno.infra.data.scheduler.enums.ProcessStatusEnums;
 import com.alinesno.infra.data.scheduler.executor.IExecutorService;
 import com.alinesno.infra.data.scheduler.executor.bean.TaskInfoBean;
 import com.alinesno.infra.data.scheduler.quartz.mapper.ProcessDefinitionMapper;
-import com.alinesno.infra.data.scheduler.quartz.utils.CronConverter;
 import com.alinesno.infra.data.scheduler.quartz.utils.ProcessUtils;
 import com.alinesno.infra.data.scheduler.scheduler.IQuartzSchedulerService;
 import com.alinesno.infra.data.scheduler.service.*;
@@ -33,9 +31,6 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
-import org.quartz.JobKey;
-import org.quartz.Scheduler;
-import org.quartz.TriggerKey;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -78,9 +73,6 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
 
     @Value("${alinesno.file.local.path:${java.io.tmpdir}}")
     protected String localPath;
-
-    @Autowired
-    private Scheduler scheduler ;
 
     @Autowired
     private IResourceService resourceService;
@@ -371,7 +363,7 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
 
         ProcessDefinitionEntity processDefinition = this.getById(dto.getProcessDefineId()) ;
 
-        String cron = CronConverter.toQuartzCron(dto.getCron()) ;
+        String cron = dto.getCron() ;
 
         processDefinition.setScheduleCron(cron) ;
         this.saveOrUpdate(processDefinition);
@@ -384,9 +376,9 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
     public void deleteJob(String jobId) {
         removeById(jobId);
 
-        scheduler.pauseTrigger(TriggerKey.triggerKey(jobId, PipeConstants.TRIGGER_GROUP_NAME));//暂停触发器
-        scheduler.unscheduleJob(TriggerKey.triggerKey(jobId, PipeConstants.TRIGGER_GROUP_NAME));//移除触发器
-        scheduler.deleteJob(JobKey.jobKey(jobId, PipeConstants.JOB_GROUP_NAME));//删除Job
+//        scheduler.pauseTrigger(TriggerKey.triggerKey(jobId, PipeConstants.TRIGGER_GROUP_NAME));//暂停触发器
+//        scheduler.unscheduleJob(TriggerKey.triggerKey(jobId, PipeConstants.TRIGGER_GROUP_NAME));//移除触发器
+//        scheduler.deleteJob(JobKey.jobKey(jobId, PipeConstants.JOB_GROUP_NAME));//删除Job
     }
 
     @SneakyThrows
@@ -403,7 +395,7 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
             updateById(entity) ;
         }
 
-        scheduler.pauseTrigger(TriggerKey.triggerKey(jobId , PipeConstants.TRIGGER_GROUP_NAME));
+//        scheduler.pauseTrigger(TriggerKey.triggerKey(jobId , PipeConstants.TRIGGER_GROUP_NAME));
     }
 
 }
