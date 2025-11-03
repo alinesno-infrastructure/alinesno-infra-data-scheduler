@@ -28,16 +28,12 @@
 			<version>${revision}</version>
 		</dependency>
 
-<!--		<dependency>-->
-<!--			<groupId>com.github.kagkarlsson</groupId>-->
-<!--			<artifactId>db-scheduler</artifactId>-->
-<!--			<version>12.4.0</version>-->
-<!--		</dependency>-->
-
-<!--		<dependency>-->
-<!--			<groupId>org.springframework.boot</groupId>-->
-<!--			<artifactId>spring-boot-starter-quartz</artifactId>-->
-<!--		</dependency>-->
+		<!-- 引用触发器服务 -->
+		<dependency>
+			<groupId>com.alinesno.infra.data</groupId>
+			<artifactId>alinesno-infra-data-scheduler-trigger</artifactId>
+			<version>${revision}</version>
+		</dependency>
 
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
