@@ -17,14 +17,13 @@ import com.alinesno.infra.data.scheduler.entity.TaskDefinitionEntity;
 import com.alinesno.infra.data.scheduler.entity.TaskInstanceEntity;
 import com.alinesno.infra.data.scheduler.enums.ExecutionStrategyEnums;
 import com.alinesno.infra.data.scheduler.enums.ExecutorTypeEnums;
-import com.alinesno.infra.data.scheduler.enums.JobStatusEnums;
 import com.alinesno.infra.data.scheduler.enums.ProcessStatusEnums;
 import com.alinesno.infra.data.scheduler.executor.IExecutorService;
 import com.alinesno.infra.data.scheduler.executor.bean.TaskInfoBean;
 import com.alinesno.infra.data.scheduler.quartz.mapper.ProcessDefinitionMapper;
 import com.alinesno.infra.data.scheduler.quartz.utils.ProcessUtils;
-import com.alinesno.infra.data.scheduler.scheduler.IQuartzSchedulerService;
 import com.alinesno.infra.data.scheduler.service.*;
+import com.alinesno.infra.data.scheduler.trigger.service.IJobService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -50,8 +49,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Component
 public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefinitionEntity, ProcessDefinitionMapper> implements IProcessDefinitionService {
 
+//    @Autowired
+//    private IQuartzSchedulerService distSchedulerService;
+
     @Autowired
-    private IQuartzSchedulerService distSchedulerService;
+    private IJobService jobService;
 
     @Autowired
     private IEnvironmentService environmentService;
@@ -226,7 +228,7 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
         log.debug("saveProcessDefinition:{}", processId);
 
         // 生成job任务
-        distSchedulerService.addJob(processId + "", dto.getContext().getCronExpression());
+        // distSchedulerService.addJob(processId + "", dto.getContext().getCronExpression());
 
         return processId;
     }
@@ -349,13 +351,14 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
         this.saveOrUpdate(newProcessDefinition);
 
         // 生成job任务
-        long processId = newProcessDefinition.getId();
+//        long processId = newProcessDefinition.getId();
+//        JobStatusEnums jobStatus = distSchedulerService.getJobStatus(String.valueOf(processId));
+//        if(jobStatus == JobStatusEnums.NOT_FOUND){
+//            distSchedulerService.addJob(String.valueOf(processId), null);
+//        }
 
-        JobStatusEnums jobStatus = distSchedulerService.getJobStatus(String.valueOf(processId));
+        jobService.createJob(processDefinition) ;
 
-        if(jobStatus == JobStatusEnums.NOT_FOUND){
-            distSchedulerService.addJob(String.valueOf(processId), null);
-        }
     }
 
     @Override
@@ -368,17 +371,19 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
         processDefinition.setScheduleCron(cron) ;
         this.saveOrUpdate(processDefinition);
 
-        distSchedulerService.updateJobCron(String.valueOf(processDefinition.getId()), cron);
+        jobService.updateJobCron(String.valueOf(processDefinition.getId()), cron);
     }
 
     @SneakyThrows
     @Override
-    public void deleteJob(String jobId) {
-        removeById(jobId);
+    public void deleteJob(String processId) {
+        removeById(processId);
 
 //        scheduler.pauseTrigger(TriggerKey.triggerKey(jobId, PipeConstants.TRIGGER_GROUP_NAME));//暂停触发器
 //        scheduler.unscheduleJob(TriggerKey.triggerKey(jobId, PipeConstants.TRIGGER_GROUP_NAME));//移除触发器
 //        scheduler.deleteJob(JobKey.jobKey(jobId, PipeConstants.JOB_GROUP_NAME));//删除Job
+
+        jobService.deleteJob(processId) ;
     }
 
     @SneakyThrows
