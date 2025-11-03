@@ -268,7 +268,7 @@ public abstract class AbstractFlowNode implements FlowNode {
         Object nodeData = dto.getProperties().get("node_data") ;
         if(nodeData != null){
             JSONObject nodeDataJson = JSONObject.parseObject(nodeData.toString()) ;
-            if (Objects.nonNull(nodeDataJson)) {
+            if (Objects.nonNull(nodeDataJson) && nodeDataJson.get("isPrint") != null) {
                 try {
                     return nodeDataJson.getBoolean("isPrint");
                 }catch (Exception e){
