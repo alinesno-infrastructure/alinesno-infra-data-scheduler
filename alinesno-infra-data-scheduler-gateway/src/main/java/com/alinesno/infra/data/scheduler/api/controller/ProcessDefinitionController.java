@@ -15,7 +15,6 @@ import com.alinesno.infra.common.web.adapter.rest.BaseController;
 import com.alinesno.infra.data.scheduler.api.*;
 import com.alinesno.infra.data.scheduler.constants.PipeConstants;
 import com.alinesno.infra.data.scheduler.entity.ProcessDefinitionEntity;
-import com.alinesno.infra.data.scheduler.scheduler.IQuartzSchedulerService;
 import com.alinesno.infra.data.scheduler.service.ICategoryService;
 import com.alinesno.infra.data.scheduler.service.IProcessDefinitionService;
 import io.swagger.annotations.Api;
@@ -51,9 +50,6 @@ public class ProcessDefinitionController extends BaseController<ProcessDefinitio
 
     @Autowired
     private IProcessDefinitionService service;
-
-    @Autowired
-    private IQuartzSchedulerService quartzSchedulerService ;
 
     @Autowired
     private ICategoryService catalogService ;
