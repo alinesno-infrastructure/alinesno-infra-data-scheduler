@@ -55,15 +55,21 @@
                <!-- 业务字段-->
                <el-table-column label="任务名称" align="left" key="name" prop="name" v-if="columns[0].visible">
                   <template #default="scope">
+                     <!--
                      <div @click="openProcessInstance(scope.row)" style="cursor: pointer;">
-                        {{ scope.row.name }}
                      </div>
+                     -->
+                     <router-link :to="{ path: '/data/scheduler/processInstance/index', query: { processDefinitionId: scope.row.id , fromWhere: 'process' } }">
+                        {{ scope.row.name }}({{ scope.row.runCount }}/{{ scope.row.successCount }})
+                     </router-link>
                      <div style="font-size: 13px;color: #a5a5a5;cursor: pointer;" class="text-overflow"
                         v-copyText="scope.row.promptId">
                         {{ scope.row.description?scope.row.description:'当前任务没有描述'}}
                      </div>
                   </template>
                </el-table-column>
+
+               <!--
                <el-table-column label="运行次数" align="center" key="jobDesc" prop="jobDesc" v-if="columns[1].visible">
                   <template #default="scope">
                      <div style="margin-top: 5px;">
@@ -76,6 +82,7 @@
                      </div>
                   </template>
                </el-table-column>
+               -->
 
             </el-table>
             <pagination v-show="total > 0" :total="total" v-model:page="queryParams.pageNum"
