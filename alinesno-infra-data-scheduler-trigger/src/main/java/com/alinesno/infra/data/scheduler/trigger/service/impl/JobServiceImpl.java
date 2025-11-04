@@ -111,4 +111,67 @@ public class JobServiceImpl extends IBaseServiceImpl<JobEntity , JobMapper> impl
         triggerService.save(t);
         log.info("已创建新的触发器(id={})，任务ID={}, cron={}", t.getId(), job.getId(), t.getCron());
     }
+
+    @Override
+    public void pauseJob(String processId) {
+        ITriggerService triggerService = SpringUtils.getBean(ITriggerService.class);
+        BuildQueueService buildQueueService = SpringUtils.getBean(BuildQueueService.class);
+
+        LambdaQueryWrapper<JobEntity> jobWrapper = new LambdaQueryWrapper<>();
+        jobWrapper.eq(JobEntity::getProcessId, processId);
+        JobEntity job = getOne(jobWrapper);
+        if (job == null) {
+            log.warn("pauseJob: job not found for processId={}", processId);
+            return;
+        }
+
+        // 删除或禁用该 job 关联的触发器
+        LambdaQueryWrapper<TriggerEntity> triggerQuery = new LambdaQueryWrapper<>();
+        triggerQuery.eq(TriggerEntity::getJobId, job.getId());
+        triggerQuery.eq(TriggerEntity::getProcessId, processId);
+
+        // 简单处理：删除触发器（如果需恢复 cron，请先持久化 cron 信息）
+        TriggerEntity existing = triggerService.getOne(triggerQuery);
+        if (existing != null) {
+            log.info("Pausing job {} by removing trigger id={}", job.getId(), existing.getId());
+            // 如果需要恢复cron，请在 trigger 表中先保存原 cron 到一个字段（此处示例直接删除）
+            triggerService.remove(triggerQuery);
+        }
+
+        // 取消队列中的任务（按 jobId）
+        try {
+            buildQueueService.cancel(String.valueOf(job.getId()));
+        } catch (Exception ex) {
+            log.warn("pauseJob: cancel buildQueue failed for jobId={}, {}", job.getId(), ex.getMessage());
+        }
+    }
+
+    @Override
+    public void resumeJob(String processId, String cron) {
+        ITriggerService triggerService = SpringUtils.getBean(ITriggerService.class);
+
+        LambdaQueryWrapper<JobEntity> jobWrapper = new LambdaQueryWrapper<>();
+        jobWrapper.eq(JobEntity::getProcessId, processId);
+        JobEntity job = getOne(jobWrapper);
+        if (job == null) {
+            log.warn("resumeJob: job not found for processId={}", processId);
+            return;
+        }
+
+        if (cron == null || cron.trim().isEmpty()) {
+            // 如果系统能从 DB 读取原始 cron，请在此读取以恢复
+            log.warn("resumeJob: cron is null; ensure original cron is available in DB to resume properly.");
+            return;
+        }
+
+        // 创建新的触发器以恢复调度
+        TriggerEntity t = new TriggerEntity();
+        t.setId(IdUtil.getSnowflakeNextId());
+        t.setJobId(job.getId());
+        t.setProcessId(Long.valueOf(processId));
+        t.setCron(cron.trim());
+
+        triggerService.save(t);
+        log.info("Resumed job by creating trigger id={}, jobId={}, cron={}", t.getId(), job.getId(), t.getCron());
+    }
 }
