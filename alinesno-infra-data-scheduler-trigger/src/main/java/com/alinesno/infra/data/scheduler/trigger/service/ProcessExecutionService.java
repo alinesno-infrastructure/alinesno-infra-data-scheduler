@@ -16,6 +16,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -77,6 +78,13 @@ public class ProcessExecutionService {
 
         CompletableFuture<String>  future = processDefinitionService.runProcess(taskInfo, taskDefinitionList);
         future.get();
+
+        // 如果无异常
+        if(future.isDone()){
+            processDefinition.setSuccessCount(processDefinition.getSuccessCount() + 1) ;
+            processDefinition.setUpdateTime(new Date());
+            processDefinitionService.updateById(processDefinition);
+        }
 
     }
 }
