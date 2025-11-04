@@ -10,10 +10,6 @@ import com.alinesno.infra.data.scheduler.enums.ExecutionStrategyEnums;
 import com.alinesno.infra.data.scheduler.service.IProcessDefinitionService;
 import com.alinesno.infra.data.scheduler.service.ISecretsService;
 import lombok.extern.slf4j.Slf4j;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobKey;
-import org.quartz.Scheduler;
-import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -35,8 +31,8 @@ import java.util.Map;
 @RequestMapping("/api/infra/data/scheduler/flow")
 public class WorkerFlowController {
 
-    @Autowired
-    private Scheduler scheduler ;
+//    @Autowired
+//    private Scheduler scheduler ;
 
     @Autowired
     private IProcessDefinitionService processDefinitionService ;
@@ -66,63 +62,56 @@ public class WorkerFlowController {
 
         // 后端异步任务
         RunRoleFlowDto roleFlowDto = RunRoleFlowDto.form(processDefinitionId , process , errorStrategy , orgSecrets);
-        R<String> result = flowService.runRoleFlow(roleFlowDto) ;
 
-//        // 当 future 完成时设置 DeferredResult
-//        future.whenComplete((result, ex) -> {
-//            if (ex != null) {
-//                // 记录日志、包装错误信息
-//                // logger.error("tryRun failed", ex);
-//                deferred.setErrorResult(AjaxResult.error("流程试运行失败"));
-//            } else {
-//                // 可以把 result 放到 AjaxResult 的 data 中，或按需处理
-//                deferred.setResult(AjaxResult.success("流程试运行成功", result));
-//            }
-//        });
-//
-//        // 超时处理
-//        deferred.onTimeout(() -> {
-//            // 可取消底层任务，避免无意义的资源占用
-//            future.completeExceptionally(new java.util.concurrent.TimeoutException("执行超时"));
-//            deferred.setErrorResult(AjaxResult.error("请求超时，请稍后重试"));
-//        });
-//
-//        // 可选：完成时的清理逻辑
-//        deferred.onCompletion(() -> {
-//            // 比如记录完成、释放自定义资源等
-//        });
 
-        return deferred;
-    }
+        try{
+            R<String> result = flowService.runRoleFlow(roleFlowDto) ;
 
-    /**
-     * 停止正在运行的任务实例（尝试中断）
-     * @param processDefinitionId Job 的 id（即 JobKey.name）
-     */
-    @GetMapping("stopRun")
-    public AjaxResult stopRun(String processDefinitionId) throws SchedulerException {
-
-        Assert.hasLength(processDefinitionId , "任务标识为空");
-
-        List<JobExecutionContext> executingJobs = scheduler.getCurrentlyExecutingJobs();
-        boolean found = false;
-        for (JobExecutionContext executingJob : executingJobs) {
-            JobKey jobKey = executingJob.getJobDetail().getKey();
-            if (jobKey.getName().equals(processDefinitionId) && jobKey.getGroup().equals(PipeConstants.JOB_GROUP_NAME)) {
-                // 使用 fireInstanceId 精确中断该次执行实例
-                String fireInstanceId = executingJob.getFireInstanceId();
-                boolean interrupted = scheduler.interrupt(fireInstanceId);
-                log.info("请求中断 jobId={} fireInstanceId={} result={}", processDefinitionId, fireInstanceId, interrupted);
-                found = true;
+            if(R.isSuccess(result)){
+                // 更新执行结果
+                process.setSuccessCount(process.getSuccessCount() + 1) ;
+                processDefinitionService.updateById(process) ;
             }
-        }
 
-        if (!found) {
-            return AjaxResult.error("未发现正在运行的任务实例");
-        }
+            log.debug("任务执行结果：{}" , result);
 
-        return AjaxResult.success();
+            deferred.setResult(R.isSuccess(result)?AjaxResult.success("流程试运行成功", result.getData()) : AjaxResult.error("流程试运行失败")) ;
+            return deferred;
+        }catch (Exception e){
+           log.error("tryRun failed", e);
+           deferred.setErrorResult(AjaxResult.error("流程试运行失败，请确认是否发布流程"));
+           return deferred;
+        }
     }
+
+//    /**
+//     * 停止正在运行的任务实例（尝试中断）
+//     * @param processDefinitionId Job 的 id（即 JobKey.name）
+//     */
+//    @GetMapping("stopRun")
+//    public AjaxResult stopRun(String processDefinitionId) {
+//
+//        Assert.hasLength(processDefinitionId , "任务标识为空");
+//
+//        List<JobExecutionContext> executingJobs = scheduler.getCurrentlyExecutingJobs();
+//        boolean found = false;
+//        for (JobExecutionContext executingJob : executingJobs) {
+//            JobKey jobKey = executingJob.getJobDetail().getKey();
+//            if (jobKey.getName().equals(processDefinitionId) && jobKey.getGroup().equals(PipeConstants.JOB_GROUP_NAME)) {
+//                // 使用 fireInstanceId 精确中断该次执行实例
+//                String fireInstanceId = executingJob.getFireInstanceId();
+//                boolean interrupted = scheduler.interrupt(fireInstanceId);
+//                log.info("请求中断 jobId={} fireInstanceId={} result={}", processDefinitionId, fireInstanceId, interrupted);
+//                found = true;
+//            }
+//        }
+//
+//        if (!found) {
+//            return AjaxResult.error("未发现正在运行的任务实例");
+//        }
+//
+//        return AjaxResult.success();
+//    }
 
     /**
      * 发布工作流接口
