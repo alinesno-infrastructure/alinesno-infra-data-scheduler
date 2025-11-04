@@ -74,4 +74,17 @@ public interface IProcessDefinitionService extends IBaseService<ProcessDefinitio
      * 暂停任务
      */
     void pauseJob(Long jobId);
+
+    /**
+     * 暂停触发器
+     * @param jobId
+     */
+    void pauseTrigger(String jobId);
+
+    /**
+     * 启动触发器
+     * @param jobId
+     */
+    void resumeTrigger(String jobId);
+
 }
