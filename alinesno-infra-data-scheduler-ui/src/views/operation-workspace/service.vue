@@ -69,7 +69,7 @@ import {
 const router = useRouter()
 
 const opertionAssets = ref([
-  { id: '6', title: '总项目数', enTitle: 'projectCount', count: 0},
+  { id: '6', title: '排队任务', enTitle: 'queueCount', count: 0},
   { id: '1', title: '总任务', enTitle: 'taskCount', count: 0},
   { id: '2', title: '运行中', enTitle: 'runningTaskCount', count: 0},
   { id: '3', title: '异常任务', enTitle: 'errorTaskCount', count: 0},
