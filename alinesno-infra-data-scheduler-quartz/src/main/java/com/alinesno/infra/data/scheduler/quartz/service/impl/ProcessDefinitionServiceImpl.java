@@ -403,6 +403,34 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
 //        scheduler.pauseTrigger(TriggerKey.triggerKey(jobId , PipeConstants.TRIGGER_GROUP_NAME));
     }
 
+    @Override
+    public void pauseTrigger(String jobId) {
+
+        // 更新online状态
+        ProcessDefinitionEntity entity = getById(jobId) ;
+
+        // 判断是否定义cron表达式
+        Assert.isTrue(StringUtils.isNotBlank(entity.getScheduleCron()) , "请定义cron表达式.");
+
+        entity.setOnline(false);
+        updateById(entity) ;
+
+        jobService.pauseJob(jobId); ;
+
+    }
+
+    @Override
+    public void resumeTrigger(String jobId) {
+
+        // 更新online状态
+        ProcessDefinitionEntity entity = getById(jobId) ;
+        entity.setOnline(true);
+        updateById(entity) ;
+
+        // 恢复Trigger
+        jobService.resumeJob(jobId , entity.getScheduleCron());
+    }
+
 }
 
 
