@@ -13,12 +13,12 @@
       <el-row :gutter="20">
 
          <!--实例数据-->
-         <el-col :span="10" :xs="24">
+         <el-col :span="9" :xs="24">
             <LeftProcessDefinitionPanel />
          </el-col>
 
          <!--实例数据-->
-         <el-col :span="14" :xs="24">
+         <el-col :span="15" :xs="24">
             <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="100px">
                <el-form-item label="实例名称" prop="dbName">
                   <el-input v-model="queryParams.dbName" placeholder="请输入实例名称" clearable style="width: 240px"
