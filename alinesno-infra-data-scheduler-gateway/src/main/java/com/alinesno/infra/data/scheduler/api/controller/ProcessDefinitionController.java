@@ -21,10 +21,6 @@ import io.swagger.annotations.Api;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.builder.ToStringBuilder;
-import org.quartz.JobKey;
-import org.quartz.Scheduler;
-import org.quartz.SchedulerException;
-import org.quartz.TriggerKey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.ui.Model;
@@ -54,8 +50,8 @@ public class ProcessDefinitionController extends BaseController<ProcessDefinitio
     @Autowired
     private ICategoryService catalogService ;
 
-    @Autowired
-    private Scheduler scheduler ;
+//    @Autowired
+//    private Scheduler scheduler ;
 
     /**
      * 获取TransEntity的DataTables数据。
@@ -159,18 +155,13 @@ public class ProcessDefinitionController extends BaseController<ProcessDefinitio
      * @return
      */
     @PostMapping("pauseTrigger")
-    public AjaxResult pauseTrigger(String jobId) throws SchedulerException {
+    public AjaxResult pauseTrigger(String jobId) {
 
-        // 更新online状态
-        ProcessDefinitionEntity entity = service.getById(jobId) ;
+        // 暂停触发器
+        service.pauseTrigger(jobId) ;
 
-        // 判断是否定义cron表达式
-        Assert.isTrue(StringUtils.isNotBlank(entity.getScheduleCron()) , "请定义cron表达式.");
+//        scheduler.pauseTrigger(TriggerKey.triggerKey(jobId , PipeConstants.TRIGGER_GROUP_NAME));
 
-        entity.setOnline(false);
-        service.updateById(entity) ;
-
-        scheduler.pauseTrigger(TriggerKey.triggerKey(jobId , PipeConstants.TRIGGER_GROUP_NAME));
         return AjaxResult.success();
     }
 
@@ -180,10 +171,10 @@ public class ProcessDefinitionController extends BaseController<ProcessDefinitio
      * @return
      */
     @PostMapping("runOneTime")
-    public AjaxResult runOneTime(String jobId) throws SchedulerException {
+    public AjaxResult runOneTime(String jobId) {
 
-        JobKey jobKey = JobKey.jobKey(jobId,PipeConstants.JOB_GROUP_NAME);
-        scheduler.triggerJob(jobKey);
+//        JobKey jobKey = JobKey.jobKey(jobId,PipeConstants.JOB_GROUP_NAME);
+//        scheduler.triggerJob(jobKey);
 
         return AjaxResult.success() ;
     }
@@ -194,14 +185,12 @@ public class ProcessDefinitionController extends BaseController<ProcessDefinitio
      * @return
      */
     @PostMapping("startJob")
-    public AjaxResult startJob(String jobId) throws SchedulerException {
+    public AjaxResult startJob(String jobId) {
 
-        // 更新online状态
-        ProcessDefinitionEntity entity = service.getById(jobId) ;
-        entity.setOnline(true);
-        service.updateById(entity) ;
+        service.resumeTrigger(jobId) ;
 
-        scheduler.resumeTrigger(TriggerKey.triggerKey(jobId , PipeConstants.TRIGGER_GROUP_NAME));//恢复Trigger
+//        scheduler.resumeTrigger(TriggerKey.triggerKey(jobId , PipeConstants.TRIGGER_GROUP_NAME));//恢复Trigger
+
         return AjaxResult.success();
     }
 
@@ -211,14 +200,15 @@ public class ProcessDefinitionController extends BaseController<ProcessDefinitio
      * @return
      */
     @PostMapping("unscheduleJob")
-    public AjaxResult unscheduleJob(String jobId) throws SchedulerException {
+    public AjaxResult unscheduleJob(String jobId) {
 
         // 更新online状态
         ProcessDefinitionEntity entity = service.getById(jobId) ;
         entity.setOnline(false);
         service.updateById(entity) ;
 
-        scheduler.unscheduleJob(TriggerKey.triggerKey(jobId , PipeConstants.TRIGGER_GROUP_NAME));//移除触发器
+//        scheduler.unscheduleJob(TriggerKey.triggerKey(jobId , PipeConstants.TRIGGER_GROUP_NAME));//移除触发器
+
         return AjaxResult.success();
     }
 
@@ -228,18 +218,21 @@ public class ProcessDefinitionController extends BaseController<ProcessDefinitio
      * @return
      */
     @PostMapping("resumeTrigger")
-    public AjaxResult resumeTrigger(String jobId) throws SchedulerException {
+    public AjaxResult resumeTrigger(String jobId) {
 
-        // 更新online状态
-        ProcessDefinitionEntity entity = service.getById(jobId) ;
+//        // 更新online状态
+//        ProcessDefinitionEntity entity = service.getById(jobId) ;
+//
+//        // 判断是否定义cron表达式
+//        Assert.isTrue(StringUtils.isNotBlank(entity.getScheduleCron()) , "请定义cron表达式.");
+//
+//        entity.setOnline(true);
+//        service.updateById(entity) ;
 
-        // 判断是否定义cron表达式
-        Assert.isTrue(StringUtils.isNotBlank(entity.getScheduleCron()) , "请定义cron表达式.");
+        service.resumeTrigger(jobId) ;
 
-        entity.setOnline(true);
-        service.updateById(entity) ;
 
-        scheduler.resumeTrigger(TriggerKey.triggerKey(jobId , PipeConstants.TRIGGER_GROUP_NAME)) ;
+//        scheduler.resumeTrigger(TriggerKey.triggerKey(jobId , PipeConstants.TRIGGER_GROUP_NAME)) ;
         return AjaxResult.success();
     }
 
@@ -248,7 +241,7 @@ public class ProcessDefinitionController extends BaseController<ProcessDefinitio
      * @return
      */
     @PostMapping("updateProcessDefineCron")
-    public AjaxResult updateProcessDefineCron(@RequestBody @Validated ProcessDefineCronDto dto) throws SchedulerException {
+    public AjaxResult updateProcessDefineCron(@RequestBody @Validated ProcessDefineCronDto dto) {
         service.updateProcessDefineCron(dto) ;
         return AjaxResult.success() ;
     }
@@ -258,10 +251,9 @@ public class ProcessDefinitionController extends BaseController<ProcessDefinitio
      * @return
      */
     @DeleteMapping("deleteJob")
-    public AjaxResult deleteJob(@RequestParam String jobId) throws SchedulerException {
+    public AjaxResult deleteJob(@RequestParam String jobId) {
 
         service.deleteJob(jobId);
-
         return AjaxResult.success();
     }
 
