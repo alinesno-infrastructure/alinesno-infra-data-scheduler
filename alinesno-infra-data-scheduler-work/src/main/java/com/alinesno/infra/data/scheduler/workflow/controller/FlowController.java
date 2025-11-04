@@ -13,10 +13,10 @@ import com.alinesno.infra.data.scheduler.enums.ExecutionStrategyEnums;
 import com.alinesno.infra.data.scheduler.workflow.service.IFlowExecutionService;
 import com.alinesno.infra.data.scheduler.workflow.service.IFlowService;
 import lombok.extern.slf4j.Slf4j;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobKey;
-import org.quartz.Scheduler;
-import org.quartz.SchedulerException;
+//import org.quartz.JobExecutionContext;
+//import org.quartz.JobKey;
+//import org.quartz.Scheduler;
+//import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -43,8 +43,8 @@ public class FlowController {
     @Autowired
     private IFlowExecutionService flowExecutionService;
 
-    @Autowired
-    private Scheduler scheduler ;
+//    @Autowired
+//    private Scheduler scheduler ;
 
     @Autowired
     private IFlowService flowService;
@@ -185,26 +185,26 @@ public class FlowController {
      * @param processDefinitionId Job 的 id（即 JobKey.name）
      */
     @GetMapping("stopRun")
-    public AjaxResult stopRun(String processDefinitionId) throws SchedulerException {
+    public AjaxResult stopRun(String processDefinitionId) {
 
         Assert.hasLength(processDefinitionId , "任务标识为空");
 
-        List<JobExecutionContext> executingJobs = scheduler.getCurrentlyExecutingJobs();
-        boolean found = false;
-        for (JobExecutionContext executingJob : executingJobs) {
-            JobKey jobKey = executingJob.getJobDetail().getKey();
-            if (jobKey.getName().equals(processDefinitionId) && jobKey.getGroup().equals(PipeConstants.JOB_GROUP_NAME)) {
-                // 使用 fireInstanceId 精确中断该次执行实例
-                String fireInstanceId = executingJob.getFireInstanceId();
-                boolean interrupted = scheduler.interrupt(fireInstanceId);
-                log.info("请求中断 jobId={} fireInstanceId={} result={}", processDefinitionId, fireInstanceId, interrupted);
-                found = true;
-            }
-        }
+//        List<JobExecutionContext> executingJobs = scheduler.getCurrentlyExecutingJobs();
+//        boolean found = false;
+//        for (JobExecutionContext executingJob : executingJobs) {
+//            JobKey jobKey = executingJob.getJobDetail().getKey();
+//            if (jobKey.getName().equals(processDefinitionId) && jobKey.getGroup().equals(PipeConstants.JOB_GROUP_NAME)) {
+//                // 使用 fireInstanceId 精确中断该次执行实例
+//                String fireInstanceId = executingJob.getFireInstanceId();
+//                boolean interrupted = scheduler.interrupt(fireInstanceId);
+//                log.info("请求中断 jobId={} fireInstanceId={} result={}", processDefinitionId, fireInstanceId, interrupted);
+//                found = true;
+//            }
+//        }
 
-        if (!found) {
-            return AjaxResult.error("未发现正在运行的任务实例");
-        }
+//        if (!found) {
+//            return AjaxResult.error("未发现正在运行的任务实例");
+//        }
 
         return AjaxResult.success();
     }
