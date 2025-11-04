@@ -63,10 +63,12 @@
             <el-table v-loading="loading" :data="ProcessDefinitionList" @selection-change="handleSelectionChange">
                <el-table-column type="selection" width="50" align="center" />
 
-               <el-table-column align="center" width="40" key="icon">
+               <el-table-column align="center" width="60" key="icon" label="状态">
                   <template #default="scope">
                      <div style="font-size:20px;color:#3b5998">
-                        <i :class="scope.row.icon"></i>
+                        <el-button type="primary" circle>
+                        <i class="fa-solid fa-check"></i>
+                        </el-button>
                      </div>
                   </template>
                </el-table-column>
