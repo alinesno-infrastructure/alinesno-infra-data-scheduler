@@ -1,8 +1,8 @@
 package com.alinesno.infra.data.scheduler.workflow.utils;
 
+import com.alinesno.infra.data.scheduler.api.logger.NodeLog;
 import com.alinesno.infra.data.scheduler.api.worker.FlowNodeDto;
 import com.alinesno.infra.data.scheduler.entity.worker.FlowExecutionEntity;
-import com.alinesno.infra.data.scheduler.api.logger.NodeLog;
 import com.alinesno.infra.data.scheduler.workflow.logger.NodeLogService;
 import lombok.extern.slf4j.Slf4j;
 
