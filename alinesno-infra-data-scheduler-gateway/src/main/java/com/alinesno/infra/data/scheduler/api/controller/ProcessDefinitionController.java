@@ -50,9 +50,6 @@ public class ProcessDefinitionController extends BaseController<ProcessDefinitio
     @Autowired
     private ICategoryService catalogService ;
 
-//    @Autowired
-//    private Scheduler scheduler ;
-
     /**
      * 获取TransEntity的DataTables数据。
      *
@@ -160,8 +157,6 @@ public class ProcessDefinitionController extends BaseController<ProcessDefinitio
         // 暂停触发器
         service.pauseTrigger(jobId) ;
 
-//        scheduler.pauseTrigger(TriggerKey.triggerKey(jobId , PipeConstants.TRIGGER_GROUP_NAME));
-
         return AjaxResult.success();
     }
 
@@ -188,8 +183,6 @@ public class ProcessDefinitionController extends BaseController<ProcessDefinitio
     public AjaxResult startJob(String jobId) {
 
         service.resumeTrigger(jobId) ;
-
-//        scheduler.resumeTrigger(TriggerKey.triggerKey(jobId , PipeConstants.TRIGGER_GROUP_NAME));//恢复Trigger
 
         return AjaxResult.success();
     }
