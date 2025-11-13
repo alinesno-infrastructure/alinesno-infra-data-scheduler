@@ -31,9 +31,6 @@ import java.util.Map;
 @RequestMapping("/api/infra/data/scheduler/flow")
 public class WorkerFlowController {
 
-//    @Autowired
-//    private Scheduler scheduler ;
-
     @Autowired
     private IProcessDefinitionService processDefinitionService ;
 
