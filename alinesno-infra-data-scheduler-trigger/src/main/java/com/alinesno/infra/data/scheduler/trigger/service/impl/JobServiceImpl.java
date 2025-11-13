@@ -164,14 +164,24 @@ public class JobServiceImpl extends IBaseServiceImpl<JobEntity , JobMapper> impl
             return;
         }
 
-        // 创建新的触发器以恢复调度
-        TriggerEntity t = new TriggerEntity();
-        t.setId(IdUtil.getSnowflakeNextId());
+        TriggerEntity t = null ;
+
+        // 先判断触发器是否已存在
+        LambdaQueryWrapper<TriggerEntity> triggerQuery = new LambdaQueryWrapper<>();
+        triggerQuery.eq(TriggerEntity::getJobId, job.getId());
+        t = triggerService.getOne(triggerQuery);
+
+        if(t == null){
+            // 创建新的触发器以恢复调度
+            t = new TriggerEntity();
+            t.setId(IdUtil.getSnowflakeNextId());
+        }
+
         t.setJobId(job.getId());
         t.setProcessId(Long.valueOf(processId));
         t.setCron(cron.trim());
 
-        triggerService.save(t);
+        triggerService.saveOrUpdate(t);
         log.info("Resumed job by creating trigger id={}, jobId={}, cron={}", t.getId(), job.getId(), t.getCron());
     }
 }
