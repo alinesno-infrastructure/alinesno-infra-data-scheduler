@@ -66,8 +66,8 @@
                <el-table-column align="center" width="60" key="icon" label="状态">
                   <template #default="scope">
                      <div style="font-size:20px;color:#3b5998">
-                        <el-button type="primary" circle>
-                        <i class="fa-solid fa-check"></i>
+                        <el-button type="primary" size="small" circle>
+                            <i class="fa-solid fa-signature"></i>
                         </el-button>
                      </div>
                   </template>
