@@ -37,9 +37,6 @@ public class DashboardController extends SuperController {
     @Autowired
     private IProcessDefinitionService processDefinitionService ;
 
-//    @Autowired
-//    private IProjectService projectService; ;
-
     @Autowired
     private IProcessInstanceService processInstanceService;
 
