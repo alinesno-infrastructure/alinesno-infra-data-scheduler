@@ -29,7 +29,7 @@ public class FlowEntity extends InfraBaseEntity {
     private Long processDefinitionId;
 
     @TableField(value = "flow_graph_json")
-    @ColumnType(value = MySqlTypeConstant.TEXT)
+    @ColumnType(value = MySqlTypeConstant.MEDIUMTEXT)
     @ColumnComment("工作流图JSON数据")
     private String flowGraphJson; // 工作流图JSON数据
 
