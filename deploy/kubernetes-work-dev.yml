@@ -37,9 +37,31 @@ spec:
       containers:
         - name: ${PROJECT_NAME}
           image: ${ALIYUN_CR_REGISTORY}/${ALIYUN_CR_NAMESPACE}/${PROJECT_NAME}:${VERSION}
+          resources:
+            requests:
+              memory: "6Gi"
+              cpu: "1000m"
+            limits:
+              memory: "12Gi"
+              cpu: "3000m"
           env:
             - name: JAVA_TOOL_OPTIONS
               value: |
+                
+                -Xmx8g -Xms8g 
+                -XX:+UseG1GC 
+                -XX:MaxGCPauseMillis=200 
+                -XX:ParallelGCThreads=3 
+                -XX:ConcGCThreads=1 
+                -XX:InitiatingHeapOccupancyPercent=35 
+                -XX:+ParallelRefProcEnabled 
+                -XX:+ExplicitGCInvokesConcurrent 
+                -XX:+HeapDumpOnOutOfMemoryError 
+                -XX:HeapDumpPath=/tmp/heapdump.hprof 
+                -XX:MaxRAMPercentage=75.0 
+                -Djava.util.concurrent.ForkJoinPool.common.parallelism=6 
+                -Dio.netty.eventLoopThreads=6 
+                
                 -Dsa-token.jwt-secret-key=ENC(${SA_TOKEN_JWT_SECRET_KEY})
                 -Dsa-token.sign.secret-key=ENC(${SA_TOKEN_SIGN_SECRET_KEY})
 
