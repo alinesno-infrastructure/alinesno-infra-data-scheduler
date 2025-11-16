@@ -168,8 +168,7 @@ public class ProcessDefinitionController extends BaseController<ProcessDefinitio
     @PostMapping("runOneTime")
     public AjaxResult runOneTime(String jobId) {
 
-//        JobKey jobKey = JobKey.jobKey(jobId,PipeConstants.JOB_GROUP_NAME);
-//        scheduler.triggerJob(jobKey);
+        service.runOneTime(jobId) ;
 
         return AjaxResult.success() ;
     }
