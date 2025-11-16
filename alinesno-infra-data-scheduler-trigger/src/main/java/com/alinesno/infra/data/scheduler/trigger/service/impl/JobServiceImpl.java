@@ -4,6 +4,7 @@ import cn.hutool.core.util.IdUtil;
 import com.alinesno.infra.common.core.service.impl.IBaseServiceImpl;
 import com.alinesno.infra.common.web.log.utils.SpringUtils;
 import com.alinesno.infra.data.scheduler.entity.ProcessDefinitionEntity;
+import com.alinesno.infra.data.scheduler.trigger.bean.BuildTask;
 import com.alinesno.infra.data.scheduler.trigger.entity.JobEntity;
 import com.alinesno.infra.data.scheduler.trigger.entity.TriggerEntity;
 import com.alinesno.infra.data.scheduler.trigger.mapper.JobMapper;
@@ -26,15 +27,20 @@ public class JobServiceImpl extends IBaseServiceImpl<JobEntity , JobMapper> impl
     @Override
     public void createJob(ProcessDefinitionEntity processDefinition) {
 
-        JobEntity job = new JobEntity();
+        LambdaQueryWrapper<JobEntity> jobWrapper = new LambdaQueryWrapper<>();
+        jobWrapper.eq(JobEntity::getProcessId, processDefinition.getId());
+        JobEntity job = getOne(jobWrapper);
 
-        job.setId(IdUtil.getSnowflakeNextId());
+        if(job == null){
+            job = new JobEntity();
+            job.setId(IdUtil.getSnowflakeNextId());
+        }
+
         job.setProcessId(processDefinition.getId());
         job.setName(processDefinition.getName());
         job.setRemark(processDefinition.getDescription());
 
-        save(job);
-
+        saveOrUpdate(job);
     }
 
     @Override
@@ -183,5 +189,31 @@ public class JobServiceImpl extends IBaseServiceImpl<JobEntity , JobMapper> impl
 
         triggerService.saveOrUpdate(t);
         log.info("Resumed job by creating trigger id={}, jobId={}, cron={}", t.getId(), job.getId(), t.getCron());
+    }
+
+    @Override
+    public BuildTask runOneTime(String processId) {
+        if (processId == null) {
+            throw new IllegalArgumentException("processId null");
+        }
+
+        // 查找 job，必须存在，否则直接失败
+        LambdaQueryWrapper<JobEntity> jobWrapper = new LambdaQueryWrapper<>();
+        jobWrapper.eq(JobEntity::getProcessId, processId);
+        JobEntity job = getOne(jobWrapper);
+
+        // 这里会在 job == null 时抛出 IllegalArgumentException，满足“必须有 job 否则不执行并报异常”的要求
+        Assert.notNull(job, "任务没有找到，runOneTime 失败.");
+
+        BuildQueueService buildQueueService = SpringUtils.getBean(BuildQueueService.class);
+
+        try {
+            BuildTask task = buildQueueService.runNow(job, null);
+            log.info("runOneTime: enqueued one-time jobId={}, taskId={}", job.getId(), task == null ? "null" : task.getId());
+            return task;
+        } catch (Exception ex) {
+            log.error("runOneTime: enqueue failed for processId={}, error={}", processId, ex.getMessage(), ex);
+            throw new RuntimeException("runOneTime: enqueue failed", ex);
+        }
     }
 }
