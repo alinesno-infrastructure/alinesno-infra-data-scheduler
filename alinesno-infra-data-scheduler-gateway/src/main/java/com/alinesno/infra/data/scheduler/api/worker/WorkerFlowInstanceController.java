@@ -1,7 +1,5 @@
 package com.alinesno.infra.data.scheduler.api.worker;
 
-import cn.dev33.satoken.context.SaTokenContext;
-import cn.dev33.satoken.stp.StpUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alinesno.infra.common.core.constants.SpringInstanceScope;
@@ -9,10 +7,10 @@ import com.alinesno.infra.common.extend.datasource.annotation.DataPermissionScop
 import com.alinesno.infra.common.facade.pageable.ConditionDto;
 import com.alinesno.infra.common.facade.pageable.DatatablesPageBean;
 import com.alinesno.infra.common.facade.pageable.TableDataInfo;
+import com.alinesno.infra.common.facade.response.AjaxResult;
 import com.alinesno.infra.common.facade.response.R;
 import com.alinesno.infra.data.scheduler.adapter.worker.WorkerFlowExecutionConsumer;
 import com.alinesno.infra.data.scheduler.api.utils.LocalConditionUtils;
-import com.alinesno.infra.data.scheduler.api.utils.TokenUtils;
 import com.alinesno.infra.data.scheduler.entity.ProcessDefinitionEntity;
 import com.alinesno.infra.data.scheduler.entity.worker.FlowExecutionEntity;
 import com.alinesno.infra.data.scheduler.enums.worker.FlowExecutionStatus;
@@ -26,10 +24,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -110,5 +105,12 @@ public class WorkerFlowInstanceController {
 
         return tableDataInfo ;
     }
+
+    @DeleteMapping({"delete/{ids}"})
+    public AjaxResult delete(@PathVariable String ids) {
+        R<Void> ret = service.delete(ids);
+        return R.isSuccess(ret) ? AjaxResult.success() : AjaxResult.error(ret.getMsg());
+    }
+
 
 }
