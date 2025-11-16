@@ -2,6 +2,7 @@ package com.alinesno.infra.data.scheduler.trigger.service;
 
 import com.alinesno.infra.common.facade.services.IBaseService;
 import com.alinesno.infra.data.scheduler.entity.ProcessDefinitionEntity;
+import com.alinesno.infra.data.scheduler.trigger.bean.BuildTask;
 import com.alinesno.infra.data.scheduler.trigger.entity.JobEntity;
 
 /**
@@ -40,4 +41,11 @@ public interface IJobService extends IBaseService<JobEntity> {
      * @param cron 恢复时使用的 cron 表达式（如果系统能从 DB 读取原始 cron，可允许为 null）
      */
     void resumeJob(String processId, String cron);
+
+    /**
+     * 运行一次任务
+     * @param processId
+     * @return
+     */
+    BuildTask runOneTime(String processId);
 }
