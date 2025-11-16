@@ -2,9 +2,8 @@ package com.alinesno.infra.data.scheduler.adapter.worker;
 
 import com.alinesno.infra.common.facade.pageable.DatatablesPageBean;
 import com.alinesno.infra.common.facade.pageable.TableDataInfo;
-import com.dtflys.forest.annotation.BaseRequest;
-import com.dtflys.forest.annotation.JSONBody;
-import com.dtflys.forest.annotation.Post;
+import com.alinesno.infra.common.facade.response.R;
+import com.dtflys.forest.annotation.*;
 
 /**
  * 流程执行工作流
@@ -20,4 +19,11 @@ public interface WorkerFlowExecutionConsumer {
     @Post("/datatables")
     TableDataInfo datatables(@JSONBody DatatablesPageBean page) ;
 
+    /**
+     * 删除流程执行
+     * @param ids
+     * @return
+     */
+    @Delete("/delete/{ids}")
+    R<Void> delete(@Var("ids") String ids);
 }
