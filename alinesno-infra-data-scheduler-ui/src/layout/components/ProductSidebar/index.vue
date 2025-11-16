@@ -1,6 +1,6 @@
 <template>
   <div class="siderbar">
-    <el-menu default-active="1" class="el-menu-vertical" :collapse="isCollapse" @open="handleOpen" @close="handleClose">
+    <el-menu default-active="1" class="el-menu-vertical acp-suggest" :collapse="isCollapse" @open="handleOpen" @close="handleClose">
       <el-menu-item index="1" @click="jumpTo" class="menu-item">
         <i class="fa-solid fa-desktop"></i>
         <span>
@@ -19,7 +19,7 @@
 
     </el-menu>
 
-    <el-menu style="" class="el-menu-vertical acp-suggest" :collapse="isCollapse" @open="handleOpen" @close="handleClose">
+    <el-menu style="" class="el-menu-vertical acp-suggest acp-suggest-btn" :collapse="isCollapse" @open="handleOpen" @close="handleClose">
       <!-- <el-tooltip effect="dark" :content="item.desc" v-for="item in footerMenuItems" :key="item.id" placement="right"> -->
           <el-menu-item 
             :index="item.id" 
@@ -89,6 +89,11 @@ function openSmartService() {
 }
 
 .acp-suggest {
+  width: calc(100% - 4px) !important;
+  border-right: 0px !important;
+}
+
+.acp-suggest-btn {
   bottom: 20px;
   position: absolute;
 }
