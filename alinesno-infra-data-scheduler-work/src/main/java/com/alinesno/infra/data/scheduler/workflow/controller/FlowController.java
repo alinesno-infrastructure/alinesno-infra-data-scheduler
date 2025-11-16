@@ -37,9 +37,6 @@ public class FlowController {
     @Autowired
     private IFlowExecutionService flowExecutionService;
 
-//    @Autowired
-//    private Scheduler scheduler ;
-
     @Autowired
     private IFlowService flowService;
 
@@ -84,41 +81,6 @@ public class FlowController {
 
         return deferred;
     }
-
-//    /**
-//     * 运行角色工作流
-//     * @param runRoleFlowDto
-//     * @return
-//     * @throws SchedulerException
-//     */
-//    @PostMapping("/runRoleFlow")
-//    public R<String> runRoleFlow(@RequestBody RunRoleFlowDto runRoleFlowDto) {
-//
-//        Long processDefinitionId = runRoleFlowDto.getProcessDefinitionId();
-//        ProcessDefinitionEntity processDefinitionEntity = runRoleFlowDto.getProcessDefinitionEntity();
-//        ExecutionStrategyEnums errorStrategy = runRoleFlowDto.getErrorStrategy();
-//        Map<String , String> orgSecrets = runRoleFlowDto.getOrgSecrets();
-//
-//        log.debug("processDefinitionId: {}" , processDefinitionId);
-//        log.debug("processDefinitionEntity: {}" , processDefinitionEntity);
-//        log.debug("errorStrategy: {}" , errorStrategy);
-//        log.debug("orgSecrets: {}" , orgSecrets);
-//
-//        CompletableFuture<String> future = flowService.runRoleFlow(processDefinitionId , processDefinitionEntity , errorStrategy , orgSecrets);
-//
-//        String executionId = null;
-//        try {
-//            // future 是已经完成的 completedFuture，所以 get()/join() 会立即返回
-//            executionId = future.get();
-//        } catch (Exception e) {
-//            log.error("生成执行实例失败", e);
-//            return R.fail() ;
-//        }
-//
-//        // 返回执行id 给调用方
-//        return R.ok(executionId);
-//    }
-
 
     @PostMapping("/runRoleFlow")
     public DeferredResult<R<String>> runRoleFlow(@RequestBody RunRoleFlowDto runRoleFlowDto) {
@@ -180,26 +142,7 @@ public class FlowController {
      */
     @GetMapping("stopRun")
     public AjaxResult stopRun(String processDefinitionId) {
-
         Assert.hasLength(processDefinitionId , "任务标识为空");
-
-//        List<JobExecutionContext> executingJobs = scheduler.getCurrentlyExecutingJobs();
-//        boolean found = false;
-//        for (JobExecutionContext executingJob : executingJobs) {
-//            JobKey jobKey = executingJob.getJobDetail().getKey();
-//            if (jobKey.getName().equals(processDefinitionId) && jobKey.getGroup().equals(PipeConstants.JOB_GROUP_NAME)) {
-//                // 使用 fireInstanceId 精确中断该次执行实例
-//                String fireInstanceId = executingJob.getFireInstanceId();
-//                boolean interrupted = scheduler.interrupt(fireInstanceId);
-//                log.info("请求中断 jobId={} fireInstanceId={} result={}", processDefinitionId, fireInstanceId, interrupted);
-//                found = true;
-//            }
-//        }
-
-//        if (!found) {
-//            return AjaxResult.error("未发现正在运行的任务实例");
-//        }
-
         return AjaxResult.success();
     }
 
