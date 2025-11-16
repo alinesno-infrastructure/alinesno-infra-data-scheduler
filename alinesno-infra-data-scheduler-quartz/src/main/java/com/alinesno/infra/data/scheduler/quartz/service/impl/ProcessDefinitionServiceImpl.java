@@ -431,6 +431,12 @@ public class ProcessDefinitionServiceImpl extends IBaseServiceImpl<ProcessDefini
         jobService.resumeJob(jobId , entity.getScheduleCron());
     }
 
+    @Override
+    public void runOneTime(String jobId) {
+        // 运行一次
+        jobService.runOneTime(jobId) ;
+    }
+
 }
 
 
