@@ -87,4 +87,9 @@ public interface IProcessDefinitionService extends IBaseService<ProcessDefinitio
      */
     void resumeTrigger(String jobId);
 
+    /**
+     * 运行一次任务
+     * @param jobId
+     */
+    void runOneTime(String jobId);
 }
