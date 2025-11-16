@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 /**
  * BuildQueueService: 支持任务状态查询与取消（兼容现有 IBuildRecordService 接口）
@@ -365,6 +364,148 @@ public class BuildQueueService {
         return false;
     }
 
+    // 在 BuildQueueService 类中新增此方法
+    /**
+     * 直接立即执行一次构建（不放入内存队列），并返回 BuildTask（状态会变为 RUNNING）
+     *
+     * @param job 构建任务对应的 JobEntity，不能为空
+     * @param triggerId 可为空，表示触发来源
+     * @return 立即执行的 BuildTask
+     */
+    public BuildTask runNow(JobEntity job, Long triggerId) {
+        if (job == null) throw new IllegalArgumentException("job null");
+
+        // 创建 BuildTask 并分配 buildNumber / record
+        BuildTask task = new BuildTask(job.getId(), job.getName(), job.getProcessId());
+        int buildNumber = buildNumberAllocator.nextBuildNumber(job.getId());
+        task.setBuildNumber(buildNumber);
+
+        BuildRecordEntity rec = null;
+        try {
+            rec = buildRecordService.createQueuedRecord(job.getId(), triggerId, job.getName(), buildNumber, job.getProcessId());
+            if (rec != null) {
+                task.setRecordId(rec.getId());
+            }
+        } catch (Exception ex) {
+            log.warn("createQueuedRecord failed", ex);
+            // 继续执行：recordId 可能为 null
+        }
+
+        // 标记为 RUNNING 并加入跟踪集合
+        task.setState(TaskState.RUNNING);
+        task.setStartedAt(LocalDateTime.now());
+        allTasks.put(task.getId(), task);
+        runningTasks.put(task.getId(), task);
+
+        if (task.getRecordId() != null) {
+            try {
+                buildRecordService.markRunning(task.getRecordId());
+            } catch (Exception e) {
+                log.warn("markRunning failed for recordId={}", task.getRecordId(), e);
+            }
+        }
+
+        // 同 consumer 的 runnable 实现（处理 InterruptedException / Throwable / finally）
+        final AtomicReference<ScheduledFuture<?>> cancellerRef = new AtomicReference<>();
+
+        Runnable runnable = () -> {
+            try {
+                log.debug("runNow start {}:{} 任务ID={} 时间: {}", task.getJobId(), task.getJobName(), task.getId(), Instant.now());
+
+                Long processId = task.getProcessId();
+                processExecutionService.runProcess(processId);
+
+                task.setState(TaskState.COMPLETED);
+                task.setMessage("构建成功");
+                if (task.getRecordId() != null) {
+                    try {
+                        buildRecordService.markCompleted(task.getRecordId(), task.getMessage());
+                    } catch (Exception e) {
+                        log.warn("markCompleted failed for recordId={}", task.getRecordId(), e);
+                    }
+                }
+
+                log.debug("runNow completed {}:{} 任务ID={} 时间: {}", task.getJobId(), task.getJobName(), task.getId(), Instant.now());
+
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                if (task.getState() != TaskState.CANCELLED) {
+                    task.setState(TaskState.FAILED);
+                    task.setMessage("任务被取消");
+                    if (task.getRecordId() != null) {
+                        try {
+                            buildRecordService.markCancelled(task.getRecordId(), "Interrupted");
+                        } catch (Exception ex) {
+                            log.warn("markCancelled failed for recordId={}", task.getRecordId(), ex);
+                        }
+                    }
+                }
+            } catch (Throwable ex) {
+                task.setState(TaskState.FAILED);
+                task.setMessage("Error: " + ex.getMessage());
+                if (task.getRecordId() != null) {
+                    try {
+                        buildRecordService.markFailed(task.getRecordId(), ex.getMessage());
+                    } catch (Exception e) {
+                        log.warn("markFailed failed for recordId={}", task.getRecordId(), e);
+                    }
+                }
+            } finally {
+                ScheduledFuture<?> canceller = cancellerRef.get();
+                if (canceller != null) {
+                    try { canceller.cancel(false); } catch (Throwable ignored) {}
+                }
+
+                task.setFinishedAt(LocalDateTime.now());
+                runningFutures.remove(task.getId());
+                runningTasks.remove(task.getId());
+                allTasks.put(task.getId(), task);
+            }
+        };
+
+        // 提交到线程池
+        Future<?> f;
+        try {
+            f = workers.submit(runnable);
+        } catch (RejectedExecutionException rex) {
+            // 提交失败，标记失败并返回
+            task.setState(TaskState.FAILED);
+            task.setFinishedAt(LocalDateTime.now());
+            task.setMessage("提交执行失败：线程池拒绝");
+            allTasks.put(task.getId(), task);
+            if (task.getRecordId() != null) {
+                try { buildRecordService.markFailed(task.getRecordId(), "提交执行失败：线程池拒绝"); } catch (Exception ex) { log.warn("markFailed failed", ex); }
+            }
+            runningTasks.remove(task.getId());
+            return task;
+        }
+
+        runningFutures.put(task.getId(), f);
+        allTasks.put(task.getId(), task);
+
+        // 安排超时取消，与 consumer 保持一致
+        ScheduledFuture<?> canceller = timeoutScheduler.schedule(() -> {
+            if (!f.isDone()) {
+                boolean cancelled = f.cancel(true);
+                if (cancelled) {
+                    task.setState(TaskState.FAILED);
+                    task.setMessage("任务超时被取消");
+                    if (task.getRecordId() != null) {
+                        try { buildRecordService.markFailed(task.getRecordId(), "任务超时"); } catch (Exception ex) { log.warn("markFailed failed", ex); }
+                    }
+                    task.setFinishedAt(LocalDateTime.now());
+                    runningFutures.remove(task.getId());
+                    runningTasks.remove(task.getId());
+                    allTasks.put(task.getId(), task);
+                }
+            }
+        }, DEFAULT_OUT_TIME, TimeUnit.MINUTES);
+
+        cancellerRef.set(canceller);
+
+        return task;
+    }
+
     // 查询接口
     public int getQueueSize() {
         return queue.size();
@@ -412,7 +553,7 @@ public class BuildQueueService {
     }
 
     public List<BuildTask> listQueued() {
-        return queue.stream().collect(Collectors.toList());
+        return new ArrayList<>(queue);
     }
 
     public List<BuildTask> listRunning() {
