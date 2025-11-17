@@ -81,7 +81,7 @@ public class SparkProperties {
     @Data
     public static class Executor {
         private int instances = 5;
-        private int cores = 4;
+        private int cores = 1;
         private String memory = "8g";
         private String memoryOverhead = "2g";
     }
