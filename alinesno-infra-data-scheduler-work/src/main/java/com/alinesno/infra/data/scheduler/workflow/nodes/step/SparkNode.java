@@ -120,7 +120,7 @@ public class SparkNode extends AbstractFlowNode {
             if (async) {
                 resp = consumer.submitAsync(commandReplace , true , computeEngine != null ? computeEngine.getAdminUser() : null);
             } else {
-                resp = consumer.submitSync(commandReplace , true , computeEngine != null ? computeEngine.getAdminUser() : null, 600_000);
+                resp = consumer.submitSync(commandReplace , true , computeEngine != null ? computeEngine.getAdminUser() : null, 1800_000);  // 30 分钟超时
             }
 
             // 检查命令中是否有未解析的密钥
