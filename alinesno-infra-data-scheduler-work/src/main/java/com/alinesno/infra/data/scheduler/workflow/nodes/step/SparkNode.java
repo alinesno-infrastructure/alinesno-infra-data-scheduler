@@ -1,9 +1,11 @@
 package com.alinesno.infra.data.scheduler.workflow.nodes.step;
 
-import cn.hutool.core.util.IdUtil;
 import com.alibaba.fastjson.JSONObject;
-import com.alinesno.infra.data.scheduler.adapter.SparkPythonConsumer;
-import com.alinesno.infra.data.scheduler.adapter.SparkSqlConsumer;
+import com.alinesno.infra.common.facade.response.R;
+import com.alinesno.infra.data.scheduler.adapter.spark.BaseSparkConsumer;
+import com.alinesno.infra.data.scheduler.adapter.spark.SparkPythonConsumer;
+import com.alinesno.infra.data.scheduler.adapter.spark.SparkSqlConsumer;
+import com.alinesno.infra.data.scheduler.adapter.spark.SparkTaskConsumer;
 import com.alinesno.infra.data.scheduler.api.logger.NodeLog;
 import com.alinesno.infra.data.scheduler.entity.ComputeEngineEntity;
 import com.alinesno.infra.data.scheduler.workflow.constants.FlowConst;
@@ -11,26 +13,19 @@ import com.alinesno.infra.data.scheduler.workflow.nodes.AbstractFlowNode;
 import com.alinesno.infra.data.scheduler.workflow.nodes.variable.step.SparkNodeData;
 import com.alinesno.infra.data.scheduler.workflow.service.IComputeEngineService;
 import com.alinesno.infra.data.scheduler.workflow.utils.CommonsTextSecrets;
-import com.alinesno.infra.data.scheduler.workflow.utils.SecretUtils;
 import com.alinesno.infra.data.scheduler.workflow.utils.StackTraceUtils;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.HashMap;
+import javax.lang.exception.RpcServiceRuntimeException;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * SparkNode 类继承自 AbstractFlowNode
@@ -45,13 +40,6 @@ public class SparkNode extends AbstractFlowNode {
     @Autowired
     private IComputeEngineService computeEngineService ;
 
-    // 下载与预览相关配置（可根据需要调整）
-    private static final int DOWNLOAD_TIMEOUT_MS = 30_000;
-    private static final int MAX_DOWNLOAD_BYTES = 5 * 1024 * 1024; // 最大下载 5MB
-    private static final int RAW_PREVIEW_MAX = 1000;
-    private static final int ERROR_PREVIEW_MAX = 3000;
-    private static final int SMALL_BINARY_BASE64_MAX = 100 * 1024; // 小于 100KB 的二进制文件可以 base64 返回
-
     public SparkNode() {
         setType("spark");
     }
@@ -60,6 +48,8 @@ public class SparkNode extends AbstractFlowNode {
     protected CompletableFuture<Void> handleNode() {
 
         ComputeEngineEntity computeEngine = computeEngineService.getCurrentConfig(flowExecution.getOrgId());
+        Assert.notNull(computeEngine , "未找到计算引擎配置");
+
         SparkNodeData nodeData = getNodeData();
 
         String runType = nodeData.getRunType() ;
@@ -73,610 +63,1029 @@ public class SparkNode extends AbstractFlowNode {
         return CompletableFuture.completedFuture(null);
     }
 
-    @NotNull
-    private CompletableFuture<Void> getPySparkCompletableFuture(ComputeEngineEntity computeEngine, SparkNodeData nodeData) {
-        long startTs = System.currentTimeMillis();
-        try {
-            log.debug("nodeData = {}", nodeData);
-            log.debug("node type = {} output = {}", node.getType(), output);
-
-            // 记录解析配置 & 计算引擎信息
-            nodeLogService.append(NodeLog.of(
-                    flowExecution.getId().toString(),
-                    node.getId(),
-                    node.getStepName(),
-                    "INFO",
-                    "PySpark 节点配置解析完成",
-                    Map.of(
-                            "scriptLength", nodeData.getPysparkContent() != null ? nodeData.getPysparkContent().length() : 0,
-                            "orgId", flowExecution.getOrgId(),
-                            "computeEngineId", computeEngine != null ? String.valueOf(computeEngine.getId()) : "unknown",
-                            "computeEngineAdmin", computeEngine != null ? computeEngine.getAdminUser() : "unknown"
-                    )
-            ));
-
-            // 从 nodeData 中取脚本或脚本文件 URL（注意：字段名根据你实际 SparkNodeData 调整）
-            String scriptOrFile = nodeData.getPysparkContent() ;
-            if (scriptOrFile == null) scriptOrFile = "";
-
-            // 是否异步（优先使用 nodeData 中的配置，否则默认 false -> 同步）
-            boolean async = nodeData.isAsync(); // 如无此字段请替换为相应的 getter 或常量
-
-            // 记录提交前 preview
-            String scriptPreview = scriptOrFile.length() > 2000 ? scriptOrFile.substring(0, 2000) + "..." : scriptOrFile;
-            nodeLogService.append(NodeLog.of(
-                    flowExecution.getId().toString(),
-                    node.getId(),
-                    node.getStepName(),
-                    "INFO",
-                    (async ? "准备异步提交 PySpark" : "准备同步提交 PySpark"),
-                    Map.of("scriptPreview", scriptPreview)
-            ));
-
-            SparkPythonConsumer consumer = new SparkPythonConsumer(computeEngine);
-
-            JSONObject resp;
-            String commandReplace = CommonsTextSecrets.replace(scriptOrFile , getOrgSecret()) ;
-            if (async) {
-                resp = consumer.submitAsync(commandReplace , true , computeEngine != null ? computeEngine.getAdminUser() : null);
-            } else {
-                resp = consumer.submitSync(commandReplace , true , computeEngine != null ? computeEngine.getAdminUser() : null, 1800_000);  // 30 分钟超时
-            }
-
-            // 检查命令中是否有未解析的密钥
-            Set<String> unresolvedSecrets = SecretUtils.checkAndLogUnresolvedSecrets(commandReplace , node , flowExecution, nodeLogService) ;
-            log.debug("未解析的密钥：{}" , unresolvedSecrets);
-
-            long durationMs = System.currentTimeMillis() - startTs;
-
-            if (resp == null) {
-                nodeLogService.append(NodeLog.of(
-                        flowExecution.getId().toString(),
-                        node.getId(),
-                        node.getStepName(),
-                        "WARN",
-                        "PySpark 返回空响应",
-                        Map.of("durationMs", durationMs)
-                ));
-                output.put(node.getStepName() + ".result", "{}");
-                output.put(node.getStepName() + ".rawResponsePreview", "{}");
-            } else {
-                String id = resp.getString("id") ;
-
-                if(id == null){
-                    id = IdUtil.getSnowflakeNextIdStr() ;
-                }
-
-                String status = resp.getString("status");
-                String createdAt = resp.getString("createdAt");
-                String startedAt = resp.getString("startedAt");
-                String finishedAt = resp.getString("finishedAt");
-                String resultPath = resp.getString("resultPath");
-                String errorMessage = resp.getString("errorMessage");
-
-                String errorPreview = null;
-                if (errorMessage != null) {
-                    errorPreview = errorMessage.length() > ERROR_PREVIEW_MAX ? errorMessage.substring(0, ERROR_PREVIEW_MAX) + "..." : errorMessage;
-                }
-
-                Map<String, Object> structured = new HashMap<>();
-                if (id != null) structured.put("id", id);
-                if (status != null) structured.put("status", status);
-                if (createdAt != null) structured.put("createdAt", createdAt);
-                if (startedAt != null) structured.put("startedAt", startedAt);
-                if (finishedAt != null) structured.put("finishedAt", finishedAt);
-                if (resultPath != null) structured.put("resultPath", resultPath);
-                if (errorPreview != null) structured.put("errorMessagePreview", errorPreview);
-                structured.put("async", async);
-
-                String rawRespStr = resp.toJSONString();
-                String rawPreview = rawRespStr.length() > RAW_PREVIEW_MAX ? rawRespStr.substring(0, RAW_PREVIEW_MAX) + "..." : rawRespStr;
-
-                output.put(node.getStepName() + ".result", JSONObject.toJSONString(structured));
-                output.put(node.getStepName() + ".rawResponsePreview", rawPreview);
-                output.put(node.getStepName() + ".rawResponse", rawRespStr);
-
-                if (!async) {
-                    // 同步模式下，依据 status 做失败处理
-                    if ("SUCCESS".equalsIgnoreCase(status)) {
-                        nodeLogService.append(NodeLog.of(
-                                flowExecution.getId().toString(),
-                                node.getId(),
-                                node.getStepName(),
-                                "INFO",
-                                "PySpark 同步提交完成（SUCCESS）",
-                                Map.of("durationMs", durationMs, "id", id, "status", status, "resultPath", resultPath)
-                        ));
-                    } else {
-                        nodeLogService.append(NodeLog.of(
-                                flowExecution.getId().toString(),
-                                node.getId(),
-                                node.getStepName(),
-                                "ERROR",
-                                "PySpark 执行失败",
-                                Map.of("durationMs", durationMs, "id", id, "status", status, "errorMessagePreview", errorPreview)
-                        ));
-                        log.error("PySpark 执行异常: {}", errorPreview);
-                        CompletableFuture<Void> failed = new CompletableFuture<>();
-                        failed.completeExceptionally(new Throwable(errorPreview));
-                        return failed;
-                    }
-                } else {
-                    // 异步：返回 task id 等信息，记录并结束（不当作失败）
-                    nodeLogService.append(NodeLog.of(
-                            flowExecution.getId().toString(),
-                            node.getId(),
-                            node.getStepName(),
-                            "INFO",
-                            "PySpark 异步提交返回",
-                            Map.of("id", id, "status", status)
-                    ));
-                }
-
-                // 如果有 resultPath 并且是 http/https，尝试下载（与 spark-sql 实现一致）
-                if (resultPath != null && (resultPath.startsWith("http://") || resultPath.startsWith("https://"))) {
-                    try {
-                        URL url = new URL(resultPath);
-                        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                        conn.setConnectTimeout(DOWNLOAD_TIMEOUT_MS);
-                        conn.setReadTimeout(DOWNLOAD_TIMEOUT_MS);
-                        conn.setRequestMethod("GET");
-                        conn.setInstanceFollowRedirects(true);
-
-                        int code = conn.getResponseCode();
-                        if (code == HttpURLConnection.HTTP_OK) {
-                            String contentType = conn.getContentType();
-                            boolean isText = contentType != null && (
-                                    contentType.startsWith("text") ||
-                                            contentType.contains("json") ||
-                                            contentType.contains("xml") ||
-                                            contentType.contains("csv") ||
-                                            contentType.contains("plain")
-                            );
-
-                            try (InputStream in = conn.getInputStream();
-                                 ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-                                byte[] buffer = new byte[8192];
-                                int read;
-                                int total = 0;
-                                boolean truncated = false;
-                                while ((read = in.read(buffer)) != -1) {
-                                    if (total + read > MAX_DOWNLOAD_BYTES) {
-                                        baos.write(buffer, 0, Math.max(0, MAX_DOWNLOAD_BYTES - total));
-                                        truncated = true;
-                                        break;
-                                    } else {
-                                        baos.write(buffer, 0, read);
-                                    }
-                                    total += read;
-                                }
-                                byte[] contentBytes = baos.toByteArray();
-                                int downloadedSize = contentBytes.length;
-
-                                structured.put("resultFileDownloaded", true);
-                                structured.put("resultFileSize", downloadedSize);
-                                structured.put("resultFileTruncated", truncated);
-                                structured.put("resultFileContentType", contentType != null ? contentType : "unknown");
-
-                                if (isText) {
-                                    String text = new String(contentBytes, StandardCharsets.UTF_8);
-                                    String preview = text.length() > RAW_PREVIEW_MAX ? text.substring(0, RAW_PREVIEW_MAX) + "..." : text;
-                                    structured.put("resultFileContentPreview", preview);
-                                    if (!truncated && downloadedSize <= MAX_DOWNLOAD_BYTES) {
-                                        structured.put("resultFileContent", text);
-                                        output.put(node.getStepName() + ".resultFileContent", text);
-                                    }
-                                } else {
-                                    if (downloadedSize <= SMALL_BINARY_BASE64_MAX) {
-                                        String b64 = Base64.getEncoder().encodeToString(contentBytes);
-                                        structured.put("resultFileBase64", b64);
-                                        output.put(node.getStepName() + ".resultFileBase64", b64);
-                                    } else {
-                                        structured.put("resultFileBase64", null);
-                                    }
-                                }
-
-                                output.put(node.getStepName() + ".result", JSONObject.toJSONString(structured));
-                                nodeLogService.append(NodeLog.of(
-                                        flowExecution.getId().toString(),
-                                        node.getId(),
-                                        node.getStepName(),
-                                        "INFO",
-                                        "已从 HTTP(S) resultPath 下载文件（或部分下载）",
-                                        Map.of("resultPath", resultPath, "downloadedSize", structured.get("resultFileSize"), "truncated", structured.get("resultFileTruncated"))
-                                ));
-                            }
-                        } else {
-                            structured.put("resultFileDownloaded", false);
-                            structured.put("resultFileDownloadHttpCode", code);
-                            output.put(node.getStepName() + ".result", JSONObject.toJSONString(structured));
-                            nodeLogService.append(NodeLog.of(
-                                    flowExecution.getId().toString(),
-                                    node.getId(),
-                                    node.getStepName(),
-                                    "WARN",
-                                    "从 resultPath 下载时 HTTP 响应非 200",
-                                    Map.of("resultPath", resultPath, "httpCode", code)
-                            ));
-                        }
-                    } catch (Exception dx) {
-                        String errMsg = dx.getMessage() != null ? dx.getMessage() : "下载异常";
-                        nodeLogService.append(NodeLog.of(
-                                flowExecution.getId().toString(),
-                                node.getId(),
-                                node.getStepName(),
-                                "ERROR",
-                                "从 HTTP(S) resultPath 下载失败: " + errMsg,
-                                Map.of("resultPath", resultPath, "exception", errMsg)
-                        ));
-                        structured.put("resultFileDownloaded", false);
-                        structured.put("resultFileDownloadError", errMsg);
-                        output.put(node.getStepName() + ".result", JSONObject.toJSONString(structured));
-                    }
-                } else if (resultPath != null) {
-                    nodeLogService.append(NodeLog.of(
-                            flowExecution.getId().toString(),
-                            node.getId(),
-                            node.getStepName(),
-                            "INFO",
-                            "注意：resultPath 指向远端文件系统路径，当前环境无法直接读取。如需获取，请在远端提供 HTTP/下载接口或通过 SSH/SCP 拉取。",
-                            Map.of("resultPath", resultPath)
-                    ));
-                    structured.put("resultFileDownloaded", false);
-                    structured.put("resultFileDownloadError", "resultPath not http/https (remote path)");
-                    output.put(node.getStepName() + ".result", JSONObject.toJSONString(structured));
-                }
-            }
-
-            nodeLogService.append(NodeLog.of(
-                    flowExecution.getId().toString(),
-                    node.getId(),
-                    node.getStepName(),
-                    "INFO",
-                    "PySpark 节点执行完成（已记录结构化结果与响应预览）",
-                    Map.of("outputKey", node.getStepName() + ".result")
-            ));
-
-            return CompletableFuture.completedFuture(null);
-        } catch (Exception ex) {
-            String errMsg = ex.getMessage() != null ? ex.getMessage() : "未知异常";
-            String stack = StackTraceUtils.getStackTrace(ex);
-            if (stack.length() > 4000) stack = stack.substring(0, 4000) + "...";
-
-            nodeLogService.append(NodeLog.of(
-                    flowExecution.getId().toString(),
-                    node.getId(),
-                    node.getStepName(),
-                    "ERROR",
-                    "PySpark 节点执行异常: " + errMsg,
-                    Map.of("exception", errMsg, "stackTrace", stack)
-            ));
-
-            log.error("PySpark 执行异常: {}", ex.getMessage(), ex);
-            CompletableFuture<Void> failed = new CompletableFuture<>();
-            failed.completeExceptionally(ex);
-            return failed;
-        }
-    }
-
     /**
-     *
+     * 获取 PySpark 节点的 CompletableFuture
      * @param computeEngine
      * @param nodeData
      * @return
      */
-    @NotNull
-    private CompletableFuture<Void> getSparkSqlCompletableFuture(ComputeEngineEntity computeEngine, SparkNodeData nodeData) {
-        long startTs = System.currentTimeMillis();
-        try {
-            log.debug("nodeData = {}", nodeData);
-            log.debug("node type = {} output = {}", node.getType(), output);
 
-            // 记录解析配置 & 计算引擎信息
-            nodeLogService.append(NodeLog.of(
-                    flowExecution.getId().toString(),
-                    node.getId(),
-                    node.getStepName(),
-                    "INFO",
-                    "Spark节点配置解析完成",
-                    Map.of(
-                            "sqlLength", nodeData.getSqlContent() != null ? nodeData.getSqlContent().length() : 0,
-                            "orgId", flowExecution.getOrgId(),
-                            "computeEngineId", computeEngine != null ? String.valueOf(computeEngine.getId()) : "unknown",
-                            "computeEngineAdmin", computeEngine != null ? computeEngine.getAdminUser() : "unknown"
-                    )
-            ));
+    private CompletableFuture<Void> getPySparkCompletableFuture(ComputeEngineEntity computeEngine, SparkNodeData nodeData) {
+        // 异步执行主逻辑
+        return CompletableFuture.runAsync(() -> {
+            String taskId = String.valueOf(flowExecution != null ? flowExecution.getId() : "unknown");
+            String stepId = node != null ? node.getId() : "unknown";
+            String stepName = node != null ? node.getStepName() : "unknown";
 
-            String sqlContent = nodeData.getSqlContent();
-
-            // 记录提交前（包含 sql 预览）
-            String sqlPreview = sqlContent == null ? "" : (sqlContent.length() > 2000 ? sqlContent.substring(0, 2000) + "..." : sqlContent);
-            nodeLogService.append(NodeLog.of(
-                    flowExecution.getId().toString(),
-                    node.getId(),
-                    node.getStepName(),
-                    "INFO",
-                    "准备提交 Spark SQL",
-                    Map.of(
-                            "sqlPreview", sqlPreview
-                    )
-            ));
-
-            // 2. 创建 SparkSqlConsumer
-            SparkSqlConsumer consumer = new SparkSqlConsumer(computeEngine);
-
-            long waitMs = 600_000L; // 等待 600 秒
-            Map<String, Object> params = new HashMap<>();
-
-            // 提交并等待结果
-            nodeLogService.append(NodeLog.of(
-                    flowExecution.getId().toString(),
-                    node.getId(),
-                    node.getStepName(),
-                    "INFO",
-                    "开始同步提交 Spark SQL",
-                    Map.of(
-                            "waitMs", waitMs,
-                            "paramsSize", params.size()
-                    )
-            ));
-
-            String commandReplace = CommonsTextSecrets.replace(sqlContent , getOrgSecret()) ;
-            JSONObject syncResp = consumer.submitSync(commandReplace , params, computeEngine != null ? computeEngine.getAdminUser() : null, waitMs);
-
-            // 检查命令中是否有未解析的密钥
-            Set<String> unresolvedSecrets = SecretUtils.checkAndLogUnresolvedSecrets(commandReplace , node , flowExecution, nodeLogService) ;
-            log.debug("未解析的密钥：{}" , unresolvedSecrets);
-
-            // ------------- 改进后的 syncResp 处理 -------------
-            long durationMs = System.currentTimeMillis() - startTs;
-
-            if (syncResp == null) {
-                // 空响应处理
+            // 记录开始日志（容错）
+            try {
                 nodeLogService.append(NodeLog.of(
-                        flowExecution.getId().toString(),
-                        node.getId(),
-                        node.getStepName(),
-                        "WARN",
-                        "Spark 返回空响应",
-                        Map.of("durationMs", durationMs)
+                        taskId,
+                        stepId,
+                        stepName,
+                        "INFO",
+                        "Spark 节点开始执行",
+                        Map.of(
+                                "nodeType", "spark",
+                                "runType", "pyspark",
+                                "async", Boolean.toString(nodeData.isAsync())
+                        )
                 ));
-                output.put(node.getStepName() + ".result", "{}");
-                output.put(node.getStepName() + ".rawResponsePreview", "{}");
-            } else {
-                // 提取常用字段
-                String id = syncResp.getString("id");
-                String status = syncResp.getString("status");
-                String createdAt = syncResp.getString("createdAt");
-                String startedAt = syncResp.getString("startedAt");
-                String finishedAt = syncResp.getString("finishedAt");
-                String resultPath = syncResp.getString("resultPath");
-                String errorMessage = syncResp.getString("errorMessage");
-
-                // 截断长文本（errorMessage）
-                String errorPreview = null;
-                if (errorMessage != null) {
-                    errorPreview = errorMessage.length() > ERROR_PREVIEW_MAX ? errorMessage.substring(0, ERROR_PREVIEW_MAX) + "..." : errorMessage;
-                }
-
-                // 组装结构化结果（初始）
-                Map<String, Object> structured = new HashMap<>();
-                if (id != null) structured.put("id", id);
-                if (status != null) structured.put("status", status);
-                if (createdAt != null) structured.put("createdAt", createdAt);
-                if (startedAt != null) structured.put("startedAt", startedAt);
-                if (finishedAt != null) structured.put("finishedAt", finishedAt);
-                if (resultPath != null) structured.put("resultPath", resultPath); // 仅路径字符串
-                if (errorPreview != null) structured.put("errorMessagePreview", errorPreview);
-
-                String rawRespStr = syncResp.toJSONString();
-                String rawPreview = rawRespStr.length() > RAW_PREVIEW_MAX ? rawRespStr.substring(0, RAW_PREVIEW_MAX) + "..." : rawRespStr;
-
-                output.put(node.getStepName() + ".result", JSONObject.toJSONString(structured));
-                output.put(node.getStepName() + ".rawResponsePreview", rawPreview);
-                output.put(node.getStepName() + ".rawResponse", rawRespStr); // 可选：可能很大
-
-                // 日志记录：根据状态分别记录
-                if ("SUCCESS".equalsIgnoreCase(status)) {
-                    nodeLogService.append(NodeLog.of(
-                            flowExecution.getId().toString(),
-                            node.getId(),
-                            node.getStepName(),
-                            "INFO",
-                            "Spark SQL 同步提交完成（SUCCESS）",
-                            Map.of(
-                                    "durationMs", durationMs,
-                                    "id", id,
-                                    "status", status,
-                                    "createdAt", createdAt,
-                                    "startedAt", startedAt,
-                                    "finishedAt", finishedAt,
-                                    "resultPath", resultPath
-                            )
-                    ));
-                } else {
-                    nodeLogService.append(NodeLog.of(
-                            flowExecution.getId().toString(),
-                            node.getId(),
-                            node.getStepName(),
-                            "ERROR",
-                            "Spark SQL 执行失败",
-                            Map.of(
-                                    "durationMs", durationMs,
-                                    "id", id,
-                                    "status", status,
-                                    "errorMessagePreview", errorPreview,
-                                    "resultPath", resultPath
-                            )
-                    ));
-
-                    // 返回异常处理
-                    log.error("SparkNode 执行异常: {}", errorPreview);
-                    CompletableFuture<Void> failed = new CompletableFuture<>();
-                    failed.completeExceptionally(new Throwable(errorPreview));
-                    return failed;
-                }
-
-                // 处理 resultPath：如果以 http/https 开头，尝试下载；否则说明无法直接读取（远端文件系统路径）
-                if (resultPath.startsWith("http://") || resultPath.startsWith("https://")) {
-                    // 尝试下载（带超时与大小限制）
-                    try {
-                        URL url = new URL(resultPath);
-                        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                        conn.setConnectTimeout(DOWNLOAD_TIMEOUT_MS);
-                        conn.setReadTimeout(DOWNLOAD_TIMEOUT_MS);
-                        conn.setRequestMethod("GET");
-                        conn.setInstanceFollowRedirects(true);
-
-                        int code = conn.getResponseCode();
-                        if (code == HttpURLConnection.HTTP_OK) {
-                            String contentType = conn.getContentType();
-                            boolean isText = contentType != null && (
-                                    contentType.startsWith("text") ||
-                                            contentType.contains("json") ||
-                                            contentType.contains("xml") ||
-                                            contentType.contains("csv") ||
-                                            contentType.contains("plain")
-                            );
-
-                            try (InputStream in = conn.getInputStream();
-                                 ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-                                byte[] buffer = new byte[8192];
-                                int read;
-                                int total = 0;
-                                boolean truncated = false;
-                                while ((read = in.read(buffer)) != -1) {
-                                    if (total + read > MAX_DOWNLOAD_BYTES) {
-                                        // 只读取到最大限制
-                                        baos.write(buffer, 0, Math.max(0, MAX_DOWNLOAD_BYTES - total));
-                                        truncated = true;
-                                        break;
-                                    } else {
-                                        baos.write(buffer, 0, read);
-                                    }
-                                    total += read;
-                                }
-                                byte[] contentBytes = baos.toByteArray();
-                                int downloadedSize = contentBytes.length;
-
-                                structured.put("resultFileDownloaded", true);
-                                structured.put("resultFileSize", downloadedSize);
-                                structured.put("resultFileTruncated", truncated);
-                                structured.put("resultFileContentType", contentType != null ? contentType : "unknown");
-
-                                if (isText) {
-                                    String charset = "UTF-8";
-                                    // 不严格解析 charset，这里默认 UTF-8
-                                    String text = new String(contentBytes, StandardCharsets.UTF_8);
-                                    String preview = text.length() > RAW_PREVIEW_MAX ? text.substring(0, RAW_PREVIEW_MAX) + "..." : text;
-                                    structured.put("resultFileContentPreview", preview);
-                                    // 如果未截断且大小较小，可以保存完整内容（注意内存）
-                                    if (!truncated && downloadedSize <= MAX_DOWNLOAD_BYTES) {
-                                        structured.put("resultFileContent", text);
-                                        output.put(node.getStepName() + ".resultFileContent", text);
-                                    }
-                                } else {
-                                    // 二进制文件：若很小则 base64 返回，否则仅返回 size 与标识
-                                    if (downloadedSize <= SMALL_BINARY_BASE64_MAX) {
-                                        String b64 = Base64.getEncoder().encodeToString(contentBytes);
-                                        structured.put("resultFileBase64", b64);
-                                        output.put(node.getStepName() + ".resultFileBase64", b64);
-                                    } else {
-                                        structured.put("resultFileBase64", null);
-                                    }
-                                }
-
-                                // 将 updated structured 写回 output.result（覆盖 earlier）
-                                output.put(node.getStepName() + ".result", JSONObject.toJSONString(structured));
-                                nodeLogService.append(NodeLog.of(
-                                        flowExecution.getId().toString(),
-                                        node.getId(),
-                                        node.getStepName(),
-                                        "INFO",
-                                        "已从 HTTP(S) resultPath 下载文件（或部分下载）",
-                                        Map.of("resultPath", resultPath, "downloadedSize", structured.get("resultFileSize"), "truncated", structured.get("resultFileTruncated"))
-                                ));
-                            }
-                        } else {
-                            // 非 200 返回
-                            structured.put("resultFileDownloaded", false);
-                            structured.put("resultFileDownloadHttpCode", code);
-                            output.put(node.getStepName() + ".result", JSONObject.toJSONString(structured));
-                            nodeLogService.append(NodeLog.of(
-                                    flowExecution.getId().toString(),
-                                    node.getId(),
-                                    node.getStepName(),
-                                    "WARN",
-                                    "从 resultPath 下载时 HTTP 响应非 200",
-                                    Map.of("resultPath", resultPath, "httpCode", code)
-                            ));
-                        }
-                    } catch (Exception dx) {
-                        String errMsg = dx.getMessage() != null ? dx.getMessage() : "下载异常";
-                        nodeLogService.append(NodeLog.of(
-                                flowExecution.getId().toString(),
-                                node.getId(),
-                                node.getStepName(),
-                                "ERROR",
-                                "从 HTTP(S) resultPath 下载失败: " + errMsg,
-                                Map.of("resultPath", resultPath, "exception", errMsg)
-                        ));
-                        structured.put("resultFileDownloaded", false);
-                        structured.put("resultFileDownloadError", errMsg);
-                        output.put(node.getStepName() + ".result", JSONObject.toJSONString(structured));
-                    }
-                } else {
-                    // 非 http(s) 路径，无法直接下载（远程机器路径）
-                    nodeLogService.append(NodeLog.of(
-                            flowExecution.getId().toString(),
-                            node.getId(),
-                            node.getStepName(),
-                            "INFO",
-                            "注意：resultPath 指向远端文件系统路径，当前环境无法直接读取。如需获取，请在远端提供 HTTP/下载接口或通过 SSH/SCP 拉取。",
-                            Map.of("resultPath", resultPath)
-                    ));
-                    structured.put("resultFileDownloaded", false);
-                    structured.put("resultFileDownloadError", "resultPath not http/https (remote path)");
-                    output.put(node.getStepName() + ".result", JSONObject.toJSONString(structured));
-                }
-
+            } catch (Exception ignore) {
+                log.warn("记录 SparkNode 开始日志失败: {}", ignore.getMessage());
             }
 
-            // 成功结束日志（整体）
+            try {
+                // 获取脚本内容
+                String scriptText = nodeData.getPysparkContent();
+
+                String scriptTextNoSec = CommonsTextSecrets.replace(scriptText , orgSecret) ;
+                String script = replacePlaceholders(scriptTextNoSec);
+
+                if (script == null || script.trim().isEmpty()) {
+                    RuntimeException re = new RuntimeException("pysparkContent 为空，无法提交任务");
+                    // 记录错误日志（容错）
+                    try {
+                        nodeLogService.append(NodeLog.of(
+                                taskId,
+                                stepId,
+                                stepName,
+                                "ERROR",
+                                "提交失败: pysparkContent 为空",
+                                Map.of("nodeType", "spark")
+                        ));
+                    } catch (Exception ignore) {
+                        log.warn("记录 SparkNode 错误日志失败: {}", ignore.getMessage());
+                    }
+                    throw re;
+                }
+
+                SparkPythonConsumer pythonConsumer = new SparkPythonConsumer(computeEngine);
+
+                // 提交任务：异步或同步（同步使用 submitRaw，传入 waitMs）
+                R<BaseSparkConsumer.SubmitRespDto> submitResp;
+
+                // 同步提交，使用 consumer 的超时作为 waitMs（秒 -> 毫秒）
+                submitResp = pythonConsumer.submitRaw(script, 60_000L);
+
+                if (submitResp == null) {
+                    RuntimeException re = new RuntimeException("提交 Spark 任务返回 null");
+                    try {
+                        nodeLogService.append(NodeLog.of(
+                                taskId,
+                                stepId,
+                                stepName,
+                                "ERROR",
+                                "提交 Spark 任务返回 null",
+                                Map.of("nodeType", "spark")
+                        ));
+                    } catch (Exception ignore) {
+                        log.warn("记录 SparkNode 错误日志失败: {}", ignore.getMessage());
+                    }
+                    throw re;
+                }
+
+                BaseSparkConsumer.SubmitRespDto submitData = submitResp.getData();
+                String appId = submitData != null ? submitData.getApplicationId() : null;
+                String submitStatus = submitData != null ? submitData.getStatus() : null;
+
+                if (appId == null || appId.trim().isEmpty()) {
+                    RpcServiceRuntimeException ex = new RpcServiceRuntimeException("提交成功但未返回 applicationId，无法跟踪任务状态");
+                    try {
+                        nodeLogService.append(NodeLog.of(
+                                taskId,
+                                stepId,
+                                stepName,
+                                "ERROR",
+                                "提交成功但未返回 applicationId，无法跟踪任务状态",
+                                Map.of("nodeType", "spark", "submitStatus", submitStatus == null ? "" : submitStatus)
+                        ));
+                    } catch (Exception ignore) {
+                        log.warn("记录 SparkNode 错误日志失败: {}", ignore.getMessage());
+                    }
+                    throw ex;
+                }
+
+                log.info("pyspark 提交成功 appId={}, submitStatus={}", appId, submitStatus);
+                try {
+                    nodeLogService.append(NodeLog.of(
+                            taskId,
+                            stepId,
+                            stepName,
+                            "INFO",
+                            "pyspark 提交成功",
+                            Map.of(
+                                    "nodeType", "spark",
+                                    "appId", appId,
+                                    "submitStatus", submitStatus == null ? "" : submitStatus
+                            )
+                    ));
+                } catch (Exception ignore) {
+                    log.warn("记录 SparkNode 提交日志失败: {}", ignore.getMessage());
+                }
+
+                // 轮询配置（可按需改为从 nodeData 或 computeEngine 读取）
+                final int pollIntervalSeconds = 5;
+                final long maxWaitSeconds = 3600L; // 默认 1 小时
+                long deadline = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(maxWaitSeconds);
+
+                SparkTaskConsumer taskConsumer = new SparkTaskConsumer(computeEngine);
+
+                // logOffset 用于增量获取日志
+                final int fetchLen = 8192;
+                long logOffset = 0L;
+
+                // 如果是同步调用，则等待任务完成
+                if (!nodeData.isAsync()) {
+                    while (true) {
+                        if (System.currentTimeMillis() > deadline) {
+                            RuntimeException re = new RuntimeException("等待 Spark 任务达到终态超时 appId=" + appId);
+                            try {
+                                nodeLogService.append(NodeLog.of(
+                                        taskId,
+                                        stepId,
+                                        stepName,
+                                        "ERROR",
+                                        "等待 Spark 任务达到终态超时",
+                                        Map.of("appId", appId)
+                                ));
+                            } catch (Exception ignore) {
+                                log.warn("记录 SparkNode 超时日志失败: {}", ignore.getMessage());
+                            }
+                            throw re;
+                        }
+
+                        // 先查询状态
+                        R<SparkTaskConsumer.SparkTaskStatusDTO> statusResp = taskConsumer.queryTaskStatus(appId);
+                        if (statusResp == null) {
+                            log.warn("queryTaskStatus 返回 null, appId={}, {}s 后重试", appId, pollIntervalSeconds);
+                        } else {
+                            SparkTaskConsumer.SparkTaskStatusDTO statusDto = statusResp.getData();
+                            if (statusDto != null) {
+                                String state = statusDto.getStatus();
+                                log.info("查询任务状态 appId={}, state={}, message={}", appId, state, statusDto.getStatusDesc());
+                                try {
+                                    nodeLogService.append(NodeLog.of(
+                                            taskId,
+                                            stepId,
+                                            stepName,
+                                            "INFO",
+                                            "查询任务状态",
+                                            Map.of(
+                                                    "appId", appId,
+                                                    "state", state == null ? "" : state,
+                                                    "message", statusDto.getStatusDesc() == null ? "" : statusDto.getStatusDesc()
+                                            )
+                                    ));
+                                } catch (Exception ignore) {
+                                    log.warn("记录 SparkNode 状态日志失败: {}", ignore.getMessage());
+                                }
+                            } else {
+                                log.info("queryTaskStatus 无 data, appId={}, {}s 后重试", appId, pollIntervalSeconds);
+                            }
+                        }
+
+                        // 然后拉取增量日志并记录
+                        try {
+                            R<SparkTaskConsumer.LogContentDTO> logResp = taskConsumer.getLogContent(appId, logOffset, fetchLen);
+                            if (logResp != null && logResp.getData() != null) {
+                                SparkTaskConsumer.LogContentDTO logDto = logResp.getData();
+                                String content = logDto.getLogContent();
+                                if (content != null && !content.isEmpty()) {
+                                    try {
+                                        nodeLogService.append(NodeLog.of(
+                                                taskId,
+                                                stepId,
+                                                stepName,
+                                                "INFO",
+                                                "Spark 运行日志",
+                                                Map.of(
+                                                        "appId", appId,
+                                                        "offset", String.valueOf(logDto.getOffset()),
+                                                        "length", String.valueOf(logDto.getLength()),
+                                                        "contentPreview", content.length() > 1000 ? content.substring(0, 1000) + "..." : content
+                                                )
+                                        ));
+                                    } catch (Exception ignore) {
+                                        log.warn("记录 SparkNode 运行日志失败: {}", ignore.getMessage());
+                                    }
+                                }
+                                // 更新偏移（防止重复）
+                                if (logDto.getOffset() != null && logDto.getLength() != null) {
+                                    logOffset = logDto.getOffset() + logDto.getLength();
+                                }
+                            }
+                        } catch (Exception e) {
+                            log.warn("获取或记录 Spark 日志时发生异常 appId={}, err={}", appId, e.getMessage());
+                        }
+
+                        // 再次判断状态以决定是否结束循环
+                        R<SparkTaskConsumer.SparkTaskStatusDTO> statusResp2 = taskConsumer.queryTaskStatus(appId);
+                        if (statusResp2 == null) {
+                            Thread.sleep(TimeUnit.SECONDS.toMillis(pollIntervalSeconds));
+                            continue;
+                        }
+
+                        SparkTaskConsumer.SparkTaskStatusDTO statusDto2 = statusResp2.getData();
+                        if (statusDto2 == null) {
+                            Thread.sleep(TimeUnit.SECONDS.toMillis(pollIntervalSeconds));
+                            continue;
+                        }
+
+                        String state2 = statusDto2.getStatus();
+                        if (state2 == null) {
+                            Thread.sleep(TimeUnit.SECONDS.toMillis(pollIntervalSeconds));
+                            continue;
+                        }
+
+                        String s = state2.trim().toUpperCase();
+                        if (s.equals("FINISHED") || s.equals("SUCCEEDED") || s.equals("SUCCESS")) {
+                            log.info("Spark 任务完成成功 appId={}", appId);
+                            try {
+                                nodeLogService.append(NodeLog.of(
+                                        taskId,
+                                        stepId,
+                                        stepName,
+                                        "INFO",
+                                        "Spark 任务完成成功",
+                                        Map.of("appId", appId, "finalState", state2)
+                                ));
+                            } catch (Exception ignore) {
+                                log.warn("记录 SparkNode 成功日志失败: {}", ignore.getMessage());
+                            }
+                            return;
+                        } else if (s.equals("FAILED") || s.equals("KILLED") || s.equals("ERROR") || s.equals("FAILED_WITH_ERRORS")) {
+                            RuntimeException re = new RuntimeException("Spark 任务失败 appId=" + appId + ", state=" + state2 + ", message=" + statusDto2.getStatusDesc());
+                            String stack = StackTraceUtils.getStackTrace(re);
+                            if (stack.length() > 4000) stack = stack.substring(0, 4000) + "...";
+                            try {
+                                nodeLogService.append(NodeLog.of(
+                                        taskId,
+                                        stepId,
+                                        stepName,
+                                        "ERROR",
+                                        "Spark 任务失败: " + re.getMessage(),
+                                        Map.of(
+                                                "appId", appId,
+                                                "state", state2,
+                                                "statusDesc", statusDto2.getStatusDesc() == null ? "" : statusDto2.getStatusDesc(),
+                                                "stackTrace", stack
+                                        )
+                                ));
+                            } catch (Exception ignore) {
+                                log.warn("记录 SparkNode 失败日志失败: {}", ignore.getMessage());
+                            }
+                            throw re;
+                        } else {
+                            // 非终态，继续轮询
+                            Thread.sleep(TimeUnit.SECONDS.toMillis(pollIntervalSeconds));
+                        }
+                    }
+                } else {
+                    // 如果是异步调用，则在后台线程监控并持续获取日志
+                    final long bgMaxWaitSeconds = maxWaitSeconds; // 可根据需要调整
+                    final long bgDeadline = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(bgMaxWaitSeconds);
+                    final long initialLogOffset = logOffset;
+
+                    CompletableFuture.runAsync(() -> {
+                        long bgOffset = initialLogOffset;
+                        try {
+                            SparkTaskConsumer bgTaskConsumer = new SparkTaskConsumer(computeEngine);
+                            while (true) {
+                                if (System.currentTimeMillis() > bgDeadline) {
+                                    log.warn("后台监控 Spark 任务超时 appId={}", appId);
+                                    try {
+                                        nodeLogService.append(NodeLog.of(
+                                                taskId,
+                                                stepId,
+                                                stepName,
+                                                "WARN",
+                                                "后台监控 Spark 任务超时",
+                                                Map.of("appId", appId)
+                                        ));
+                                    } catch (Exception ignore) {
+                                        log.warn("记录 SparkNode 后台超时日志失败: {}", ignore.getMessage());
+                                    }
+                                    break;
+                                }
+
+                                try {
+                                    R<SparkTaskConsumer.SparkTaskStatusDTO> statusResp = bgTaskConsumer.queryTaskStatus(appId);
+                                    if (statusResp == null) {
+                                        log.warn("后台 queryTaskStatus 返回 null, appId={}, {}s 后重试", appId, pollIntervalSeconds);
+                                    } else {
+                                        SparkTaskConsumer.SparkTaskStatusDTO statusDto = statusResp.getData();
+                                        if (statusDto != null) {
+                                            String state = statusDto.getStatus();
+                                            log.info("后台监控任务状态 appId={}, state={}, message={}", appId, state, statusDto.getStatusDesc());
+                                            try {
+                                                nodeLogService.append(NodeLog.of(
+                                                        taskId,
+                                                        stepId,
+                                                        stepName,
+                                                        "INFO",
+                                                        "后台监控任务状态",
+                                                        Map.of(
+                                                                "appId", appId,
+                                                                "state", state == null ? "" : state,
+                                                                "message", statusDto.getStatusDesc() == null ? "" : statusDto.getStatusDesc()
+                                                        )
+                                                ));
+                                            } catch (Exception ignore) {
+                                                log.warn("记录 SparkNode 后台状态日志失败: {}", ignore.getMessage());
+                                            }
+                                        }
+                                    }
+                                } catch (Exception e) {
+                                    log.warn("后台查询任务状态异常 appId={}, err={}", appId, e.getMessage());
+                                }
+
+                                // 拉取增量日志
+                                try {
+                                    R<SparkTaskConsumer.LogContentDTO> logResp = bgTaskConsumer.getLogContent(appId, bgOffset, fetchLen);
+                                    if (logResp != null && logResp.getData() != null) {
+                                        SparkTaskConsumer.LogContentDTO logDto = logResp.getData();
+                                        String content = logDto.getLogContent();
+                                        if (content != null && !content.isEmpty()) {
+                                            try {
+                                                nodeLogService.append(NodeLog.of(
+                                                        taskId,
+                                                        stepId,
+                                                        stepName,
+                                                        "INFO",
+                                                        "Spark 运行日志（后台）",
+                                                        Map.of(
+                                                                "appId", appId,
+                                                                "offset", String.valueOf(logDto.getOffset()),
+                                                                "length", String.valueOf(logDto.getLength()),
+                                                                "contentPreview", content.length() > 1000 ? content.substring(0, 1000) + "..." : content
+                                                        )
+                                                ));
+                                            } catch (Exception ignore) {
+                                                log.warn("记录 SparkNode 后台运行日志失败: {}", ignore.getMessage());
+                                            }
+                                        }
+                                        if (logDto.getOffset() != null && logDto.getLength() != null) {
+                                            bgOffset = logDto.getOffset() + logDto.getLength();
+                                        }
+                                    }
+                                } catch (Exception e) {
+                                    log.warn("后台获取或记录 Spark 日志时发生异常 appId={}, err={}", appId, e.getMessage());
+                                }
+
+                                // 检查终态
+                                try {
+                                    R<SparkTaskConsumer.SparkTaskStatusDTO> statusResp2 = bgTaskConsumer.queryTaskStatus(appId);
+                                    if (statusResp2 != null && statusResp2.getData() != null) {
+                                        SparkTaskConsumer.SparkTaskStatusDTO sd = statusResp2.getData();
+                                        String state = sd.getStatus();
+                                        if (state != null) {
+                                            String s = state.trim().toUpperCase();
+                                            if (s.equals("FINISHED") || s.equals("SUCCEEDED") || s.equals("SUCCESS")) {
+                                                log.info("后台监控 Spark 任务完成成功 appId={}", appId);
+                                                try {
+                                                    nodeLogService.append(NodeLog.of(
+                                                            taskId,
+                                                            stepId,
+                                                            stepName,
+                                                            "INFO",
+                                                            "后台监控 Spark 任务完成成功",
+                                                            Map.of("appId", appId, "finalState", state)
+                                                    ));
+                                                } catch (Exception ignore) {
+                                                    log.warn("记录 SparkNode 后台完成日志失败: {}", ignore.getMessage());
+                                                }
+                                                break;
+                                            } else if (s.equals("FAILED") || s.equals("KILLED") || s.equals("ERROR") || s.equals("FAILED_WITH_ERRORS")) {
+                                                log.error("后台监控 Spark 任务失败 appId={}, state={}, message={}", appId, state, sd.getStatusDesc());
+                                                try {
+                                                    nodeLogService.append(NodeLog.of(
+                                                            taskId,
+                                                            stepId,
+                                                            stepName,
+                                                            "ERROR",
+                                                            "后台监控 Spark 任务失败",
+                                                            Map.of(
+                                                                    "appId", appId,
+                                                                    "state", state,
+                                                                    "message", sd.getStatusDesc() == null ? "" : sd.getStatusDesc()
+                                                            )
+                                                    ));
+                                                } catch (Exception ignore) {
+                                                    log.warn("记录 SparkNode 后台失败日志失败: {}", ignore.getMessage());
+                                                }
+                                                break;
+                                            }
+                                        }
+                                    }
+                                } catch (Exception e) {
+                                    log.warn("后台查询任务终态时发生异常 appId={}, err={}", appId, e.getMessage());
+                                }
+
+                                Thread.sleep(TimeUnit.SECONDS.toMillis(pollIntervalSeconds));
+                            }
+                        } catch (InterruptedException ie) {
+                            Thread.currentThread().interrupt();
+                            log.warn("后台监控线程被中断 appId={}", appId);
+                            try {
+                                nodeLogService.append(NodeLog.of(
+                                        taskId,
+                                        stepId,
+                                        stepName,
+                                        "WARN",
+                                        "后台监控线程被中断",
+                                        Map.of("appId", appId)
+                                ));
+                            } catch (Exception ignore) {
+                                log.warn("记录 SparkNode 后台中断日志失败: {}", ignore.getMessage());
+                            }
+                        } catch (Exception e) {
+                            log.error("后台监控 Spark 任务时发生异常 appId={}", appId, e);
+                            try {
+                                String stack = StackTraceUtils.getStackTrace(e);
+                                if (stack.length() > 4000) stack = stack.substring(0, 4000) + "...";
+                                nodeLogService.append(NodeLog.of(
+                                        taskId,
+                                        stepId,
+                                        stepName,
+                                        "ERROR",
+                                        "后台监控 Spark 任务异常: " + e.getMessage(),
+                                        Map.of("appId", appId, "stackTrace", stack)
+                                ));
+                            } catch (Exception ignore) {
+                                log.warn("记录 SparkNode 后台异常日志失败: {}", ignore.getMessage());
+                            }
+                        }
+                    });
+                }
+
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+                RuntimeException re = new RuntimeException("任务轮询线程被中断", ie);
+                try {
+                    nodeLogService.append(NodeLog.of(
+                            taskId,
+                            stepId,
+                            stepName,
+                            "ERROR",
+                            "任务轮询线程被中断",
+                            Map.of("nodeType", "spark")
+                    ));
+                } catch (Exception ignore) {
+                    log.warn("记录 SparkNode 中断日志失败: {}", ignore.getMessage());
+                }
+                throw re;
+            } catch (RuntimeException re) {
+                // 记录运行时异常日志（容错）
+                try {
+                    String stack = StackTraceUtils.getStackTrace(re);
+                    if (stack.length() > 4000) stack = stack.substring(0, 4000) + "...";
+                    nodeLogService.append(NodeLog.of(
+                            taskId,
+                            stepId,
+                            stepName,
+                            "ERROR",
+                            "Spark 节点执行异常: " + re.getMessage(),
+                            Map.of("nodeType", "spark", "stackTrace", stack)
+                    ));
+                } catch (Exception ignore) {
+                    log.warn("记录 SparkNode 运行时异常日志失败: {}", ignore.getMessage());
+                }
+                throw re;
+            } catch (Exception ex) {
+                // 记录未知异常日志（容错）
+                try {
+                    String stack = StackTraceUtils.getStackTrace(ex);
+                    if (stack.length() > 4000) stack = stack.substring(0, 4000) + "...";
+                    nodeLogService.append(NodeLog.of(
+                            taskId,
+                            stepId,
+                            stepName,
+                            "ERROR",
+                            "执行 pyspark 节点时发生异常",
+                            Map.of("nodeType", "spark", "exception", ex.getMessage(), "stackTrace", stack)
+                    ));
+                } catch (Exception ignore) {
+                    log.warn("记录 SparkNode 异常日志失败: {}", ignore.getMessage());
+                }
+                throw new RuntimeException("执行 pyspark 节点时发生异常", ex);
+            }
+        });
+    }
+
+    /**
+     * 获取 Spark SQL 节点的 CompletableFuture
+     * @param computeEngine
+     * @param nodeData
+     * @return
+     */
+    private CompletableFuture<Void> getSparkSqlCompletableFuture(ComputeEngineEntity computeEngine, SparkNodeData nodeData) {
+        String taskId = String.valueOf(flowExecution != null ? flowExecution.getId() : "unknown");
+        String stepId = node != null ? node.getId() : "unknown";
+        String stepName = node != null ? node.getStepName() : "unknown";
+
+        // 记录开始日志（容错）
+        try {
             nodeLogService.append(NodeLog.of(
-                    flowExecution.getId().toString(),
-                    node.getId(),
-                    node.getStepName(),
+                    taskId,
+                    stepId,
+                    stepName,
                     "INFO",
-                    "Spark 节点执行完成（已记录结构化结果与响应预览）",
-                    Map.of(
-                            "outputKey", node.getStepName() + ".result"
-                    )
+                    "Spark SQL 节点开始执行",
+                    Map.of("nodeType", "spark", "runType", "spark-sql")
             ));
-
-            return CompletableFuture.completedFuture(null);
-        } catch (Exception ex) {
-            String errMsg = ex.getMessage() != null ? ex.getMessage() : "未知异常";
-            String stack = StackTraceUtils.getStackTrace(ex);
-            if (stack.length() > 4000) stack = stack.substring(0, 4000) + "...";
-
-            nodeLogService.append(NodeLog.of(
-                    flowExecution.getId().toString(),
-                    node.getId(),
-                    node.getStepName(),
-                    "ERROR",
-                    "Spark 节点执行异常: " + errMsg,
-                    Map.of(
-                            "exception", errMsg,
-                            "stackTrace", stack
-                    )
-            ));
-
-            log.error("SparkNode 执行异常: {}", ex.getMessage(), ex);
-            CompletableFuture<Void> failed = new CompletableFuture<>();
-            failed.completeExceptionally(ex);
-            return failed;
+        } catch (Exception ignore) {
+            log.warn("记录 Spark SQL 开始日志失败: {}", ignore.getMessage());
         }
+
+        return CompletableFuture.runAsync(() -> {
+            try {
+                // 从原始 node_data JSON 中弹性获取 SQL 内容和是否为文件标志（兼容多种字段名）
+                String nodeDataJson = String.valueOf(node.getProperties().get("node_data"));
+                JSONObject nodeObj = JSONObject.parseObject(nodeDataJson == null ? "{}" : nodeDataJson);
+
+                String sql = null;
+                // 尝试多个常见字段名
+                if (nodeObj.containsKey("sql")) sql = nodeObj.getString("sql");
+                if ((sql == null || sql.trim().isEmpty()) && nodeObj.containsKey("sqlContent")) sql = nodeObj.getString("sqlContent");
+                if ((sql == null || sql.trim().isEmpty()) && nodeObj.containsKey("sparkSql")) sql = nodeObj.getString("sparkSql");
+                if ((sql == null || sql.trim().isEmpty()) && nodeObj.containsKey("sparkSqlContent")) sql = nodeObj.getString("sparkSqlContent");
+                // 如果是 sqlFile 模式，sql 字段 可能 存储文件名或路径
+                boolean isSqlFile = false;
+                if (nodeObj.containsKey("isSqlFile")) isSqlFile = Boolean.TRUE.equals(nodeObj.getBoolean("isSqlFile"));
+                if (!isSqlFile && nodeObj.containsKey("sqlFile")) isSqlFile = Boolean.TRUE.equals(nodeObj.getBoolean("sqlFile"));
+
+                // 备用：如果没有从 JSON 中得到内容，尝试从 nodeData (对象) 中获取 preview 字段（保持兼容，不强依赖）
+                if ((sql == null || sql.trim().isEmpty())) {
+                    try {
+                        // 试图通过反射获取常见 getter（若类定义了则可使用）
+                        java.lang.reflect.Method m = nodeData.getClass().getMethod("getSql");
+                        Object o = m.invoke(nodeData);
+                        if (o != null) sql = String.valueOf(o);
+                    } catch (Throwable ignored) {
+                    }
+                }
+
+                if (sql == null || sql.trim().isEmpty()) {
+                    RuntimeException re = new RuntimeException("Spark SQL 内容为空，无法提交任务");
+                    try {
+                        nodeLogService.append(NodeLog.of(
+                                taskId,
+                                stepId,
+                                stepName,
+                                "ERROR",
+                                "提交失败: Spark SQL 内容为空",
+                                Map.of("nodeType", "spark", "runType", "spark-sql")
+                        ));
+                    } catch (Exception ignore) {
+                        log.warn("记录 Spark SQL 错误日志失败: {}", ignore.getMessage());
+                    }
+                    throw re;
+                }
+
+                String sqlTextNoSec = CommonsTextSecrets.replace(sql , orgSecret) ;
+                String sqlScript = replacePlaceholders(sqlTextNoSec);
+
+
+                // 发送提交请求
+                SparkSqlConsumer sqlConsumer = new SparkSqlConsumer(computeEngine);
+                R<BaseSparkConsumer.SubmitRespDto> submitResp;
+
+                // 如果配置为异步，尝试使用 submitAsync（此方法会立即返回），否则使用 raw 提交并等待 waitMs
+                if (nodeData.isAsync()) {
+                    String apiToken = nodeObj.containsKey("user") ? nodeObj.getString("user") : nodeObj.getString("apiToken");
+                    // submitAsync 接受 sqlOrFile, isSqlFile, apiToke
+                    submitResp = sqlConsumer.submitAsync(sqlScript, isSqlFile, apiToken);
+                } else {
+                    // 同步等待，使用一个合理的 waitMs（毫秒），这里采用 60s
+                    submitResp = sqlConsumer.submitRaw(sqlScript, 60_000L);
+                }
+
+                if (submitResp == null) {
+                    RuntimeException re = new RuntimeException("提交 Spark SQL 任务返回 null");
+                    try {
+                        nodeLogService.append(NodeLog.of(
+                                taskId,
+                                stepId,
+                                stepName,
+                                "ERROR",
+                                "提交 Spark SQL 任务返回 null",
+                                Map.of("nodeType", "spark", "runType", "spark-sql")
+                        ));
+                    } catch (Exception ignore) {
+                        log.warn("记录 Spark SQL 错误日志失败: {}", ignore.getMessage());
+                    }
+                    throw re;
+                }
+
+                BaseSparkConsumer.SubmitRespDto submitData = submitResp.getData();
+                String appId = submitData != null ? submitData.getApplicationId() : null;
+                String submitStatus = submitData != null ? submitData.getStatus() : null;
+
+                if (appId == null || appId.trim().isEmpty()) {
+                    // 对于异步提交通常会返回 appId；若没有返回，记录并结束（或抛出）
+                    try {
+                        nodeLogService.append(NodeLog.of(
+                                taskId,
+                                stepId,
+                                stepName,
+                                "WARN",
+                                "Spark SQL 提交返回无 appId",
+                                Map.of("nodeType", "spark", "submitStatus", submitStatus == null ? "" : submitStatus)
+                        ));
+                    } catch (Exception ignore) {
+                        log.warn("记录 Spark SQL 提交警告日志失败: {}", ignore.getMessage());
+                    }
+                    // 若是同步提交且没有 appId，直接返回完成
+                    if (nodeData.isAsync()) {
+                        RpcServiceRuntimeException ex = new RpcServiceRuntimeException("提交成功但未返回 applicationId，无法跟踪任务状态");
+                        try {
+                            nodeLogService.append(NodeLog.of(
+                                    taskId,
+                                    stepId,
+                                    stepName,
+                                    "ERROR",
+                                    "提交成功但未返回 applicationId，无法跟踪任务状态",
+                                    Map.of("nodeType", "spark")
+                            ));
+                        } catch (Exception ignore) {
+                            log.warn("记录 Spark SQL 错误日志失败: {}", ignore.getMessage());
+                        }
+                        throw ex;
+                    } else {
+                        // 同步且无 appId，认为提交已完成
+                        try {
+                            nodeLogService.append(NodeLog.of(
+                                    taskId,
+                                    stepId,
+                                    stepName,
+                                    "INFO",
+                                    "Spark SQL 同步提交已返回（无 appId）",
+                                    Map.of("nodeType", "spark", "submitStatus", submitStatus == null ? "" : submitStatus)
+                            ));
+                        } catch (Exception ignore) {
+                            log.warn("记录 Spark SQL 完成日志失败: {}", ignore.getMessage());
+                        }
+                        return;
+                    }
+                }
+
+                log.info("spark-sql 提交成功 appId={}, submitStatus={}", appId, submitStatus);
+                try {
+                    nodeLogService.append(NodeLog.of(
+                            taskId,
+                            stepId,
+                            stepName,
+                            "INFO",
+                            "spark-sql 提交成功",
+                            Map.of("nodeType", "spark", "appId", appId, "submitStatus", submitStatus == null ? "" : submitStatus)
+                    ));
+                } catch (Exception ignore) {
+                    log.warn("记录 Spark SQL 提交日志失败: {}", ignore.getMessage());
+                }
+
+                // 如果是异步提交且调用者希望立即返回，则不阻塞当前线程；若需要后台监控则同 pyspark 那样启动 bg 线程
+                final int pollIntervalSeconds = 5;
+                final long maxWaitSeconds = 3600L;
+                long deadline = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(maxWaitSeconds);
+
+                SparkTaskConsumer taskConsumer = new SparkTaskConsumer(computeEngine);
+                final int fetchLen = 8192;
+                long logOffset = 0L;
+
+                if (!nodeData.isAsync()) {
+                    // 同步等待任务终态并实时抓取日志
+                    while (true) {
+                        if (System.currentTimeMillis() > deadline) {
+                            RuntimeException re = new RuntimeException("等待 Spark SQL 任务达到终态超时 appId=" + appId);
+                            try {
+                                nodeLogService.append(NodeLog.of(
+                                        taskId,
+                                        stepId,
+                                        stepName,
+                                        "ERROR",
+                                        "等待 Spark SQL 任务达到终态超时",
+                                        Map.of("appId", appId)
+                                ));
+                            } catch (Exception ignore) {
+                                log.warn("记录 Spark SQL 超时日志失败: {}", ignore.getMessage());
+                            }
+                            throw re;
+                        }
+
+                        // 查询状态
+                        R<SparkTaskConsumer.SparkTaskStatusDTO> statusResp = taskConsumer.queryTaskStatus(appId);
+                        if (statusResp != null && statusResp.getData() != null) {
+                            SparkTaskConsumer.SparkTaskStatusDTO statusDto = statusResp.getData();
+                            String state = statusDto.getStatus();
+                            try {
+                                nodeLogService.append(NodeLog.of(
+                                        taskId,
+                                        stepId,
+                                        stepName,
+                                        "INFO",
+                                        "查询任务状态",
+                                        Map.of("appId", appId, "state", state == null ? "" : state, "message", statusDto.getStatusDesc() == null ? "" : statusDto.getStatusDesc())
+                                ));
+                            } catch (Exception ignore) {
+                                log.warn("记录 Spark SQL 状态日志失败: {}", ignore.getMessage());
+                            }
+                        } else {
+                            log.info("queryTaskStatus 返回 null 或无 data, appId={}, {}s 后重试", appId, pollIntervalSeconds);
+                        }
+
+                        // 获取日志增量
+                        try {
+                            R<SparkTaskConsumer.LogContentDTO> logResp = taskConsumer.getLogContent(appId, logOffset, fetchLen);
+                            if (logResp != null && logResp.getData() != null) {
+                                SparkTaskConsumer.LogContentDTO logDto = logResp.getData();
+                                String content = logDto.getLogContent();
+                                if (content != null && !content.isEmpty()) {
+                                    try {
+                                        nodeLogService.append(NodeLog.of(
+                                                taskId,
+                                                stepId,
+                                                stepName,
+                                                "INFO",
+                                                "Spark SQL 运行日志",
+                                                Map.of(
+                                                        "appId", appId,
+                                                        "offset", String.valueOf(logDto.getOffset()),
+                                                        "length", String.valueOf(logDto.getLength()),
+                                                        "contentPreview", content.length() > 1000 ? content.substring(0, 1000) + "..." : content
+                                                )
+                                        ));
+                                    } catch (Exception ignore) {
+                                        log.warn("记录 Spark SQL 运行日志失败: {}", ignore.getMessage());
+                                    }
+                                }
+                                if (logDto.getOffset() != null && logDto.getLength() != null) {
+                                    logOffset = logDto.getOffset() + logDto.getLength();
+                                }
+                            }
+                        } catch (Exception e) {
+                            log.warn("获取或记录 Spark SQL 日志时发生异常 appId={}, err={}", appId, e.getMessage());
+                        }
+
+                        // 再次判断终态
+                        R<SparkTaskConsumer.SparkTaskStatusDTO> statusResp2 = taskConsumer.queryTaskStatus(appId);
+                        if (statusResp2 == null || statusResp2.getData() == null) {
+                            Thread.sleep(TimeUnit.SECONDS.toMillis(pollIntervalSeconds));
+                            continue;
+                        }
+
+                        SparkTaskConsumer.SparkTaskStatusDTO statusDto2 = statusResp2.getData();
+                        String state2 = statusDto2.getStatus();
+                        if (state2 == null) {
+                            Thread.sleep(TimeUnit.SECONDS.toMillis(pollIntervalSeconds));
+                            continue;
+                        }
+
+                        String s = state2.trim().toUpperCase();
+                        if (s.equals("FINISHED") || s.equals("SUCCEEDED") || s.equals("SUCCESS")) {
+                            try {
+                                nodeLogService.append(NodeLog.of(
+                                        taskId,
+                                        stepId,
+                                        stepName,
+                                        "INFO",
+                                        "Spark SQL 任务完成成功",
+                                        Map.of("appId", appId, "finalState", state2)
+                                ));
+                            } catch (Exception ignore) {
+                                log.warn("记录 Spark SQL 成功日志失败: {}", ignore.getMessage());
+                            }
+                            return;
+                        } else if (s.equals("FAILED") || s.equals("KILLED") || s.equals("ERROR") || s.equals("FAILED_WITH_ERRORS")) {
+                            RuntimeException re = new RuntimeException("Spark SQL 任务失败 appId=" + appId + ", state=" + state2 + ", message=" + statusDto2.getStatusDesc());
+                            String stack = StackTraceUtils.getStackTrace(re);
+                            if (stack.length() > 4000) stack = stack.substring(0, 4000) + "...";
+                            try {
+                                nodeLogService.append(NodeLog.of(
+                                        taskId,
+                                        stepId,
+                                        stepName,
+                                        "ERROR",
+                                        "Spark SQL 任务失败: " + re.getMessage(),
+                                        Map.of("appId", appId, "state", state2, "statusDesc", statusDto2.getStatusDesc() == null ? "" : statusDto2.getStatusDesc(), "stackTrace", stack)
+                                ));
+                            } catch (Exception ignore) {
+                                log.warn("记录 Spark SQL 失败日志失败: {}", ignore.getMessage());
+                            }
+                            throw re;
+                        } else {
+                            Thread.sleep(TimeUnit.SECONDS.toMillis(pollIntervalSeconds));
+                        }
+                    }
+                } else {
+                    // 异步提交：在后台线程持续获取日志并监控终态（不阻塞当前线程）
+                    final long bgMaxWaitSeconds = maxWaitSeconds;
+                    final long bgDeadline = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(bgMaxWaitSeconds);
+                    final long initialLogOffset = logOffset;
+
+                    CompletableFuture.runAsync(() -> {
+                        long bgOffset = initialLogOffset;
+                        try {
+                            SparkTaskConsumer bgTaskConsumer = new SparkTaskConsumer(computeEngine);
+                            while (true) {
+                                if (System.currentTimeMillis() > bgDeadline) {
+                                    log.warn("后台监控 Spark SQL 任务超时 appId={}", appId);
+                                    try {
+                                        nodeLogService.append(NodeLog.of(
+                                                taskId,
+                                                stepId,
+                                                stepName,
+                                                "WARN",
+                                                "后台监控 Spark SQL 任务超时",
+                                                Map.of("appId", appId)
+                                        ));
+                                    } catch (Exception ignore) {
+                                        log.warn("记录 Spark SQL 后台超时日志失败: {}", ignore.getMessage());
+                                    }
+                                    break;
+                                }
+
+                                // 拉取状态并记录
+                                try {
+                                    R<SparkTaskConsumer.SparkTaskStatusDTO> statusRespBg = bgTaskConsumer.queryTaskStatus(appId);
+                                    if (statusRespBg != null && statusRespBg.getData() != null) {
+                                        SparkTaskConsumer.SparkTaskStatusDTO sd = statusRespBg.getData();
+                                        String state = sd.getStatus();
+                                        try {
+                                            nodeLogService.append(NodeLog.of(
+                                                    taskId,
+                                                    stepId,
+                                                    stepName,
+                                                    "INFO",
+                                                    "后台监控任务状态",
+                                                    Map.of("appId", appId, "state", state == null ? "" : state, "message", sd.getStatusDesc() == null ? "" : sd.getStatusDesc())
+                                            ));
+                                        } catch (Exception ignore) {
+                                            log.warn("记录 Spark SQL 后台状态日志失败: {}", ignore.getMessage());
+                                        }
+                                    }
+                                } catch (Exception e) {
+                                    log.warn("后台 queryTaskStatus 异常 appId={}, err={}", appId, e.getMessage());
+                                }
+
+                                // 拉取日志增量
+                                try {
+                                    R<SparkTaskConsumer.LogContentDTO> logResp = bgTaskConsumer.getLogContent(appId, bgOffset, fetchLen);
+                                    if (logResp != null && logResp.getData() != null) {
+                                        SparkTaskConsumer.LogContentDTO logDto = logResp.getData();
+                                        String content = logDto.getLogContent();
+                                        if (content != null && !content.isEmpty()) {
+                                            try {
+                                                nodeLogService.append(NodeLog.of(
+                                                        taskId,
+                                                        stepId,
+                                                        stepName,
+                                                        "INFO",
+                                                        "Spark SQL 运行日志（后台）",
+                                                        Map.of("appId", appId, "offset", String.valueOf(logDto.getOffset()), "length", String.valueOf(logDto.getLength()), "contentPreview", content.length() > 1000 ? content.substring(0, 1000) + "..." : content)
+                                                ));
+                                            } catch (Exception ignore) {
+                                                log.warn("记录 Spark SQL 后台运行日志失败: {}", ignore.getMessage());
+                                            }
+                                        }
+                                        if (logDto.getOffset() != null && logDto.getLength() != null) {
+                                            bgOffset = logDto.getOffset() + logDto.getLength();
+                                        }
+                                    }
+                                } catch (Exception e) {
+                                    log.warn("后台获取或记录 Spark SQL 日志时发生异常 appId={}, err={}", appId, e.getMessage());
+                                }
+
+                                // 检查终态
+                                try {
+                                    R<SparkTaskConsumer.SparkTaskStatusDTO> statusResp2 = bgTaskConsumer.queryTaskStatus(appId);
+                                    if (statusResp2 != null && statusResp2.getData() != null) {
+                                        SparkTaskConsumer.SparkTaskStatusDTO sd = statusResp2.getData();
+                                        String state = sd.getStatus();
+                                        if (state != null) {
+                                            String s = state.trim().toUpperCase();
+                                            if (s.equals("FINISHED") || s.equals("SUCCEEDED") || s.equals("SUCCESS")) {
+                                                try {
+                                                    nodeLogService.append(NodeLog.of(
+                                                            taskId,
+                                                            stepId,
+                                                            stepName,
+                                                            "INFO",
+                                                            "后台监控 Spark SQL 任务完成成功",
+                                                            Map.of("appId", appId, "finalState", state)
+                                                    ));
+                                                } catch (Exception ignore) {
+                                                    log.warn("记录 Spark SQL 后台完成日志失败: {}", ignore.getMessage());
+                                                }
+                                                break;
+                                            } else if (s.equals("FAILED") || s.equals("KILLED") || s.equals("ERROR") || s.equals("FAILED_WITH_ERRORS")) {
+                                                try {
+                                                    nodeLogService.append(NodeLog.of(
+                                                            taskId,
+                                                            stepId,
+                                                            stepName,
+                                                            "ERROR",
+                                                            "后台监控 Spark SQL 任务失败",
+                                                            Map.of("appId", appId, "state", state, "message", sd.getStatusDesc() == null ? "" : sd.getStatusDesc())
+                                                    ));
+                                                } catch (Exception ignore) {
+                                                    log.warn("记录 Spark SQL 后台失败日志失败: {}", ignore.getMessage());
+                                                }
+                                                break;
+                                            }
+                                        }
+                                    }
+                                } catch (Exception e) {
+                                    log.warn("后台查询任务终态时发生异常 appId={}, err={}", appId, e.getMessage());
+                                }
+
+                                Thread.sleep(TimeUnit.SECONDS.toMillis(pollIntervalSeconds));
+                            }
+                        } catch (InterruptedException ie) {
+                            Thread.currentThread().interrupt();
+                            log.warn("Spark SQL 后台监控线程被中断 appId={}", appId);
+                            try {
+                                nodeLogService.append(NodeLog.of(
+                                        taskId,
+                                        stepId,
+                                        stepName,
+                                        "WARN",
+                                        "Spark SQL 后台监控线程被中断",
+                                        Map.of("appId", appId)
+                                ));
+                            } catch (Exception ignore) {
+                                log.warn("记录 Spark SQL 后台中断日志失败: {}", ignore.getMessage());
+                            }
+                        } catch (Exception e) {
+                            log.error("Spark SQL 后台监控异常 appId={}", appId, e);
+                            try {
+                                String stack = StackTraceUtils.getStackTrace(e);
+                                if (stack.length() > 4000) stack = stack.substring(0, 4000) + "...";
+                                nodeLogService.append(NodeLog.of(
+                                        taskId,
+                                        stepId,
+                                        stepName,
+                                        "ERROR",
+                                        "Spark SQL 后台监控异常: " + e.getMessage(),
+                                        Map.of("appId", appId, "stackTrace", stack)
+                                ));
+                            } catch (Exception ignore) {
+                                log.warn("记录 Spark SQL 后台异常日志失败: {}", ignore.getMessage());
+                            }
+                        }
+                    });
+                }
+
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+                RuntimeException re = new RuntimeException("任务轮询线程被中断", ie);
+                try {
+                    nodeLogService.append(NodeLog.of(
+                            taskId,
+                            stepId,
+                            stepName,
+                            "ERROR",
+                            "任务轮询线程被中断",
+                            Map.of("nodeType", "spark", "runType", "spark-sql")
+                    ));
+                } catch (Exception ignore) {
+                    log.warn("记录 Spark SQL 中断日志失败: {}", ignore.getMessage());
+                }
+                throw re;
+            } catch (RuntimeException re) {
+                try {
+                    String stack = StackTraceUtils.getStackTrace(re);
+                    if (stack.length() > 4000) stack = stack.substring(0, 4000) + "...";
+                    nodeLogService.append(NodeLog.of(
+                            taskId,
+                            stepId,
+                            stepName,
+                            "ERROR",
+                            "Spark SQL 节点执行异常: " + re.getMessage(),
+                            Map.of("nodeType", "spark", "stackTrace", stack)
+                    ));
+                } catch (Exception ignore) {
+                    log.warn("记录 Spark SQL 运行时异常日志失败: {}", ignore.getMessage());
+                }
+                throw re;
+            } catch (Exception ex) {
+                try {
+                    String stack = StackTraceUtils.getStackTrace(ex);
+                    if (stack.length() > 4000) stack = stack.substring(0, 4000) + "...";
+                    nodeLogService.append(NodeLog.of(
+                            taskId,
+                            stepId,
+                            stepName,
+                            "ERROR",
+                            "执行 spark-sql 节点时发生异常",
+                            Map.of("nodeType", "spark", "exception", ex.getMessage(), "stackTrace", stack)
+                    ));
+                } catch (Exception ignore) {
+                    log.warn("记录 Spark SQL 异常日志失败: {}", ignore.getMessage());
+                }
+                throw new RuntimeException("执行 spark-sql 节点时发生异常", ex);
+            }
+        });
     }
 
     private SparkNodeData getNodeData() {
