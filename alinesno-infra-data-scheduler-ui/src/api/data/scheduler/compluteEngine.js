@@ -18,10 +18,10 @@ export function saveConfig(payload) {
   })
 }
 
-export function probeEngineOnServer(engineAddress, adminUser) {
+export function probeEngineOnServer(engineAddress, apiToken) {
   return request({
     url: `${prefix}/probeHealth`,
     method: 'get',
-    params: { engineAddress, adminUser}
+    params: { engineAddress, apiToken}
   })
 }
