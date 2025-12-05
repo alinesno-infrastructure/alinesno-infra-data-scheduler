@@ -36,10 +36,10 @@ public class ComputeEngineEntity extends InfraBaseEntity {
     private String engineAddress;
 
     @Excel(name = "引擎请求Token")
-    @TableField(value = "admin_user" , typeHandler = AESEncryptHandler.class)
+    @TableField(value = "api_token" , typeHandler = AESEncryptHandler.class)
     @ColumnType(length = 512)
     @ColumnComment("用于请求引擎的管理员用户）")
-    private String adminUser;
+    private String apiToken;
 
     @Excel(name = "请求超时时间(秒)")
     @TableField("request_timeout")
