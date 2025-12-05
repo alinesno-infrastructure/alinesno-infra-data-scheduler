@@ -63,7 +63,7 @@
                   </el-form-item>
 
                   <el-form-item label="密码" prop="readerPasswd">
-                     <el-input type="password" auto-complete="new-password" :show-password="true" style="width:50%"  v-model="form.readerPasswd" placeholder="读取源密码"/>
+                     <el-input type="password" auto-complete="new-password" :show-password="false" style="width:50%"  v-model="form.readerPasswd" placeholder="读取源密码"/>
                   </el-form-item>
                </div>
 
