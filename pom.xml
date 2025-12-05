@@ -16,7 +16,7 @@
     <version>${revision}</version>
 
     <properties>
-        <revision>3.3.0-SNAPSHOT</revision>
+        <revision>3.4.0-SNAPSHOT</revision>
         <alinesno.infra.common.version>1.3.1-SNAPSHOT</alinesno.infra.common.version>
 
         <!-- 版本号 -->
@@ -48,12 +48,6 @@
         <!-- worker工作执行节点 -->
         <module>alinesno-infra-data-scheduler-work</module> <!--  工作流层次 -->
         <module>alinesno-infra-data-scheduler-work-application</module>  <!-- 启动服务 -->
-
-        <!-- Spark服务
-        <module>alinesno-infra-data-scheduler-spark-application</module>
-        <module>alinesno-infra-data-scheduler-spark-jar</module>
-        -->
-        <!-- spark任务执行器 -->
 
     </modules>
 
