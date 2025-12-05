@@ -24,7 +24,7 @@ public class ComputeEngineConfigDto extends BaseDto {
     private String engineAddress;
 
     @Size(max = 1024, message = "运行的管理员用户")
-    private String adminUser;
+    private String apiToken;
 
     @Min(value = 1, message = "请求超时时间最小为 1 秒")
     @Max(value = 300, message = "请求超时时间最大为 300 秒")
