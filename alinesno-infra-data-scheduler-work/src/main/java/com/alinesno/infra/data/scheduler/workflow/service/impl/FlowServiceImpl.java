@@ -36,6 +36,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
+import javax.lang.exception.RpcServiceRuntimeException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.*;
@@ -174,8 +175,7 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
                     }
 
                     // 判断是否暂停任务
-                    if(flowExecutionEntity.getExecutionStatus().equals(FlowExecutionStatus.ERROR.getCode()) &&
-                            errorStrategy.equals(ExecutionStrategyEnums.PAUSE_TASK)) {
+                    if(flowExecutionEntity.getExecutionStatus().equals(FlowExecutionStatus.ERROR.getCode()) &&  errorStrategy.equals(ExecutionStrategyEnums.PAUSE_TASK)) {
 
                         // TODO 调用父类API接口
 //                        IProcessDefinitionService processDefinitionService = SpringUtils.getBean(IProcessDefinitionService.class);
@@ -597,7 +597,7 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
                 flowNodeExecutionService.update(flowNodeExecutionEntity);
 
                 if(b){
-                    throw new RuntimeException("流程执行异常：" + err);
+                    throw new RpcServiceRuntimeException("流程执行异常：" + err);
                 }
 
             } catch (ExecutionException ee) {
@@ -610,7 +610,7 @@ public class FlowServiceImpl extends IBaseServiceImpl<FlowEntity, FlowMapper> im
                 flowNodeExecutionService.update(flowNodeExecutionEntity);
 
                 if(b){
-                    throw new RuntimeException("流程执行异常：" + err);
+                    throw new RpcServiceRuntimeException("流程执行异常：" + err);
                 }
 
             }
