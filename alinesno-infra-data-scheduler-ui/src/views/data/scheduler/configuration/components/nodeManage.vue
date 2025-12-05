@@ -9,7 +9,7 @@
       <el-form :model="form" :rules="rules" ref="formRef" label-width="160px" size="large" class="compute-form">
         <el-form-item label="计算引擎" prop="computeEngine">
           <el-radio-group v-model="form.computeEngine" class="engine-group">
-            <el-radio v-for="item in engineOptions" :key="item.value" :label="item.value" class="engine-button">
+            <el-radio v-for="item in engineOptions" :key="item.value" :label="item.value" class="engine-button" :disabled="item.disabled">
               <i :class="item.icon" aria-hidden="true"></i>
               <span class="engine-label">{{ item.label }}</span>
             </el-radio>
@@ -30,8 +30,8 @@
           </div>
         </el-form-item>
 
-        <el-form-item label="引擎请求 Token" prop="adminUser">
-          <el-input v-model="form.adminUser" placeholder="用于请求引擎的管理员用户（可选）" autocomplete="off" show-password />
+        <el-form-item label="引擎请求 Token" prop="apiToken">
+          <el-input v-model="form.apiToken" type="password" placeholder="用于请求引擎的管理员用户（可选）" autocomplete="off" />
           <div class="form-tip">若引擎启用了鉴权，请填入执行管理员 </div>
         </el-form-item>
 
@@ -66,16 +66,16 @@ const healthStatus = ref('') // '', 'ok', 'fail'
 
 // 导出引擎选项以便 UI 引用
 const engineOptions = [
-  { value: 'spark', label: 'Apache Spark', icon: 'fa-solid fa-bolt' },
-  { value: 'flink', label: 'Apache Flink', icon: 'fa-solid fa-water' },
-  { value: 'trino', label: 'Trino', icon: 'fa-solid fa-database' }
+  { value: 'spark', label: 'Apache Spark', icon: 'fa-solid fa-bolt' , disabled: false },
+  { value: 'flink', label: 'Apache Flink', icon: 'fa-solid fa-water' , disabled: true },
+  { value: 'trino', label: 'Trino', icon: 'fa-solid fa-database' , disabled: true }
 ]
 
 // 默认值
 const defaultForm = {
   computeEngine: 'spark',
   engineAddress: '',
-  adminUser: '',
+  apiToken: '',
   requestTimeout: 30
 }
 
@@ -105,7 +105,7 @@ async function loadConfig() {
     if (data) {
       form.computeEngine = data.computeEngine || defaultForm.computeEngine
       form.engineAddress = data.engineAddress || defaultForm.engineAddress
-      form.adminUser = data.adminUser || defaultForm.adminUser
+      form.apiToken = data.apiToken || defaultForm.apiToken
       form.requestTimeout = data.requestTimeout || defaultForm.requestTimeout
     }
   } catch (err) {
@@ -129,8 +129,8 @@ async function onCheckAddress() {
   checking.value = true
   healthStatus.value = ''
   try {
-    // 这里把 adminUser 写死为 fpgor（根据你给出的服务端示例），可改为可配置项
-    const res = await probeEngineOnServer(form.engineAddress, form.adminUser)
+    // 这里把 apiToken 写死为 fpgor（根据你给出的服务端示例），可改为可配置项
+    const res = await probeEngineOnServer(form.engineAddress, form.apiToken)
     // res 可能是字符串或包含在 data 中，视 request 封装而定
     const success = res.data.success ; // && res.data ? res.data : res
     if (success) {
@@ -166,7 +166,7 @@ async function onSubmit() {
       await saveConfig({
         computeEngine: form.computeEngine,
         engineAddress: form.engineAddress,
-        adminUser: form.adminUser,
+        apiToken: form.apiToken,
         requestTimeout: form.requestTimeout
       })
       ElMessage.success('配置保存成功')
