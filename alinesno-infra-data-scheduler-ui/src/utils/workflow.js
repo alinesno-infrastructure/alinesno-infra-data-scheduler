@@ -58,7 +58,7 @@ const ExceptionStrategy = {
 const ExceptionStrategyList = [
   { code: 0, key: 'IGNORE_FLOW', label: '继续执行', desc: '出现异常时忽略错误并继续后续节点的执行' },
   { code: 1, key: 'STOP_FLOW', label: '停止执行', desc: '出现异常时标记失败并停止整个流程' },
-  { code: 2, key: 'PAUSE_TASK', label: '暂停任务', desc: '出现异常时将流程置为暂停，等待人工干预或恢复' },
+//  { code: 2, key: 'PAUSE_TASK', label: '暂停任务', desc: '出现异常时将流程置为暂停，等待人工干预或恢复' },
 ];
 
 // 常用工具函数
