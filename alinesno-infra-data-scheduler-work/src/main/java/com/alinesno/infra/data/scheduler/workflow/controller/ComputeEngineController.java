@@ -48,9 +48,9 @@ public class ComputeEngineController extends BaseController<ComputeEngineEntity,
     @GetMapping("/probeHealth")
     public R<ProbeResultDto> probeHealth(
             @RequestParam("engineAddress") String engineAddress,
-            @RequestParam(value = "adminUser", required = false) String adminUser) {
+            @RequestParam(value = "apiToken", required = true) String apiToken) {
 
-        ProbeResultDto result = service.probeEngineHealth(engineAddress, adminUser);
+        ProbeResultDto result = service.probeEngineHealth(engineAddress, apiToken);
         return R.ok(result);
     }
 
