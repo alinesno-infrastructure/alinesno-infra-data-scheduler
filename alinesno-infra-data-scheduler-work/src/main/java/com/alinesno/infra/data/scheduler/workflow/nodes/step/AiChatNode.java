@@ -11,6 +11,7 @@ import com.alinesno.infra.data.scheduler.llm.entity.LlmModelEntity;
 import com.alinesno.infra.data.scheduler.workflow.constants.FlowConst;
 import com.alinesno.infra.data.scheduler.workflow.nodes.AbstractFlowNode;
 import com.alinesno.infra.data.scheduler.workflow.nodes.variable.step.AiChatNodeData;
+import com.alinesno.infra.data.scheduler.workflow.utils.CommonsTextSecrets;
 import com.alinesno.infra.data.scheduler.workflow.utils.StackTraceUtils;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -130,7 +131,9 @@ public class AiChatNode extends AbstractFlowNode {
         config.setModel(llmModel.getModel());
         Llm llm = adapterService.getLlm(llmModel.getProviderCode(), config);
 
-        String prompt = replacePlaceholders(nodeData.getPrompt());
+        String promptText = CommonsTextSecrets.replace(nodeData.getPrompt(), orgSecret) ;
+        String prompt = replacePlaceholders(promptText);
+
         try {
             nodeLogService.append(NodeLog.of(
                     flowExecution.getId().toString(),
