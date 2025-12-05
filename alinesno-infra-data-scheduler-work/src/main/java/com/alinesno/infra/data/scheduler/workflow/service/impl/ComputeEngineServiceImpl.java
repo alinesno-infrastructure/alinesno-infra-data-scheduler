@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * AI 分布式计算引擎配置 Service 实现
@@ -41,7 +42,7 @@ public class ComputeEngineServiceImpl extends IBaseServiceImpl<ComputeEngineEnti
         ComputeEngineEntity cfg = new ComputeEngineEntity();
         cfg.setComputeEngine("spark");
         cfg.setEngineAddress("");
-        cfg.setAdminUser("");
+        cfg.setApiToken("");
         cfg.setRequestTimeout(30);
         return cfg;
     }
@@ -59,7 +60,7 @@ public class ComputeEngineServiceImpl extends IBaseServiceImpl<ComputeEngineEnti
     }
 
     @Override
-    public ProbeResultDto probeEngineHealth(String engineAddress, String adminUser) {
+    public ProbeResultDto probeEngineHealth(String engineAddress, String apiToken) {
         // 基本校验（使用Hutool的StrUtil简化空判断）
         if (StrUtil.isBlank(engineAddress)) {
             return new ProbeResultDto(false, "engineAddress 为空", 0);
@@ -73,11 +74,14 @@ public class ComputeEngineServiceImpl extends IBaseServiceImpl<ComputeEngineEnti
 
         // 构建健康检查 URL（使用Hutool的StrUtil处理URL）
         String base = StrUtil.removeSuffix(addr, "/"); // 更高效地去掉尾部斜杠
-        String healthUrl = base + "/health" + "?adminUser=" + adminUser;
+        String healthUrl = base + "/health" ;
 
         try {
             // 使用Hutool的HttpUtil发送请求，自动处理参数和编码
-            HttpResponse result = HttpUtil.createGet(healthUrl).execute();
+            HttpResponse result = HttpUtil
+                    .createGet(healthUrl)
+                    .addHeaders(Map.of("X-Spark-Api-Token" , apiToken))
+                    .execute();
 
             // 处理响应（Hutool 5.8.22中使用getStatus()获取状态码）
             String body = StrUtil.trimToEmpty(result.body());
