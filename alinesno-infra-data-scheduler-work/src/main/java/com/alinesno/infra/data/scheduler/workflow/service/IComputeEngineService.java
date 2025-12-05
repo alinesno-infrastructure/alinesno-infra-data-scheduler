@@ -29,10 +29,10 @@ public interface IComputeEngineService extends IBaseService<ComputeEngineEntity>
     /**
      * 测试引擎健康
      * @param engineAddress
-     * @param adminUser
+     * @param apiToken
      * @return
      */
-    ProbeResultDto probeEngineHealth(String engineAddress, String adminUser);
+    ProbeResultDto probeEngineHealth(String engineAddress, String apiToken);
 
     /**
      * 获取当前配置
