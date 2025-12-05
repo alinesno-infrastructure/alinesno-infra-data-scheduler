@@ -32,9 +32,9 @@ public interface WorkerComputeEngineConsumer {
     /**
      * 测试引擎健康
      * @param engineAddress
-     * @param adminUser
+     * @param apiToken
      * @return
      */
     @Get("/probeHealth")
-    R<ProbeResultDto> probeEngineHealth(@Query("engineAddress") String engineAddress, @Query("adminUser") String adminUser);
+    R<ProbeResultDto> probeEngineHealth(@Query("engineAddress") String engineAddress, @Query("apiToken") String apiToken);
 }
