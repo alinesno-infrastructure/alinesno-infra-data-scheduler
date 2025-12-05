@@ -50,7 +50,7 @@
                      </div>
                      <div style="font-size: 13px;color: #a5a5a5;cursor: pointer;"
                         v-copyText="scope.row.promptId">
-                        耗时: <span>{{ getTimeDifference(scope.row.executeTime , scope.row.finishTime).seconds }} 秒</span>
+                        耗时: <span>{{ getTimeDifference(scope.row.executeTime , scope.row.finishTime).formatted }}</span>
                      </div>
                   </template>
                </el-table-column>
@@ -398,23 +398,52 @@ const handleChangStatusField = async (field, value, id) => {
 
 
 /** 计算两个时间间隔 */
-function getTimeDifference(startTime, endTime) {
-   // 解析ISO 8601格式的时间字符串为Date对象
-   const start = new Date(startTime);
-   const end = new Date(endTime);
+function getTimeDifference(startTime, endTime, options = {}) {
+  const { showDays = true } = options;
+  const start = new Date(startTime);
+  const end = new Date(endTime);
 
-   // 计算时间差（以毫秒为单位）
-   const diffInMilliseconds = end - start;
+  if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+    throw new Error('无效的时间格式，请使用可解析的时间字符串（如 ISO 8601）');
+  }
 
-   // 可选：转换成更易读的格式，比如秒或分钟
-   const diffInSeconds = diffInMilliseconds / 1000;
-   const diffInMinutes = diffInSeconds / 60;
+  const rawMs = end - start;             // 可能为负
+  const negative = rawMs < 0;
+  let ms = Math.abs(rawMs);
 
-   // 返回所需的时间差单位，这里我们返回毫秒和秒两种形式
-   return {
-      milliseconds: diffInMilliseconds,
-      seconds: diffInSeconds
-   };
+  const totalSeconds = Math.floor(ms / 1000);
+  const seconds = totalSeconds % 60;
+  const totalMinutes = Math.floor(totalSeconds / 60);
+  const minutes = totalMinutes % 60;
+  let hours = Math.floor(totalMinutes / 60);
+  let days = 0;
+
+  if (showDays) {
+    days = Math.floor(hours / 24);
+    hours = hours % 24;
+  }
+
+  // 构建可读字符串，省略为 0 的单位
+  const parts = [];
+  if (showDays && days > 0) parts.push(days + '天');
+  if (hours > 0) parts.push(hours + '时');
+  if (minutes > 0) parts.push(minutes + '分');
+  if (seconds > 0) parts.push(seconds + '秒');
+
+  // 若所有单位都为 0，则显示 "0秒"
+  if (parts.length === 0) parts.push('0秒');
+
+  const formatted = (negative ? '-' : '') + parts.join('');
+
+  return {
+    milliseconds: rawMs,            // 带符号
+    totalSeconds: rawMs / 1000,    // 带符号（可为小数）
+    days: negative ? -days : days,
+    hours: negative ? -hours : hours,
+    minutes: negative ? -minutes : minutes,
+    seconds: negative ? -seconds : seconds,
+    formatted: formatted
+  };
 }
 
 /**
