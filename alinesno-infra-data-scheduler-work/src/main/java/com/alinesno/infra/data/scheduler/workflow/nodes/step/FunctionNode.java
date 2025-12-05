@@ -8,6 +8,7 @@ import com.alinesno.infra.data.scheduler.workflow.constants.FlowConst;
 import com.alinesno.infra.data.scheduler.workflow.nodes.AbstractFlowNode;
 import com.alinesno.infra.data.scheduler.workflow.nodes.variable.step.FunctionNodeData;
 import com.alinesno.infra.data.scheduler.workflow.service.IDataSourceService;
+import com.alinesno.infra.data.scheduler.workflow.utils.CommonsTextSecrets;
 import com.alinesno.infra.data.scheduler.workflow.utils.StackTraceUtils;
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
@@ -21,7 +22,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.*;
 
 /**
  * 脚本功能节点（带日志增强版）
@@ -31,6 +32,8 @@ import java.util.concurrent.CompletableFuture;
 @Service(FlowConst.FLOW_STEP_NODE + "function")
 @EqualsAndHashCode(callSuper = true)
 public class FunctionNode extends AbstractFlowNode {
+
+    private static final int OUT_TIME = 2 ; // 任务超时时间(小时)
 
     @Autowired
     private IDataSourceService dataSourceService;
@@ -101,7 +104,9 @@ public class FunctionNode extends AbstractFlowNode {
                 log.warn("记录 script.start 日志失败: {}", ignore.getMessage());
             }
 
-            String scriptText = nodeData.getRawScript();
+            String scriptTextSec = nodeData.getRawScript();
+            String scriptText = CommonsTextSecrets.replace(scriptTextSec, orgSecret) ;
+
             return executeGroovyScript(scriptText, nodeData, outputContent);
         }).thenAccept(nodeOutput -> {
             // 3. 执行成功日志
@@ -154,7 +159,13 @@ public class FunctionNode extends AbstractFlowNode {
             }
 
             log.error("FunctionNode 执行异常: {}", ex.getMessage(), ex);
-            return null;
+
+            // 关键：记录完日志后重新抛出，确保外层 future 能感知到异常
+            if (ex instanceof RuntimeException) {
+                throw (RuntimeException) ex;
+            } else {
+                throw new CompletionException(ex);
+            }
         });
     }
 
@@ -190,6 +201,9 @@ public class FunctionNode extends AbstractFlowNode {
 
         // 用于跟踪需要关闭的数据源
         List<DruidDataSource> dataSourcesToClose = new ArrayList<>();
+
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Future<Object> future = null;
 
         try {
             // 3. 记录脚本开始执行的日志
@@ -289,10 +303,37 @@ public class FunctionNode extends AbstractFlowNode {
                 }
             }
 
-            // 8. 执行Groovy脚本
-            GroovyShell shell = new GroovyShell(FunctionNode.class.getClassLoader(), binding);
+            // 8. 执行Groovy脚本（通过 Executor + Future 控制超时）
+            Callable<Object> task = () -> {
+                GroovyShell shell = new GroovyShell(FunctionNode.class.getClassLoader(), binding);
+                return shell.evaluate(scriptText); // 执行脚本
+            };
+
             long scriptStartTime = System.currentTimeMillis();
-            Object resultObj = shell.evaluate(scriptText); // 执行脚本
+            future = executor.submit(task);
+
+            Object resultObj;
+            try {
+                // 设置超时时间
+                resultObj = future.get(OUT_TIME , TimeUnit.HOURS);
+            } catch (TimeoutException te) {
+                // 取消任务并记录超时日志
+                future.cancel(true);
+                String msg = "Groovy脚本执行超时（>"+OUT_TIME+"小时）";
+                try {
+                    nodeLogService.append(NodeLog.of(
+                            taskId,
+                            stepId,
+                            stepName,
+                            "ERROR",
+                            msg,
+                            Map.of("phase", "script.timeout")
+                    ));
+                } catch (Exception ignore) {
+                    log.warn("记录 script.timeout 日志失败: {}", ignore.getMessage());
+                }
+                throw new RuntimeException(msg, te);
+            }
             long durationMs = System.currentTimeMillis() - scriptStartTime;
 
             // 9. 记录脚本执行详情日志
@@ -340,6 +381,16 @@ public class FunctionNode extends AbstractFlowNode {
             throw new RuntimeException("脚本执行失败: " + e.getMessage(), e);
 
         } finally {
+            // 尝试平滑关闭 executor（若未关闭）
+            try {
+                if (future != null && !future.isDone()) {
+                    future.cancel(true);
+                }
+                executor.shutdownNow();
+                executor.awaitTermination(5, TimeUnit.SECONDS);
+            } catch (Exception ignore) {
+                log.debug("关闭脚本执行线程池失败: {}", ignore.getMessage());
+            }
 
             // 关闭所有已绑定且未关闭的数据源
             for (DruidDataSource dataSource : dataSourcesToClose) {
@@ -352,33 +403,42 @@ public class FunctionNode extends AbstractFlowNode {
                                 stepName,
                                 "DEBUG",
                                 "数据源已关闭",
-                                Map.of("dsId", dataSource.getName()) // 假设数据源名称可通过getName()获取
+                                Map.of("dsId", dataSource.getName())
                         ));
                     }
                 } catch (Exception e) {
                     log.warn("关闭数据源失败: {}", e.getMessage());
-                    nodeLogService.append(NodeLog.of(
-                            taskId,
-                            stepId,
-                            stepName,
-                            "WARN",
-                            "关闭数据源失败",
-                            Map.of(
-                                    "dsId", dataSource.getName(),
-                                    "exception", e.getMessage()
-                            )
-                    ));
+                    try {
+                        nodeLogService.append(NodeLog.of(
+                                taskId,
+                                stepId,
+                                stepName,
+                                "WARN",
+                                "关闭数据源失败",
+                                Map.of(
+                                        "dsId", dataSource.getName(),
+                                        "exception", e.getMessage()
+                                )
+                        ));
+                    } catch (Exception ignore) {
+                        // ignore
+                    }
                 }
             }
 
-            nodeLogService.append(NodeLog.of(
-                    taskId,
-                    stepId,
-                    stepName,
-                    "DEBUG",
-                    "脚本完整输出（含错误）",
-                    Map.of()
-            ));
+            try {
+                nodeLogService.append(NodeLog.of(
+                        taskId,
+                        stepId,
+                        stepName,
+                        "DEBUG",
+                        "脚本完整输出（含错误）",
+                        Map.of()
+                ));
+            } catch (Exception ignore) {
+                log.debug("记录脚本完整输出日志失败: {}", ignore.getMessage());
+            }
         }
     }
+
 }
