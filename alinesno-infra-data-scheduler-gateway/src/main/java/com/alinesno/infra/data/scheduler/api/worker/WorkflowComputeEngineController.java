@@ -52,12 +52,11 @@ public class WorkflowComputeEngineController  {
 
     // 添加到原有的 ComputeEngineController
     @GetMapping("/probeHealth")
-    public AjaxResult probeHealth(
+    public R<ProbeResultDto> probeHealth(
             @RequestParam("engineAddress") String engineAddress,
-            @RequestParam(value = "adminUser", required = false) String adminUser) {
+            @RequestParam(value = "apiToken", required = true) String apiToken) {
 
-        R<ProbeResultDto> result = service.probeEngineHealth(engineAddress, adminUser);
-        return AjaxResult.success(result.getData());
+        return service.probeEngineHealth(engineAddress, apiToken);
     }
 
 }
