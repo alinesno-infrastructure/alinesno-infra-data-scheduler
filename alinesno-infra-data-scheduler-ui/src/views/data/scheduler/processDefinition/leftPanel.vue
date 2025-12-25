@@ -46,7 +46,7 @@
 
                <el-table-column align="center" width="40" key="icon">
                   <template #default="scope">
-                     <div style="font-size:20px;color:#3b5998">
+                     <div style="font-size:20px;color:#015bd4">
                         <i :class="scope.row.icon"></i>
                      </div>
                   </template>
