@@ -420,7 +420,7 @@ onUnmounted(() => clearLoggerInterval());
     background-color: #272822;
     color: #f8f8f2;
     padding: 10px;
-    border-radius: 4px;
+    border-radius: 10px;
     overflow: auto;
     height: calc(100vh - 90px);
     font-size: 13px;
