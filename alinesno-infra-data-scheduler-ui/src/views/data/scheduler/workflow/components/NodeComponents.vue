@@ -354,7 +354,7 @@ defineExpose({ clickNode });
     width: 600px;
     background: #ffffff;
     padding-bottom: 20px;
-    border-radius: 5px;
+    border-radius: 15px;
     box-shadow: var(--el-box-shadow-light);
     bottom: 90px;
     left: 250px;
@@ -367,6 +367,7 @@ defineExpose({ clickNode });
         display: flex;
         justify-content: space-between;
         align-items: center;
+        border-radius: 15px 15px 0px 0px;
     }
 
     .node-components-icon {
