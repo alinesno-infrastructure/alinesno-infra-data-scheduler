@@ -1,7 +1,7 @@
 @import "./variables.module.scss";
 
 $chartWidth: 150px;
-$chartColor: #3b5998;
+$chartColor: #015bd4;
 
 .top-headers {
   height: $base-topheader-height;
@@ -43,7 +43,7 @@ $chartColor: #3b5998;
       display: inline-block;
       white-space: nowrap;
       color: var(--cb-color-button-brand-primary-text, #fff);
-      border-color: #3b5998;
+      border-color: #015bd4;
       cursor: pointer;
 
       img {
@@ -176,7 +176,7 @@ $chartColor: #3b5998;
   .panel-header {
     background-color: #fafafa;
     padding: 16px 20px;
-    border-bottom: 1px solid #eaeded;
+    border-bottom: 0px solid #eaeded;
 
     .header-title {
       font-size: 17px;
@@ -194,7 +194,7 @@ $chartColor: #3b5998;
 
     .footer-link {
       font-size: 13px;
-      color: #3b5998;
+      color: #015bd4;
       font-weight: 500;
     }
   }
@@ -205,6 +205,7 @@ $chartColor: #3b5998;
 
   .panel-body {
     float: left;
+    border-radius: 10px;
     width: 100%;
     height: 310px;
     background: white;
@@ -252,7 +253,7 @@ $chartColor: #3b5998;
           padding: 10px 0px;
 
           .item-text-main-title {
-            color: #3b5998;
+            color: #015bd4;
             font-weight: 550;
           }
 
@@ -269,7 +270,7 @@ $chartColor: #3b5998;
     float: left;
     width: 100%;
     background-color: #f5f5f5;
-    border-radius: 10px;
+    border-radius: 15px;
     padding: 10px;
 
     .item-health-title {
@@ -300,7 +301,7 @@ $chartColor: #3b5998;
     .app-icon {
       float: left;
       margin-top: 7px;
-      color: #3b5998;
+      color: #015bd4;
 
       img {
         border-radius: 3px;
@@ -321,7 +322,7 @@ $chartColor: #3b5998;
         .app-item-title {
           font-size: 15px;
           font-weight: 500;
-          // color: #3b5998;
+          // color: #015bd4;
         }
 
         .app-item.desc {
@@ -342,7 +343,7 @@ $chartColor: #3b5998;
       float: left;
       width: 20px;
       font-size: 20px;
-      color: #3b5998;
+      color: #015bd4;
       margin-right: 10px;
       margin-top: 5px;
     }
@@ -427,7 +428,7 @@ $chartColor: #3b5998;
     height: calc($chartWidth - 18px);
     background: #fff !important;
     border-radius: 70% 60% 60% 60%;
-    color: #3b5998;
+    color: #015bd4;
   }
 
   .circle-wave-bg {
@@ -516,8 +517,8 @@ $chartColor: #3b5998;
         max-width: 90%;
 
         .select {
-          border-bottom: 3px solid #3b5998 !important;
-          color: #3b5998;
+          border-bottom: 3px solid #015bd4 !important;
+          color: #015bd4;
         }
 
         .grid-tab {
@@ -580,7 +581,7 @@ $chartColor: #3b5998;
   margin-right: 20px;
   font-weight: 500;
   font-size: 15px;
-  color: #3b5998;
+  color: #015bd4;
 
   .sign-number {
     font-weight: 550;
@@ -615,7 +616,7 @@ $chartColor: #3b5998;
     .count-box-item-number {
       font-size: 20px;
       font-weight: 550;
-      color: #3b5998;
+      color: #015bd4;
     }
   }
 }
@@ -802,7 +803,7 @@ $chartColor: #3b5998;
       background-color: #fafafa;
       padding: 45px 30px 35px 30px;
       transition: all 1s;
-      border-radius: 8px;
+      border-radius: 15px;
       position: relative;
       text-align: center;
       height: 480px;
@@ -965,7 +966,7 @@ $chartColor: #3b5998;
 
     .componet-add-plugins {
       float: right;
-      color: #3b5998;
+      color: #015bd4;
       font-size: 14px;
       font-weight: 550;
     }
@@ -973,7 +974,7 @@ $chartColor: #3b5998;
 
   .server-desc {
     font-size: 1.8rem;
-    color: #3b5998;
+    color: #015bd4;
     height: 30px;
     width: 30px;
     margin: auto;
@@ -985,7 +986,7 @@ $chartColor: #3b5998;
   }
 
   .table-item-title {
-    color: #3b5998;
+    color: #015bd4;
     font-size: 14px;
     font-weight: 550;
   }
@@ -1160,7 +1161,7 @@ $chartColor: #3b5998;
     }
 
     .fm-button {
-      background-color: #3b5998;
+      background-color: #015bd4;
       background-image: none;
       border: none;
       font-size: 14px;
@@ -1171,7 +1172,7 @@ $chartColor: #3b5998;
       padding: 0 30px;
       line-height: 36px;
       border-radius: 3px;
-      box-shadow: 0 1px 1px #3b5998;
+      box-shadow: 0 1px 1px #015bd4;
       zoom: 100%;
     }
 
@@ -1383,7 +1384,7 @@ $chartColor: #3b5998;
     }
 
     .panel-title {
-      // color: #3b5998;
+      // color: #015bd4;
       font-weight: normal;
       font-size: 1rem;
       height: 28px;
@@ -1423,5 +1424,5 @@ $chartColor: #3b5998;
 
 .role-icon {
     font-size: 20px;
-    color: #3b5998;
+    color: #015bd4;
 }
