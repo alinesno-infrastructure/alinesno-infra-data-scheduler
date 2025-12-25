@@ -106,7 +106,7 @@ const codeEditorRef = ref(null)
 const node = ref({})
 const visible = ref(false)
 const headerStyle = ref({
-    'background-color': '#3b5998',
+    'background-color': '#015bd4',
     'border-radius': '0px 0px 0 0',
 })
 
