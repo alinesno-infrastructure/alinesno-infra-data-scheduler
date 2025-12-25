@@ -1,10 +1,12 @@
 package com.alinesno.infra.data.scheduler.adapter;
 
 import com.alinesno.infra.common.facade.response.R;
+import com.alinesno.infra.data.scheduler.adapter.dto.FileAttachmentDto;
 import com.dtflys.forest.annotation.*;
 import com.dtflys.forest.callback.OnProgress;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * 云文件存储上传
@@ -33,4 +35,16 @@ public interface CloudStorageConsumer {
     @Get(url = "/api/base/storage/download")
     byte[] download(@Query("storageId") String storageId, OnProgress onProgress);
 
+    /**
+     * 获取预览地址
+     */
+    R<String> getPreviewUrl(String storageId) ;
+
+    /**
+     * 获取文件列表
+     *
+     * @param fileIds 文件ID列表，以逗号分隔
+     * @return 返回文件列表的列表形式
+     */
+    List<FileAttachmentDto> list(List<Long> fileIds) ;
 }
