@@ -98,4 +98,8 @@ const activeIndex = computed(() => route.query.fileType ? String(route.query.fil
     height: calc(100vh - 161px);
   }
 }
+
+:deep(.el-menu-item){
+ padding-left: 10px !important;
+}
 </style>
