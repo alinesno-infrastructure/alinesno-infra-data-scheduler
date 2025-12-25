@@ -66,7 +66,7 @@ const codeEditorRef = ref(null)
 const node = ref({})
 const visible = ref(false)
 const headerStyle = ref({
-    'background-image': 'linear-gradient(90deg, #268bfb -16.37%, #33e1ae 137.34%), linear-gradient(#0084FF, #3b5998)',
+    'background-image': 'linear-gradient(90deg, #268bfb -16.37%, #33e1ae 137.34%), linear-gradient(#0084FF, #015bd4)',
     'border-radius': '0px 0px 0 0',
 })
 
