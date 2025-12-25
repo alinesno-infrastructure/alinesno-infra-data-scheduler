@@ -87,7 +87,7 @@ const { proxy } = getCurrentInstance();
 const node = ref({})
 const visible = ref(false)
 const headerStyle = ref({
-    'background-image': 'linear-gradient(90deg, #ff9313, #faab4b), linear-gradient(#3b5998, #3b5998)',
+    'background-image': 'linear-gradient(90deg, #ff9313, #faab4b), linear-gradient(#015bd4, #015bd4)',
     'border-radius': '0px 0px 0 0',
 })
 
