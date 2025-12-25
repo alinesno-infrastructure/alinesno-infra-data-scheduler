@@ -10,7 +10,7 @@
             <div class="acp-app-list">
               <ul>
                 <li class="app-items" v-for="(item , index) in apps" :key="index" 
-                  style="width:calc(25% - 10px);display: flex;border-radius: 6px;" 
+                  style="width:calc(25% - 10px);display: flex;border-radius: 15px;"
                   @click="handleClick(item)">
                   <div class="app-icon">
                     <i :class="item.icon" style="font-size: 20px" />
