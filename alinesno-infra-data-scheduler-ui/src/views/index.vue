@@ -69,7 +69,7 @@ export default {
     float: left;
     font-size: 40px ;
     margin-right: 10px;
-    color: #3b5998;
+    color: #015bd4;
   }
 
   .head-app-status{
@@ -108,7 +108,7 @@ export default {
     margin-left: 10px;
     font-weight: bold;
     margin-top: 10px;
-    color: #3b5998;
+    color: #015bd4;
 
     span {
       margin-left: 20px;
