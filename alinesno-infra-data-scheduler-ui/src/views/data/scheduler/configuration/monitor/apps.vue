@@ -179,11 +179,11 @@ onUnmounted(() => {
 
     .server-desc {
       font-size: 1.6rem;
-      color: #3b5998 ; 
+      color: #015bd4 ;
     }
 
     .active {
-      background: #3b5998 !important;
+      background: #015bd4 !important;
       color: #fff !important;
 
       .server-desc {
