@@ -1,8 +1,32 @@
 // cover some element-ui styles
+.el-card {
+    --el-card-border-radius: 15px !important;
+}
+
+.el-input {
+  --el-input-border-radius: 15px !important; /* 改为你想要的值，例如 4px / 8px / 0 等 */
+}
 
 .el-breadcrumb__inner,
 .el-breadcrumb__inner a {
   font-weight: 400 !important;
+}
+
+.el-input-number__decrease {
+   border-radius: 15px 0 0 15px !important;
+}
+
+.el-input-number__increase {
+   border-radius: 0 15px 15px 0 !important;
+}
+
+
+.el-select__wrapper , .el-textarea__inner{
+    border-radius: 15px !important;
+}
+
+.el-transfer{
+  --el-transfer-panel-body-height: 500px !important;
 }
 
 .el-upload {
