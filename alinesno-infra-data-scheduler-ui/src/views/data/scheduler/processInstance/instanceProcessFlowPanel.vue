@@ -306,7 +306,7 @@ defineExpose({
     justify-content: space-between;
     background: #fafafa;
     padding: 12px;
-    border-radius: 6px;
+    border-radius: 15px;
     gap: 2px;
     flex-direction: column;
 
