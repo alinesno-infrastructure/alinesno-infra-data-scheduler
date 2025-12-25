@@ -65,7 +65,7 @@
 
                <el-table-column align="center" width="60" key="icon" label="状态">
                   <template #default="scope">
-                     <div style="font-size:20px;color:#3b5998">
+                     <div style="font-size:20px;color:#015bd4">
                         <el-button type="primary" size="small" circle>
                             <i class="fa-solid fa-signature"></i>
                         </el-button>
@@ -76,7 +76,7 @@
                <!-- 业务字段-->
                <el-table-column label="任务名称" align="left" key="name" prop="name" v-if="columns[0].visible">
                   <template #default="scope">
-                     <div @click="openProcessInstance(scope.row)" style="cursor: pointer;color: #3b5998;">
+                     <div @click="openProcessInstance(scope.row)" style="cursor: pointer;color: #015bd4;">
                         {{ scope.row.name }}
                      </div>
                      <div style="font-size: 13px;color: #a5a5a5;cursor: pointer;" class="text-overflow"
